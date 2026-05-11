@@ -13,6 +13,8 @@ import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
 import { paintingFileBase } from './identifiers';
 import { base64ToUint8 } from '../util/base64';
+import { buildBackTexturePng, BACK_TEXTURE_FILENAME } from './back_texture';
+import { buildBackRenderController } from './back_render_controller';
 
 export type Textures = { texture: Uint8Array; eggTexture: Uint8Array };
 
@@ -23,6 +25,7 @@ function json(obj: unknown): Uint8Array {
 export async function assembleArchive(
   state: ProjectState,
   textures: Map<string, Textures>,
+  backTexture: Uint8Array,
 ): Promise<Uint8Array> {
   const ns = state.pack.namespace;
   const bp = `BP_${ns}/`;
@@ -61,6 +64,10 @@ export async function assembleArchive(
       files[`${rp}textures/items/${fb}_egg.png`] = tx.eggTexture;
     }
   }
+
+  // Pack-shared back texture + render controller
+  files[`${rp}textures/entity/${BACK_TEXTURE_FILENAME}.png`] = backTexture;
+  files[`${rp}render_controllers/${BACK_TEXTURE_FILENAME}.rc.json`] = json(buildBackRenderController());
 
   return zipSync(files);
 }
@@ -112,6 +119,7 @@ export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
     const eggTexture = await rasterizeEgg(p);
     textures.set(p.id, { texture, eggTexture });
   }
-  const bytes = await assembleArchive(ready, textures);
+  const backTexture = await buildBackTexturePng();
+  const bytes = await assembleArchive(ready, textures, backTexture);
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }

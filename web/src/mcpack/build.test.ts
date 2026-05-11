@@ -11,7 +11,7 @@ describe('assembleArchive', () => {
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const zipped = await assembleArchive(proj, new Map([
       [p.id, { texture: png, eggTexture: png }],
-    ]));
+    ]), png);
     const entries = unzipSync(zipped);
     const names = Object.keys(entries);
     expect(names.some((n) => n.startsWith('BP_paintings/manifest.json'))).toBe(true);
@@ -22,6 +22,8 @@ describe('assembleArchive', () => {
     expect(names.some((n) => n.includes('textures/entity/'))).toBe(true);
     expect(names.some((n) => n.includes('textures/items/'))).toBe(true);
     expect(names.some((n) => n.endsWith('texts/en_US.lang'))).toBe(true);
+    expect(names.some((n) => n.endsWith('textures/entity/painting_back.png'))).toBe(true);
+    expect(names.some((n) => n.endsWith('render_controllers/painting_back.rc.json'))).toBe(true);
     for (const [name, bytes] of Object.entries(entries)) {
       if (name.endsWith('.json')) {
         expect(() => JSON.parse(strFromU8(bytes))).not.toThrow();
