@@ -32,13 +32,29 @@
 
   async function refresh() {
     if (!stage || !painting) return;
+    // Keep stage size synced with its host (handles window resize between refreshes).
+    stage.size({ width: host.clientWidth, height: host.clientHeight });
     bgLayer.destroyChildren();
     imageLayer.destroyChildren();
     gridLayer.destroyChildren();
     drawCheckerboard();
     await drawImage();
     drawGrid();
+    centerAndConfigurePan();
     bgLayer.draw(); imageLayer.draw(); gridLayer.draw();
+  }
+
+  function centerAndConfigurePan() {
+    if (!stage || !painting) return;
+    const canvasW = painting.canvasW16 * pps;
+    const canvasH = painting.canvasH16 * pps;
+    const hostW = stage.width();
+    const hostH = stage.height();
+    // Center the canvas content inside the host. Stage position offsets all layers.
+    stage.position({ x: (hostW - canvasW) / 2, y: (hostH - canvasH) / 2 });
+    // Only allow panning when content exceeds the visible area on either axis.
+    const overflows = canvasW > hostW || canvasH > hostH;
+    stage.draggable(overflows);
   }
 
   function drawCheckerboard() {
@@ -46,12 +62,12 @@
     const W = painting.canvasW16 * pps;
     const H = painting.canvasH16 * pps;
     const cell = pps;
-    bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: W, height: H, fill: '#f0f0f0' }));
+    bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: W, height: H, fill: '#f0f0f0', listening: false }));
     for (let y = 0; y < painting.canvasH16; y++) {
       for (let x = 0; x < painting.canvasW16; x++) {
         if ((x + y) % 2 === 0) {
           bgLayer.add(new Konva.Rect({
-            x: x * cell, y: y * cell, width: cell, height: cell, fill: '#e0e0e0',
+            x: x * cell, y: y * cell, width: cell, height: cell, fill: '#e0e0e0', listening: false,
           }));
         }
       }
@@ -107,26 +123,26 @@
       for (let i = 0; i <= painting.canvasW16; i++) {
         gridLayer.add(new Konva.Line({
           points: [i * pps, 0, i * pps, H],
-          stroke: '#0001', strokeWidth: 1,
+          stroke: '#0001', strokeWidth: 1, listening: false,
         }));
       }
       for (let i = 0; i <= painting.canvasH16; i++) {
         gridLayer.add(new Konva.Line({
           points: [0, i * pps, W, i * pps],
-          stroke: '#0001', strokeWidth: 1,
+          stroke: '#0001', strokeWidth: 1, listening: false,
         }));
       }
     }
     for (let i = 0; i <= painting.canvasW16 / 16; i++) {
       gridLayer.add(new Konva.Line({
         points: [i * 16 * pps, 0, i * 16 * pps, H],
-        stroke: '#000a', strokeWidth: 2,
+        stroke: '#000a', strokeWidth: 2, listening: false,
       }));
     }
     for (let i = 0; i <= painting.canvasH16 / 16; i++) {
       gridLayer.add(new Konva.Line({
         points: [0, i * 16 * pps, W, i * 16 * pps],
-        stroke: '#000a', strokeWidth: 2,
+        stroke: '#000a', strokeWidth: 2, listening: false,
       }));
     }
   }
