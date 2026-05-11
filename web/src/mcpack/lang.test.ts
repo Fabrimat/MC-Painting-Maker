@@ -18,15 +18,28 @@ describe('lang', () => {
     expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
   });
 
-  it('builds the RP lang with entity name keys', () => {
+  it('builds the RP lang with entity name + both spawn egg name forms', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('Sunset', {
       pngBase64: '', naturalW: 100, naturalH: 100,
     });
     proj.paintings.push(p);
     const lang = buildRpLang(proj);
-    const expected = `entity.paintings:${paintingFileBase(p.id)}.name=Sunset`;
-    expect(lang).toContain(expected);
+    // Entity name (mob name)
+    expect(lang).toContain(`entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
+    // Spawn egg names — duplicated into RP lang because vanilla Bedrock resolves item
+    // display names from the resource pack, not the behavior pack.
+    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
+    expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
+    // Creative group name — duplicated so that anything reading from the RP also finds it.
+    expect(lang).toContain('itemGroup.name.paintings:paintings=Custom Paintings');
+  });
+
+  it('BP and RP lang files contain the same keys (duplication for safety)', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    expect(buildBpLang(proj)).toBe(buildRpLang(proj));
   });
 
   it('emits pack.name and pack.description in the BP lang for the manifest placeholders', () => {
