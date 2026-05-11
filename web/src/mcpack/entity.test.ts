@@ -45,5 +45,16 @@ describe('buildEntityBehavior', () => {
     const j = buildEntityBehavior(proj, p);
     const fam = (j['minecraft:entity'].components as any)['minecraft:type_family'].family;
     expect(fam).toContain('paintings_painting');
+    expect(fam).toContain('inanimate');
+  });
+
+  it('clamps hitbox height to 1/16 minimum for zero-height paintings', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('E', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    p.canvasW16 = 16; p.canvasH16 = 0;
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const hb = (j['minecraft:entity'].components as any)['minecraft:custom_hit_test'].hitboxes[0];
+    expect(hb.height).toBeCloseTo(1 / 16);
   });
 });
