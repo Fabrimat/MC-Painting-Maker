@@ -14,5 +14,6 @@ describe('ui store', () => {
     activeTab.set('properties');
     expect(get(activeTab)).toBe('properties');
     activeTab.set('paintings');
+    expect(get(activeTab)).toBe('paintings');
   });
 });
