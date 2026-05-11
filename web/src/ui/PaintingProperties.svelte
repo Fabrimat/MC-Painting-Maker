@@ -94,7 +94,8 @@
           on:click={() => patch({ material: 'alphablend' })}>Blended</button>
       </span>
       <p class="field-hint" style="margin-top: var(--space-2)">
-        Cutout = sharp edges (best for pixel art). Blended = soft, translucent edges.
+        Cutout: pixels are either fully visible or fully invisible — fits most images.
+        Blended: supports partial transparency throughout the texture (glass, gradients, smoky effects).
       </p>
     </section>
   </aside>

@@ -165,8 +165,8 @@ Visible copy changes only — the underlying schema values stay the same.
 |---|---|---|---|
 | `resampling: 'smooth'` | "smooth" | **Smooth** | (no hint, paired with Pixel art) |
 | `resampling: 'pixelated'` | "pixelated" | **Pixel art** | — |
-| `material: 'alphatest'` | "alphatest" | **Cutout** | "Cutout = sharp edges (best for pixel art)." |
-| `material: 'alphablend'` | "alphablend" | **Blended** | "Blended = soft edges, smooth transparency." |
+| `material: 'alphatest'` | "alphatest" | **Cutout** | "Pixels are either fully visible or fully invisible — fits most images." |
+| `material: 'alphablend'` | "alphablend" | **Blended** | "Supports partial transparency throughout the texture (glass, gradients, smoky effects)." |
 | `textureDensity: 'auto'` | "auto (4×)" | **Auto · 4×** | (same idea, formatted) |
 | Canvas W / H | "W" / "H" | **Width / Height** | Suffix "blocks" inside the field |
 | Texture px info | "Texture: 128×192 px" | inline as a field suffix next to Resolution |
