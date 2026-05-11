@@ -77,7 +77,7 @@
   async function drawImage() {
     if (!painting?.source) return;
     const img = new Image();
-    img.src = painting.source.pngBase64;
+    img.src = `data:image/png;base64,${painting.source.pngBase64}`;
     await new Promise<void>((r, e) => { img.onload = () => r(); img.onerror = () => e(new Error('image load')); });
     imageNode = new Konva.Image({
       image: img,
