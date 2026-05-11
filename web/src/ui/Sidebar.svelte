@@ -48,9 +48,22 @@
 <ul>
   {#each $project.paintings as p (p.id)}
     <li class:selected={selectedId === p.id}>
-      <button on:click={() => (selectedId = p.id)}>
-        {p.name || '(untitled)'} — {(p.canvasW16/16).toFixed(2)}×{(p.canvasH16/16).toFixed(2)}
+      <button class="thumb" on:click={() => (selectedId = p.id)} aria-label="Select painting">
+        {#if p.source}
+          <img src={`data:image/png;base64,${p.source.pngBase64}`} alt="" />
+        {:else}
+          <span class="ph">?</span>
+        {/if}
       </button>
+      <div class="meta">
+        <input
+          type="text"
+          placeholder="Name"
+          bind:value={p.name}
+          on:input={() => project.update((v) => v)}
+        />
+        <small>{(p.canvasW16/16).toFixed(2)}×{(p.canvasH16/16).toFixed(2)}</small>
+      </div>
       <button class="del" on:click={() => remove(p.id)} title="Delete">✕</button>
     </li>
   {/each}
@@ -61,9 +74,22 @@
 
 <style>
   ul { list-style: none; padding: 0; margin: 0.5rem 0; }
-  li { display: flex; gap: 4px; }
-  li button { flex: 1; text-align: left; }
-  li.selected button { background: #ddebff; }
+  li {
+    display: flex; align-items: center; gap: 4px;
+    padding: 2px; margin-bottom: 2px;
+    border-radius: 4px;
+  }
+  li.selected { background: #ddebff; }
+  .thumb {
+    flex: 0 0 auto; width: 28px; height: 28px;
+    padding: 0; border: 1px solid #ccc; background: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+  .thumb .ph { color: #aaa; font-size: 0.8rem; }
+  .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .meta input { width: 100%; box-sizing: border-box; font-size: 0.85rem; }
+  .meta small { color: #888; font-size: 0.7rem; }
   .del { flex: 0 0 auto; }
   .empty { color: #777; font-size: 0.9rem; }
 </style>
