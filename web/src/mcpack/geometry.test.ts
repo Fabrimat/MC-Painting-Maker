@@ -15,7 +15,7 @@ describe('buildGeometry', () => {
     expect(desc.texture_height).toBe(48);
   });
 
-  it('emits front and back bones with mutually exclusive face UVs', () => {
+  it('front bone activates only the north face; back bone activates only the south face', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     p.canvasW16 = 40; p.canvasH16 = 48;
@@ -23,23 +23,28 @@ describe('buildGeometry', () => {
     const j = buildGeometry(p);
     const bones: any = j['minecraft:geometry'][0].bones;
     expect(bones.map((b: any) => b.name)).toEqual(['root', 'front', 'back']);
-    expect(bones[1].cubes[0].uv.north).toEqual({ uv: [0, 0], uv_size: [40, 48] });
-    expect(bones[1].cubes[0].uv.south).toEqual({ uv: [0, 0], uv_size: [40, 0] });
-    expect(bones[2].cubes[0].uv.north).toEqual({ uv: [0, 0], uv_size: [40, 0] });
+    // Front cube: only north is set. Other faces are absent (not rendered).
+    expect(bones[1].cubes[0].uv).toEqual({ north: { uv: [0, 0], uv_size: [40, 48] } });
+    // Back cube: only south is meaningful; east/west/up/down keep zero-dim placeholders.
     expect(bones[2].cubes[0].uv.south).toEqual({ uv: [0, 0], uv_size: [40, 48] });
+    expect(bones[2].cubes[0].uv.north).toBeUndefined();
+    expect(bones[2].cubes[0].uv.east.uv_size[0]).toBe(0);
+    expect(bones[2].cubes[0].uv.west.uv_size[0]).toBe(0);
+    expect(bones[2].cubes[0].uv.up.uv_size[1]).toBe(0);
+    expect(bones[2].cubes[0].uv.down.uv_size[1]).toBe(0);
   });
 
-  it('both planes sit at z=-7 with zero depth', () => {
+  it('both cubes sit at z=[6, 7] with depth 1 (overlapping volumes, distinct faces)', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     p.canvasW16 = 32; p.canvasH16 = 32;
     proj.paintings.push(p);
     const j = buildGeometry(p);
     const bones: any = j['minecraft:geometry'][0].bones;
-    expect(bones[1].cubes[0].origin).toEqual([-16, 0, -7]);
-    expect(bones[1].cubes[0].size).toEqual([32, 32, 0]);
-    expect(bones[2].cubes[0].origin).toEqual([-16, 0, -7]);
-    expect(bones[2].cubes[0].size).toEqual([32, 32, 0]);
+    expect(bones[1].cubes[0].origin).toEqual([-16, 0, 6]);
+    expect(bones[1].cubes[0].size).toEqual([32, 32, 1]);
+    expect(bones[2].cubes[0].origin).toEqual([-16, 0, 6]);
+    expect(bones[2].cubes[0].size).toEqual([32, 32, 1]);
   });
 
   it('produces a valid identifier matching paintingFileBase', () => {

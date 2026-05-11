@@ -7,26 +7,22 @@ export function buildGeometry(p: Painting) {
   const halfW = W / 2;
   const vbHalf = Math.ceil(Math.max(W, H) / 16) + 1;
 
-  // Both bones share the same UV layout [0, 0]–[W, H] = "full texture". Each render
-  // controller binds a different texture for its bone via part_visibility, so the same
-  // UV samples Texture.default on the front bone and Texture.back on the back bone.
+  // Reference: test_painting.geo.json — two overlapping cubes of depth 1 at z=[6, 7].
+  // The painting cube renders only its north face (front), the frame cube renders only
+  // its south face (back). Each bone is rendered by a different render controller via
+  // part_visibility, so the north face samples Texture.default (painting) and the south
+  // face samples Texture.back (shared wood texture).
   function planeCube(showNorth: boolean) {
     return {
-      origin: [-halfW, 0, -7],
-      size: [W, H, 0],
+      origin: [-halfW, 0, 6],
+      size: [W, H, 1],
       uv: showNorth
         ? {
             north: { uv: [0, 0], uv_size: [W, H] },
-            south: { uv: [0, 0], uv_size: [W, 0] },
-            east:  { uv: [0, 0], uv_size: [0, H] },
-            west:  { uv: [0, 0], uv_size: [0, H] },
-            up:    { uv: [0, 0], uv_size: [W, 0] },
-            down:  { uv: [0, 0], uv_size: [W, 0] },
           }
         : {
-            north: { uv: [0, 0], uv_size: [W, 0] },
-            south: { uv: [0, 0], uv_size: [W, H] },
             east:  { uv: [0, 0], uv_size: [0, H] },
+            south: { uv: [0, 0], uv_size: [W, H] },
             west:  { uv: [0, 0], uv_size: [0, H] },
             up:    { uv: [0, 0], uv_size: [W, 0] },
             down:  { uv: [0, 0], uv_size: [W, 0] },
