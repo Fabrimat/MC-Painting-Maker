@@ -4,7 +4,7 @@ import { buildClientEntity } from './client_entity';
 import { paintingFileBase } from './identifiers';
 
 describe('buildClientEntity', () => {
-  it('maps geometry, texture, render controller, spawn egg', () => {
+  it('maps geometry, textures, render controllers, spawn egg', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
@@ -13,9 +13,14 @@ describe('buildClientEntity', () => {
     const fb = paintingFileBase(p.id);
     expect(d.identifier).toBe(`paintings:${fb}`);
     expect(d.materials.default).toBe('entity_alphatest');
+    expect(d.materials.back).toBe('entity_alphatest');
     expect(d.textures.default).toBe(`textures/entity/${fb}`);
+    expect(d.textures.back).toBe('textures/entity/painting_back');
     expect(d.geometry.default).toBe(`geometry.${fb}`);
-    expect(d.render_controllers).toEqual([`controller.render.${fb}`]);
+    expect(d.render_controllers).toEqual([
+      `controller.render.${fb}`,
+      'controller.render.painting_back',
+    ]);
     expect(d.spawn_egg.texture).toBe(`${fb}_egg`);
     expect(d.spawn_egg.texture_index).toBe(0);
   });
@@ -27,5 +32,6 @@ describe('buildClientEntity', () => {
     proj.paintings.push(p);
     const j = buildClientEntity(proj, p);
     expect(j['minecraft:client_entity'].description.materials.default).toBe('entity_alphablend');
+    expect(j['minecraft:client_entity'].description.materials.back).toBe('entity_alphablend');
   });
 });
