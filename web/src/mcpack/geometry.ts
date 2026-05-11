@@ -8,10 +8,11 @@ export function buildGeometry(p: Painting) {
   const vbHalf = Math.ceil(Math.max(W, H) / 16) + 1;
 
   // Reference: test_painting.geo.json — two overlapping cubes of depth 1 at z=[6, 7].
-  // The painting cube renders only its north face (front), the frame cube renders only
-  // its south face (back). Each bone is rendered by a different render controller via
-  // part_visibility, so the north face samples Texture.default (painting) and the south
-  // face samples Texture.back (shared wood texture).
+  // The painting cube renders only its north face (front, painting texture).
+  // The frame cube renders south + the four side faces (back + outer frame, wood
+  // texture). Side faces sample the OUTER EDGE of the shared back texture — which is
+  // designed to look like a beveled wooden frame edge — so the painting appears as a
+  // real framed picture when viewed from any angle except straight-on.
   function planeCube(showNorth: boolean) {
     return {
       origin: [-halfW, 0, 6],
@@ -21,11 +22,11 @@ export function buildGeometry(p: Painting) {
             north: { uv: [0, 0], uv_size: [W, H] },
           }
         : {
-            east:  { uv: [0, 0], uv_size: [0, H] },
+            east:  { uv: [0, 0], uv_size: [1, H] },
             south: { uv: [0, 0], uv_size: [W, H] },
-            west:  { uv: [0, 0], uv_size: [0, H] },
-            up:    { uv: [0, 0], uv_size: [W, 0] },
-            down:  { uv: [0, 0], uv_size: [W, 0] },
+            west:  { uv: [0, 0], uv_size: [1, H] },
+            up:    { uv: [0, 0], uv_size: [W, 1] },
+            down:  { uv: [0, 0], uv_size: [W, 1] },
           },
     };
   }

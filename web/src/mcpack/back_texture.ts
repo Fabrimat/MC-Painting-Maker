@@ -1,26 +1,65 @@
-// Renders a procedural "wood plank" back texture once per pack. The same texture is
+// Renders a procedural wooden-frame back texture once per pack. The same texture is
 // referenced by every painting in the resource pack via a shared render controller.
+//
+// Layout (when looking straight at the 64×64 texture):
+//   ┌────────────────────────────────────┐
+//   │  dark beveled outer frame edge      │  ← sampled by side faces (east/west/up/down)
+//   │ ┌──────────────────────────────┐  │
+//   │ │  inner lighter wood back panel │  │  ← sampled by south face
+//   │ │  with thin plank seams         │  │
+//   │ │                                │  │
+//   │ └──────────────────────────────┘  │
+//   │                                    │
+//   └────────────────────────────────────┘
+//
+// The side faces (east/west/up/down) of the back cube sample only the OUTER edge slice
+// of this texture, so they end up showing the dark frame edge — making the painting
+// look like a properly framed picture from oblique angles.
 
 const BACK_W = 64;
 const BACK_H = 64;
+const FRAME_THICKNESS = 8;
+
+const COLOR_FRAME_OUTER = '#2b1f12';   // very dark wood: outermost bevel
+const COLOR_FRAME = '#4a3520';         // dark wood: main frame body
+const COLOR_FRAME_HIGHLIGHT = '#7a5a36'; // lighter bevel at the inner edge of the frame
+const COLOR_BACK_PANEL = '#6e4f30';    // medium wood: back panel
+const COLOR_PLANK_SEAM = '#3d2c1a';    // darker wood: plank lines on the back panel
 
 type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 function paint(ctx: Ctx2D, w: number, h: number): void {
-  ctx.fillStyle = '#6e4f30';
+  // Outermost bevel — 1px dark line around the very edge
+  ctx.fillStyle = COLOR_FRAME_OUTER;
   ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#3d2c1a';
-  // Horizontal plank seams every 1/4 of the texture height
-  const rows = 4;
-  for (let i = 1; i < rows; i++) {
-    const y = Math.round((h * i) / rows);
-    ctx.fillRect(0, y, w, 1);
+
+  // Main frame body
+  ctx.fillStyle = COLOR_FRAME;
+  ctx.fillRect(1, 1, w - 2, h - 2);
+
+  // Inner bevel highlight — 1px lighter line where the frame meets the back panel
+  const innerX = FRAME_THICKNESS - 1;
+  const innerY = FRAME_THICKNESS - 1;
+  const innerW = w - 2 * innerX;
+  const innerH = h - 2 * innerY;
+  ctx.fillStyle = COLOR_FRAME_HIGHLIGHT;
+  ctx.fillRect(innerX, innerY, innerW, innerH);
+
+  // Back panel (interior) — fills inside the bevel highlight
+  ctx.fillStyle = COLOR_BACK_PANEL;
+  ctx.fillRect(FRAME_THICKNESS, FRAME_THICKNESS, w - 2 * FRAME_THICKNESS, h - 2 * FRAME_THICKNESS);
+
+  // Plank seams on the back panel
+  ctx.fillStyle = COLOR_PLANK_SEAM;
+  const panelTop = FRAME_THICKNESS;
+  const panelHeight = h - 2 * FRAME_THICKNESS;
+  const panelLeft = FRAME_THICKNESS;
+  const panelWidth = w - 2 * FRAME_THICKNESS;
+  const planks = 3;
+  for (let i = 1; i < planks; i++) {
+    const y = panelTop + Math.round((panelHeight * i) / planks);
+    ctx.fillRect(panelLeft, y, panelWidth, 1);
   }
-  // Thin frame border
-  ctx.fillRect(0, 0, w, 1);
-  ctx.fillRect(0, h - 1, w, 1);
-  ctx.fillRect(0, 0, 1, h);
-  ctx.fillRect(w - 1, 0, 1, h);
 }
 
 export async function buildBackTexturePng(): Promise<Uint8Array> {
