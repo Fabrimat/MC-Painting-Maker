@@ -2,8 +2,6 @@
   import { onMount, onDestroy } from 'svelte';
   import Konva from 'konva';
   import { project } from '../stores/project';
-  import type { Painting, Density } from '../paintings/types';
-  import { resolveDensity } from '../paintings/density';
 
   export let id: string;
 
@@ -16,7 +14,6 @@
 
   $: painting = $project.paintings.find((p) => p.id === id) ?? null;
 
-  // Pixels-per-sixteenth in the stage. 12 px per 1/16-block keeps the editor usable for typical sizes.
   let pps = 12;
 
   onMount(async () => {
@@ -32,7 +29,6 @@
 
   async function refresh() {
     if (!stage || !painting) return;
-    // Keep stage size synced with its host (handles window resize between refreshes).
     stage.size({ width: host.clientWidth, height: host.clientHeight });
     bgLayer.destroyChildren();
     imageLayer.destroyChildren();
@@ -50,9 +46,7 @@
     const canvasH = painting.canvasH16 * pps;
     const hostW = stage.width();
     const hostH = stage.height();
-    // Center the canvas content inside the host. Stage position offsets all layers.
     stage.position({ x: (hostW - canvasW) / 2, y: (hostH - canvasH) / 2 });
-    // Only allow panning when content exceeds the visible area on either axis.
     const overflows = canvasW > hostW || canvasH > hostH;
     stage.draggable(overflows);
   }
@@ -121,29 +115,17 @@
     const H = painting.canvasH16 * pps;
     if (pps >= 6) {
       for (let i = 0; i <= painting.canvasW16; i++) {
-        gridLayer.add(new Konva.Line({
-          points: [i * pps, 0, i * pps, H],
-          stroke: '#0001', strokeWidth: 1, listening: false,
-        }));
+        gridLayer.add(new Konva.Line({ points: [i * pps, 0, i * pps, H], stroke: '#0001', strokeWidth: 1, listening: false }));
       }
       for (let i = 0; i <= painting.canvasH16; i++) {
-        gridLayer.add(new Konva.Line({
-          points: [0, i * pps, W, i * pps],
-          stroke: '#0001', strokeWidth: 1, listening: false,
-        }));
+        gridLayer.add(new Konva.Line({ points: [0, i * pps, W, i * pps], stroke: '#0001', strokeWidth: 1, listening: false }));
       }
     }
     for (let i = 0; i <= painting.canvasW16 / 16; i++) {
-      gridLayer.add(new Konva.Line({
-        points: [i * 16 * pps, 0, i * 16 * pps, H],
-        stroke: '#000a', strokeWidth: 2, listening: false,
-      }));
+      gridLayer.add(new Konva.Line({ points: [i * 16 * pps, 0, i * 16 * pps, H], stroke: '#000a', strokeWidth: 2, listening: false }));
     }
     for (let i = 0; i <= painting.canvasH16 / 16; i++) {
-      gridLayer.add(new Konva.Line({
-        points: [0, i * 16 * pps, W, i * 16 * pps],
-        stroke: '#000a', strokeWidth: 2, listening: false,
-      }));
+      gridLayer.add(new Konva.Line({ points: [0, i * 16 * pps, W, i * 16 * pps], stroke: '#000a', strokeWidth: 2, listening: false }));
     }
   }
 
@@ -164,84 +146,17 @@
   }
 
   $: if (painting) refresh().catch(console.error);
-  $: density = painting ? resolveDensity(painting) : 1;
-
-  function parseDensity(v: string): Density {
-    if (v === 'auto') return 'auto';
-    const n = Number(v);
-    if ([1,2,4,8,16,32,64].includes(n)) return n as Density;
-    return 'auto';
-  }
-  function updateCanvas(axis: 'W' | 'H', blocks: number) {
-    if (!Number.isFinite(blocks) || blocks <= 0) return;
-    const px16 = Math.max(1, Math.round(blocks * 16));
-    project.update((v) => ({
-      ...v,
-      paintings: v.paintings.map((p) => p.id === id
-        ? { ...p, [axis === 'W' ? 'canvasW16' : 'canvasH16']: px16 }
-        : p),
-    }));
-  }
-  function updatePainting(patch: Partial<Painting>) {
-    project.update((v) => ({
-      ...v,
-      paintings: v.paintings.map((p) => p.id === id ? { ...p, ...patch } : p),
-    }));
-  }
-  function updateResampling(v: string) {
-    updatePainting({ resampling: v === 'pixelated' ? 'pixelated' : 'smooth' });
-  }
-  function updateMaterial(v: string) {
-    updatePainting({ material: v === 'alphablend' ? 'alphablend' : 'alphatest' });
-  }
 </script>
 
-{#if painting}
-  <div class="bar">
-    <label>W
-      <input type="number" step="0.0625" min="0.0625"
-        value={painting.canvasW16 / 16}
-        on:input={(e) => updateCanvas('W', e.currentTarget.valueAsNumber)} />
-    </label>
-    <label>H
-      <input type="number" step="0.0625" min="0.0625"
-        value={painting.canvasH16 / 16}
-        on:input={(e) => updateCanvas('H', e.currentTarget.valueAsNumber)} />
-    </label>
-    <label>Density
-      <select value={painting.textureDensity}
-        on:change={(e) => updatePainting({ textureDensity: parseDensity(e.currentTarget.value) })}>
-        <option value="auto">auto ({density}×)</option>
-        {#each [1,2,4,8,16,32,64] as n}<option value={n}>{n}×</option>{/each}
-      </select>
-    </label>
-    <label>Resampling
-      <select value={painting.resampling}
-        on:change={(e) => updateResampling(e.currentTarget.value)}>
-        <option value="smooth">smooth</option>
-        <option value="pixelated">pixelated</option>
-      </select>
-    </label>
-    <label>Material
-      <select value={painting.material}
-        on:change={(e) => updateMaterial(e.currentTarget.value)}>
-        <option value="alphatest">alphatest</option>
-        <option value="alphablend">alphablend</option>
-      </select>
-    </label>
-    <label>Name
-      <input type="text" bind:value={painting.name} on:change={() => updatePainting({})} />
-    </label>
-    <span class="info">Texture: {painting.canvasW16 * density}×{painting.canvasH16 * density} px</span>
-  </div>
+<div class="canvas-wrap">
   <div class="canvas-host" bind:this={host}></div>
-{:else}
-  <p>Painting not found.</p>
-{/if}
+</div>
 
 <style>
-  .bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
-  .bar label { display: flex; flex-direction: column; font-size: 0.8rem; }
-  .canvas-host { width: 100%; height: calc(100vh - 110px); border: 1px solid #ccc; }
-  .info { align-self: center; color: #555; font-size: 0.85rem; }
+  .canvas-wrap { flex: 1; padding: var(--space-7); background: var(--surface-2); min-height: 0; }
+  .canvas-host {
+    width: 100%; height: 100%;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
 </style>
