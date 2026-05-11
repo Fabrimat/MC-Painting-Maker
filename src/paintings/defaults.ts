@@ -52,10 +52,10 @@ export function createPaintingFromImage(
   let w16: number, h16: number;
   if (ratio >= 1) {
     w16 = maxLong;
-    h16 = Math.max(16, Math.round((maxLong / ratio) / 16) * 16);
+    h16 = Math.max(1, Math.ceil(maxLong / ratio));
   } else {
     h16 = maxLong;
-    w16 = Math.max(16, Math.round((maxLong * ratio) / 16) * 16);
+    w16 = Math.max(1, Math.ceil(maxLong * ratio));
   }
   const id = uuidv4();
   return {

@@ -68,10 +68,22 @@ describe('createPaintingFromImage', () => {
     expect(a.id).not.toBe(b.id);
   });
 
-  it('snaps canvas dimensions to multiples of 16', () => {
+  it('quantizes canvas dimensions to 1/16-block units (positive integers)', () => {
     const p = createPaintingFromImage('t', { pngBase64: '', naturalW: 200, naturalH: 100 });
-    expect(p.canvasW16 % 16).toBe(0);
-    expect(p.canvasH16 % 16).toBe(0);
+    expect(Number.isInteger(p.canvasW16)).toBe(true);
+    expect(Number.isInteger(p.canvasH16)).toBe(true);
+    expect(p.canvasW16).toBeGreaterThan(0);
+    expect(p.canvasH16).toBeGreaterThan(0);
+  });
+
+  it('caps the long side at 64/16 blocks and rounds the short side up to the nearest 1/16', () => {
+    const landscape = createPaintingFromImage('l', { pngBase64: '', naturalW: 200, naturalH: 90 });
+    expect(landscape.canvasW16).toBe(64);
+    expect(landscape.canvasH16).toBe(Math.ceil(64 * 90 / 200));
+
+    const portrait = createPaintingFromImage('p', { pngBase64: '', naturalW: 90, naturalH: 200 });
+    expect(portrait.canvasH16).toBe(64);
+    expect(portrait.canvasW16).toBe(Math.ceil(64 * 90 / 200));
   });
 
   it('derives a slug from the name with a uuid8 suffix', () => {
