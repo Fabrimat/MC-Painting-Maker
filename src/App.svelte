@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { project } from './stores/project';
   import { bindPersistence, loadFromStorage, importProjectJSON, exportProjectJSON } from './stores/persistence';
+  import { createHistory, type HistoryController } from './stores/history';
   import { activeTab } from './stores/ui';
   import Topbar from './ui/Topbar.svelte';
   import Sidebar from './ui/Sidebar.svelte';
@@ -18,13 +19,41 @@
   let toast: string | null = null;
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
   let importInput: HTMLInputElement;
+  let history: HistoryController | null = null;
 
   onMount(() => {
     const saved = loadFromStorage();
     if (saved) project.set(saved);
     if (selectedId === null && $project.paintings.length > 0) selectedId = $project.paintings[0].id;
-    return bindPersistence(project, 1000);
+    // Wire history AFTER the initial load so the loaded snapshot becomes the
+    // baseline rather than a step that an early undo would clear away.
+    history = createHistory(project);
+    const stopPersist = bindPersistence(project, 1000);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      history?.destroy();
+      history = null;
+      stopPersist();
+    };
   });
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (!history) return;
+    // Let inputs handle their own native text undo/redo.
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    const mod = e.ctrlKey || e.metaKey;
+    if (!mod) return;
+    const key = e.key.toLowerCase();
+    if (key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      history.undo();
+    } else if ((key === 'y' && !e.shiftKey) || (key === 'z' && e.shiftKey)) {
+      e.preventDefault();
+      history.redo();
+    }
+  }
 
   $: if (selectedId && !$project.paintings.find((p) => p.id === selectedId)) selectedId = null;
   $: if (selectedId === null && $project.paintings.length > 0) selectedId = $project.paintings[0].id;
