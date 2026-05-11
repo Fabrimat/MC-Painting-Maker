@@ -79,8 +79,7 @@ Repo MC-Painting-Maker
 │  │  │  ├─ client_entity.ts            ← per-painting RP entity JSON
 │  │  │  ├─ geometry.ts                 ← per-painting geo.json
 │  │  │  ├─ render_controller.ts        ← per-painting RC (standard, no arrays)
-│  │  │  ├─ animation.ts                ← single shared wall-snap animation
-│  │  │  ├─ animation_controller.ts     ← single shared wall-snap AC
+│  │  │  ├─ script.ts                   ← BP main.js template (Script API)
 │  │  │  ├─ item_texture.ts             ← RP item_texture.json
 │  │  │  ├─ catalog.ts                  ← BP crafting_item_catalog.json
 │  │  │  └─ lang.ts                     ← BP + RP en_US.lang
@@ -143,7 +142,8 @@ type PackMeta = {
 
 type PackUUIDs = {
   bpHeader: string;                   // uuidv4
-  bpModule: string;
+  bpModule: string;                   // data module
+  bpScriptModule: string;             // script module (for @minecraft/server)
   rpHeader: string;
   rpModule: string;
 };
@@ -286,13 +286,15 @@ async function rasterize(p: Painting): Promise<Uint8Array> {
 ```
 <pack-name>.mcaddon  (zip)
 ├─ BP_<namespace>/                       ← Behavior Pack
-│  ├─ manifest.json                      ← BP UUIDs, depends on RP
+│  ├─ manifest.json                      ← BP UUIDs (data + script modules)
 │  ├─ pack_icon.png                      ← if provided
 │  ├─ entities/
 │  │  ├─ painting_<id1>.behavior.json
 │  │  └─ ...                             ← ONE per painting
 │  ├─ item_catalog/
 │  │  └─ crafting_item_catalog.json      ← custom group inside `equipment`
+│  ├─ scripts/
+│  │  └─ main.js                         ← Script API: cardinal-snap body rotation on spawn
 │  └─ texts/
 │     ├─ en_US.lang                      ← painting names + group name
 │     └─ languages.json                  ← ["en_US"]
@@ -309,10 +311,6 @@ async function rasterize(p: Painting): Promise<Uint8Array> {
    ├─ render_controllers/
    │  ├─ painting_<id1>.rc.json          ← standard, single geo + texture
    │  └─ ...
-   ├─ animation_controllers/
-   │  └─ painting_wall_snap.ac.json      ← SHARED
-   ├─ animations/
-   │  └─ painting_wall_snap.animation.json   ← SHARED
    ├─ textures/
    │  ├─ entity/
    │  │  └─ painting_<id1>.png
@@ -350,6 +348,13 @@ The four manifest UUIDs (BP header, BP module, RP header, RP module) are generat
     "components": {
       "minecraft:type_family":        { "family": ["<namespace>_painting", "inanimate"] },
       "minecraft:collision_box":      { "width": 0, "height": 0 },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [{
+          "pivot":  [0, <H_blocks/2>, <-7/16>],
+          "width":  <max(W_blocks, 1/16)>,
+          "height": <H_blocks>
+        }]
+      },
       "minecraft:physics":            { "has_collision": false, "has_gravity": false },
       "minecraft:pushable":           { "is_pushable": false, "is_pushable_by_piston": false },
       "minecraft:knockback_resistance": { "value": 1000, "max": 1000 },
@@ -390,16 +395,13 @@ The four manifest UUIDs (BP header, BP module, RP header, RP module) are generat
       "spawn_egg": {
         "texture": "painting_<id>_egg",
         "texture_index": 0
-      },
-      "animations": {
-        "wall_snap":       "animation.painting_wall_snap",
-        "wall_snap_apply": "controller.animation.painting_wall_snap"
-      },
-      "scripts": { "animate": [ "wall_snap_apply" ] }
+      }
     }
   }
 }
 ```
+
+No `animations` / `scripts.animate` — the cardinal-snap is handled server-side via Script API (see below), so the client_entity stays minimal.
 
 ### `models/entity/painting_<id>.geo.json`
 
@@ -457,45 +459,28 @@ The four manifest UUIDs (BP header, BP module, RP header, RP module) are generat
 
 Per the requirement: standard render controller, no array indirection, no variants — each painting is fully independent.
 
-### `animations/painting_wall_snap.animation.json` (SHARED)
+### `scripts/main.js` (BP, SHARED)
 
-```json
-{
-  "format_version": "1.8.0",
-  "animations": {
-    "animation.painting_wall_snap": {
-      "loop": true,
-      "bones": {
-        "root": {
-          "rotation": [
-            0,
-            "math.floor((q.body_y_rotation + 45) / 90) * 90 - q.body_y_rotation",
-            0
-          ]
-        }
-      }
-    }
-  }
-}
+A single short Script API module that snaps every painting's body rotation to the nearest cardinal direction on spawn. Because we snap the actual body rotation (not just the visual bone), the `minecraft:custom_hit_test` hitbox follows the painting correctly.
+
+```js
+import { world } from "@minecraft/server";
+
+const FAMILY = "<namespace>_painting";
+
+world.afterEvents.entitySpawn.subscribe((event) => {
+  const e = event.entity;
+  if (!e.matches({ families: [FAMILY] })) return;
+
+  const r = e.getRotation();
+  const snappedY = Math.round(r.y / 90) * 90;
+  e.setRotation({ x: 0, y: snappedY });
+});
 ```
 
-### `animation_controllers/painting_wall_snap.ac.json` (SHARED)
-
-```json
-{
-  "format_version": "1.10.0",
-  "animation_controllers": {
-    "controller.animation.painting_wall_snap": {
-      "initial_state": "default",
-      "states": {
-        "default": { "animations": [ "animation.painting_wall_snap" ] }
-      }
-    }
-  }
-}
-```
-
-The Molang formula computes the delta between the actual `body_y_rotation` and the nearest 90° multiple, then applies that as a bone rotation. The server-side body rotation stays free; only the rendered model snaps to cardinal direction.
+- Authored as plain JavaScript; no transpile step needed when generating the pack.
+- The web app `mcpack/script.ts` produces this file by substituting `FAMILY` with the user's `<namespace>_painting`.
+- Module dependency on `@minecraft/server` 2.4.0 (declared in the BP manifest, see below). 2.4.0 is the version chosen so the pack runs on **Minecraft Education Edition** as well as Bedrock 1.21+; older script-API versions are not guaranteed on EE.
 
 ### `item_catalog/crafting_item_catalog.json` (BP)
 
@@ -567,13 +552,21 @@ entity.<namespace>:painting_<id2>.name=<painting2.name>
     "min_engine_version": [<minEngineVersion>]
   },
   "modules": [
-    { "type": "data", "uuid": "<uuids.bpModule>", "version": [<semver>] }
+    { "type": "data",   "uuid": "<uuids.bpModule>",       "version": [<semver>] },
+    {
+      "type": "script", "uuid": "<uuids.bpScriptModule>", "version": [<semver>],
+      "language": "javascript",
+      "entry": "scripts/main.js"
+    }
   ],
   "dependencies": [
-    { "uuid": "<uuids.rpHeader>", "version": [<semver>] }
+    { "uuid": "<uuids.rpHeader>", "version": [<semver>] },
+    { "module_name": "@minecraft/server", "version": "2.4.0" }
   ]
 }
 ```
+
+The `bpScriptModule` UUID is the fifth stable UUID (added to `PackUUIDs`); generated once and persisted.
 
 `RP_<namespace>/manifest.json`: same structure, `module.type = "resources"`, dependency points to BP header.
 
@@ -652,6 +645,7 @@ No telemetry. No analytics. The repo is public and the tool is offline.
 - `mcpack/entity.ts` — snapshot per painting.
 - `mcpack/client_entity.ts` — snapshot per painting.
 - `mcpack/catalog.ts` — snapshot for a multi-painting ProjectState.
+- `mcpack/script.ts` — snapshot of the generated `main.js` (FAMILY substituted from namespace).
 - `mcpack/lang.ts` — snapshot.
 - `mcpack/manifest.ts` — UUID stability: build twice with same state → same UUIDs.
 - `mcpack/build.ts` — integration: build a `Blob`, unzip in-memory, assert the expected file list and that each entry parses as valid JSON.
@@ -671,10 +665,12 @@ Headless Minecraft testing is intentionally out of scope.
 
 ## 14. Open implementation risks (to verify during build-out)
 
-1. **Geometry origin Z sign** (sec. 9). The painting plane must end up flush with the wall after the spawn egg places the entity. The expected value is `z = -7`; testing in Minecraft will confirm.
-2. **Spawn-egg body rotation** at spawn-time. If Bedrock makes the egg-spawned entity face the wall by default (rather than the player), the molang formula stays correct (it just snaps whatever rotation it gets to a cardinal). If it faces an unexpected direction, we may add a fixed 180° offset.
+1. **Geometry origin Z sign** (sec. 9). The painting plane must end up flush with the wall after the spawn egg places the entity. The expected value is `z = -7`; testing in Minecraft will confirm. If the painting renders backwards (back of canvas facing the player), flip the sign and swap `north`/`south` UVs.
+2. **Spawn rotation default** — vanilla spawn eggs place the entity facing the player by default. The Script API snap (sec. 9) computes the nearest 90° from whatever `getRotation().y` reports, so the result is correct regardless of the convention. However, if `entitySpawn` fires *before* Bedrock has applied the spawn-egg rotation, the snap may run on a stale value. Mitigation if observed: defer the snap by one tick using `system.run(...)`.
 3. **`crafting_item_catalog` group icon** — the `icon` field accepts an item identifier; we use `<namespace>:painting_<first-id>` (the spawn-egg-bearing entity). If the rendered icon misbehaves (e.g. shows a generic mob egg), we fall back to using the spawn-egg item identifier `<namespace>:painting_<first-id>_spawn_egg`.
 4. **Browser export size** — `fflate` is fast, but a multi-megabyte pack still blocks the main thread briefly during encoding. Acceptable for the first version; the WebWorker fallback is a known follow-up.
 5. **Spawn-egg `.lang` key** — the exact localization key Bedrock honors for an auto-generated spawn egg is one of `item.<entity>_spawn_egg.name`, `item.spawn_egg.entity.<entity>.name`, or implicit via the entity name. The implementation plan must include an in-game verification step and pick the working form. As a safe fallback, set the entity's `.name` key in the RP `.lang`; in-game the spawn egg name becomes "Spawn &lt;entity name&gt;".
+6. **`custom_hit_test` cross-section** — Bedrock's hitboxes have a *square* XZ footprint (`width = X = Z`), so a wide thin painting (e.g. 4×1) becomes a 4×4 footprint in plan view. This is intentional per the user's "one hitbox covering the whole entity" requirement — the side-on depth is overgenerous, never under-generous, so the painting is always at least as hittable as it looks. If the puffiness becomes annoying in practice (e.g. arrows triggering despawn from far behind a thin painting), we can later split into multiple narrower hitboxes.
+7. **Education Edition** — the chosen `@minecraft/server` 2.4.0 dependency is reported to work on EE; a deliverable verification pass in EE is included in the manual-test checklist.
 
 These are flagged here so the implementation plan can include explicit verification steps for each one.
