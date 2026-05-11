@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage } from '../paintings/defaults';
 import { buildGeometry } from './geometry';
+import { paintingFileBase } from './identifiers';
 
 describe('buildGeometry', () => {
   it('sets texture_width/height to canvasW16/canvasH16', () => {
@@ -33,6 +34,6 @@ describe('buildGeometry', () => {
     proj.paintings.push(p);
     const j = buildGeometry(p);
     expect(j['minecraft:geometry'][0].description.identifier)
-      .toBe(`geometry.painting_${p.id.replace(/-/g, '_')}`);
+      .toBe(`geometry.${paintingFileBase(p.id)}`);
   });
 });

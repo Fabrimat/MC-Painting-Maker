@@ -15,28 +15,38 @@ describe('identifiers', () => {
       .toBe('a3f8b1c2_1234_5678_9abc_deadbeefcafe');
   });
 
-  it('builds the entity identifier as <ns>:painting_<sanitized>', () => {
-    expect(entityId('myart', 'a3f8-12'))
-      .toBe('myart:painting_a3f8_12');
+  it('builds the file base as p_<first 8 hex chars>', () => {
+    expect(paintingFileBase('a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('p_a3f8b1c2');
   });
 
-  it('builds the file base as painting_<sanitized>', () => {
-    expect(paintingFileBase('a3f8-12')).toBe('painting_a3f8_12');
+  it('keeps the file base under 15 chars', () => {
+    expect(paintingFileBase('a3f8b1c2-1234-5678-9abc-deadbeefcafe').length)
+      .toBeLessThanOrEqual(15);
+  });
+
+  it('builds the entity identifier as <ns>:<paintingFileBase>', () => {
+    expect(entityId('myart', 'a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('myart:p_a3f8b1c2');
   });
 
   it('builds the spawn egg item id as <entityId>_spawn_egg', () => {
-    expect(spawnEggItemId('myart', 'a3f8-12')).toBe('myart:painting_a3f8_12_spawn_egg');
+    expect(spawnEggItemId('myart', 'a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('myart:p_a3f8b1c2_spawn_egg');
   });
 
   it('builds the spawn egg texture key as <paintingFileBase>_egg', () => {
-    expect(spawnEggTextureKey('a3f8-12')).toBe('painting_a3f8_12_egg');
+    expect(spawnEggTextureKey('a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('p_a3f8b1c2_egg');
   });
 
   it('builds the geometry name with the geometry. prefix', () => {
-    expect(geometryName('a3f8-12')).toBe('geometry.painting_a3f8_12');
+    expect(geometryName('a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('geometry.p_a3f8b1c2');
   });
 
   it('builds the render controller name with the controller.render. prefix', () => {
-    expect(renderControllerName('a3f8-12')).toBe('controller.render.painting_a3f8_12');
+    expect(renderControllerName('a3f8b1c2-1234-5678-9abc-deadbeefcafe'))
+      .toBe('controller.render.p_a3f8b1c2');
   });
 });

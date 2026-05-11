@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage } from '../paintings/defaults';
 import { buildBpLang, buildRpLang } from './lang';
+import { paintingFileBase } from './identifiers';
 
 describe('lang', () => {
   it('builds the BP lang with group + spawn egg names', () => {
@@ -11,7 +12,7 @@ describe('lang', () => {
     proj.paintings.push(p);
     const lang = buildBpLang(proj);
     expect(lang).toContain(`itemGroup.name.paintings:paintings=Custom Paintings`);
-    const expected = `item.paintings:painting_${p.id.replace(/-/g, '_')}_spawn_egg.name=Sunset`;
+    const expected = `item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`;
     expect(lang).toContain(expected);
   });
 
@@ -22,7 +23,7 @@ describe('lang', () => {
     });
     proj.paintings.push(p);
     const lang = buildRpLang(proj);
-    const expected = `entity.paintings:painting_${p.id.replace(/-/g, '_')}.name=Sunset`;
+    const expected = `entity.paintings:${paintingFileBase(p.id)}.name=Sunset`;
     expect(lang).toContain(expected);
   });
 });

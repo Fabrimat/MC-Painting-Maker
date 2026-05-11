@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage } from '../paintings/defaults';
 import { buildCatalog } from './catalog';
+import { paintingFileBase } from './identifiers';
 
 describe('buildCatalog', () => {
   it('places spawn eggs under the equipment category in a namespaced group', () => {
@@ -15,7 +16,7 @@ describe('buildCatalog', () => {
     const group = cat['minecraft:crafting_items_catalog'].categories[0];
     expect(group.category_name).toBe('equipment');
     expect(group.groups[0].group_identifier.name).toBe('paintings:paintings');
-    const expectedIcon = `paintings:painting_${a.id.replace(/-/g, '_')}`;
+    const expectedIcon = `paintings:${paintingFileBase(a.id)}`;
     expect(group.groups[0].group_identifier.icon).toBe(expectedIcon);
     expect(group.groups[0].items).toHaveLength(2);
     expect(group.groups[0].items[0]).toContain('_spawn_egg');

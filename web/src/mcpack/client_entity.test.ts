@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage } from '../paintings/defaults';
 import { buildClientEntity } from './client_entity';
+import { paintingFileBase } from './identifiers';
 
 describe('buildClientEntity', () => {
   it('maps geometry, texture, render controller, spawn egg', () => {
@@ -9,7 +10,7 @@ describe('buildClientEntity', () => {
     proj.paintings.push(p);
     const j = buildClientEntity(proj, p);
     const d = j['minecraft:client_entity'].description;
-    const fb = `painting_${p.id.replace(/-/g, '_')}`;
+    const fb = paintingFileBase(p.id);
     expect(d.identifier).toBe(`paintings:${fb}`);
     expect(d.materials.default).toBe('entity_alphatest');
     expect(d.textures.default).toBe(`textures/entity/${fb}`);

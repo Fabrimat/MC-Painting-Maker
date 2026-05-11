@@ -3,7 +3,7 @@ export function sanitizeId(uuid: string): string {
 }
 
 export function paintingFileBase(uuid: string): string {
-  return `painting_${sanitizeId(uuid)}`;
+  return `p_${uuid.replace(/-/g, '').slice(0, 8).toLowerCase()}`;
 }
 
 export function entityId(namespace: string, uuid: string): string {
