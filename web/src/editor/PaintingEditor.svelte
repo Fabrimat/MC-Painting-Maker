@@ -71,6 +71,12 @@
       height: painting.transform.h16 * pps,
       draggable: true,
     });
+    imageNode.on('dragmove', () => {
+      if (!imageNode) return;
+      const sx = Math.round(imageNode.x() / pps) * pps;
+      const sy = Math.round(imageNode.y() / pps) * pps;
+      imageNode.position({ x: sx, y: sy });
+    });
     imageNode.on('dragend', commitTransform);
     imageLayer.add(imageNode);
 
