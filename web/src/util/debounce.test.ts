@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { debounce } from './debounce';
 
 describe('debounce', () => {
-  it('calls only once after rapid invocations', async () => {
+  it('calls only once after rapid invocations', () => {
     vi.useFakeTimers();
     const spy = vi.fn();
     const fn = debounce(spy, 100);
