@@ -4,6 +4,7 @@
   import { bindPersistence, loadFromStorage } from './stores/persistence';
   import Sidebar from './ui/Sidebar.svelte';
   import PackSettings from './ui/PackSettings.svelte';
+  import PaintingEditor from './editor/PaintingEditor.svelte';
 
   let selectedId: string | null = null;
 
@@ -18,7 +19,9 @@
   <aside class="sidebar"><Sidebar bind:selectedId /></aside>
   <main class="editor">
     {#if selectedId}
-      <p>Editor for {selectedId} (coming next).</p>
+      {#key selectedId}
+        <PaintingEditor id={selectedId} />
+      {/key}
     {:else}
       <p>Select a painting on the left, or drop images to add new ones.</p>
     {/if}
