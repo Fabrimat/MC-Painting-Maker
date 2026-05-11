@@ -10,7 +10,16 @@
 
 <header class="topbar">
   <span class="brand">
-    <span class="brand-dot" aria-hidden="true">🖼</span>
+    <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <g transform="rotate(-45 16 16)">
+        <path d="M13 11 L3 7 L3 25 L13 21 Z" fill="#374151"/>
+        <path d="M3 13 C 0 14, 0 18, 3 19 Z" fill="#f97316"/>
+        <rect x="11" y="10" width="6" height="12" rx="1" fill="#9ca3af"/>
+        <rect x="11" y="19.5" width="6" height="2.5" rx="1" fill="#6b7280"/>
+        <rect x="16" y="12" width="14" height="8" rx="2" fill="#a16842"/>
+        <rect x="25.5" y="12.5" width="4.5" height="7" rx="2" fill="#7d4f30"/>
+      </g>
+    </svg>
     <span class="brand-name">Painting Maker</span>
   </span>
   <span class="spacer"></span>
@@ -42,12 +51,7 @@
     border-bottom: 1px solid var(--border); background: var(--surface);
   }
   .brand { display: flex; align-items: center; gap: var(--space-3); font-weight: 700; font-size: var(--fs-md); color: var(--text); }
-  .brand-dot {
-    width: 22px; height: 22px; border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--primary), var(--text));
-    display: inline-flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 12px;
-  }
+  .brand-icon { width: 24px; height: 24px; display: block; }
   .spacer { flex: 1; }
   .ghost {
     padding: 6px 12px; border-radius: var(--radius);
