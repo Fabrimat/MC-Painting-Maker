@@ -2,3 +2,10 @@
 .claude/
 # Visual brainstorming mockups — local to the working copy.
 .superpowers/
+
+# Build artefacts and toolchain caches.
+node_modules
+dist
+.vite
+*.log
+.DS_Store

@@ -10,7 +10,6 @@ Compatible with Bedrock 1.21.30+ and Minecraft Education Edition.
 ## Run locally
 
 ```bash
-cd web
 npm install
 npm run dev
 ```
@@ -20,16 +19,14 @@ Open the URL printed by Vite (usually `http://localhost:5173/`).
 ## Build static site
 
 ```bash
-cd web
 npm run build
 ```
 
-Output goes to `web/dist/`. Deployable to GitHub Pages (workflow included).
+Output goes to `dist/`. Deployable to GitHub Pages (workflow included).
 
 ## Tests
 
 ```bash
-cd web
 npm test
 ```
 
@@ -46,10 +43,6 @@ After exporting a `.mcaddon`:
    - Snap to the nearest cardinal direction.
    - Be hittable across its full width and height.
 5. Punching the painting despawns it.
-
-## Spec & plan
-
-Design and implementation plan live under `docs/superpowers/`.
 
 ## License
 
