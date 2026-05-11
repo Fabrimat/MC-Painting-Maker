@@ -4,7 +4,7 @@ import { buildBpLang, buildRpLang } from './lang';
 import { paintingFileBase } from './identifiers';
 
 describe('lang', () => {
-  it('builds the BP lang with group + spawn egg names', () => {
+  it('builds the BP lang with group + both spawn egg name key forms', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('Sunset', {
       pngBase64: '', naturalW: 100, naturalH: 100,
@@ -12,8 +12,10 @@ describe('lang', () => {
     proj.paintings.push(p);
     const lang = buildBpLang(proj);
     expect(lang).toContain(`itemGroup.name.paintings:paintings=Custom Paintings`);
-    const expected = `item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`;
-    expect(lang).toContain(expected);
+    // Modern Bedrock form
+    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
+    // Fallback form for older versions
+    expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
   });
 
   it('builds the RP lang with entity name keys', () => {

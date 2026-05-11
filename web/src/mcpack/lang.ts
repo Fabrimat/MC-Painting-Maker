@@ -1,5 +1,5 @@
 import type { ProjectState } from '../paintings/types';
-import { entityId } from './identifiers';
+import { entityId, spawnEggItemId } from './identifiers';
 
 // .lang values cannot contain newlines or carriage returns; the manifest uses pack.name
 // / pack.description placeholders that resolve via these keys.
@@ -20,7 +20,16 @@ export function buildBpLang(p: ProjectState): string {
     `itemGroup.name.${p.pack.namespace}:paintings=${langSafe(p.pack.creativeGroupName)}`,
   ];
   for (const pt of p.paintings) {
-    lines.push(`item.spawn_egg.entity.${entityId(p.pack.namespace, pt.id)}.name=${langSafe(pt.name)}`);
+    const eid = entityId(p.pack.namespace, pt.id);
+    const itemId = spawnEggItemId(p.pack.namespace, pt.id);
+    const safeName = langSafe(pt.name);
+    // Bedrock has used multiple key formats for auto-generated spawn egg names across
+    // versions. Emit all known forms so the right one always resolves:
+    //   item.spawn_egg.entity.<entity>.name   — modern form (1.19+)
+    //   item.<entity>_spawn_egg.name          — fallback form
+    //   entity.<entity>.name                  — final fallback used as "Spawn <X>"
+    lines.push(`item.spawn_egg.entity.${eid}.name=${safeName}`);
+    lines.push(`item.${itemId}.name=${safeName}`);
   }
   return lines.join('\n') + '\n';
 }
