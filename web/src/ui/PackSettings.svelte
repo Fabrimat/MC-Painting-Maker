@@ -100,12 +100,6 @@
   <input type="number" min="0" bind:value={$project.pack.semver[2]} />
 </div>
 
-<h4>Min engine version</h4>
-<div class="row">
-  <input type="number" min="0" bind:value={$project.pack.minEngineVersion[0]} />
-  <input type="number" min="0" bind:value={$project.pack.minEngineVersion[1]} />
-  <input type="number" min="0" bind:value={$project.pack.minEngineVersion[2]} />
-</div>
 
 <p class="size" class:warn={tooBig}>Project size: {sizeMb} MB / ~5 MB</p>
 <hr />
