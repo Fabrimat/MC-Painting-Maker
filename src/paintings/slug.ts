@@ -3,6 +3,13 @@
 // Generated once at painting creation, persisted on the painting, and never changed.
 // The UUID suffix guarantees uniqueness across paintings that share a name.
 
+// Bump when the slug-generation algorithm changes. New paintings get the bumped
+// version; existing slugs stay frozen at the version they were generated under.
+// History:
+//   1 - initial: NFKD + strip diacritics, lowercase, non-alphanumerics -> _,
+//       trim, cap 20 chars, p_ prefix for empty or digit-leading names.
+export const CURRENT_SLUG_VERSION = 1;
+
 const NAME_MAX = 20;
 // Combining diacritical marks block (U+0300..U+036F): stripped after NFKD
 // normalisation so that accented letters reduce to their base letters.

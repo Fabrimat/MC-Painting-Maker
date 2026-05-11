@@ -45,6 +45,9 @@ export type Painting = {
   // identifiers, file names, geometry/render controller names. Renaming the
   // painting's display name does NOT change the slug.
   slug: string;
+  // Version of the slug-generation algorithm that produced `slug`. Frozen with
+  // the slug; future algorithm bumps only affect newly-created paintings.
+  slugVersion: number;
   canvasW16: number;
   canvasH16: number;
   source: Source | null;

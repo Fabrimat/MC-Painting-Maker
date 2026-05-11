@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { ProjectState, Painting, PackUUIDs, Source } from './types';
 import { ProjectSchema } from './schema';
-import { generatePaintingSlug } from './slug';
+import { generatePaintingSlug, CURRENT_SLUG_VERSION } from './slug';
 
 export function createEmptyProject(): ProjectState {
   return {
@@ -62,6 +62,7 @@ export function createPaintingFromImage(
     id,
     name,
     slug: generatePaintingSlug(name, id),
+    slugVersion: CURRENT_SLUG_VERSION,
     canvasW16: w16,
     canvasH16: h16,
     source,
@@ -78,16 +79,23 @@ export function migrate(state: unknown): ProjectState {
   }
   const v = (state as { version: unknown }).version;
   if (v !== 1) throw new Error(`Unsupported project version: ${String(v)}`);
-  // Slug was added after the first wave of projects. Backfill it from the current
-  // name + id before validation so old saves keep working. Once set, slug never
-  // changes, so this only runs on the migration boundary.
-  const raw = state as { paintings?: Array<{ id?: unknown; name?: unknown; slug?: unknown }> };
+  // Slug + slugVersion were added after the first wave of projects. Backfill from
+  // the current name + id before validation. Once set, both fields are frozen, so
+  // this only runs on the migration boundary. Paintings without slugVersion are
+  // assumed v1 because that was the only algorithm before the field existed.
+  const raw = state as { paintings?: Array<{
+    id?: unknown; name?: unknown; slug?: unknown; slugVersion?: unknown;
+  }> };
   if (Array.isArray(raw.paintings)) {
     for (const p of raw.paintings) {
-      if (p && typeof p === 'object' && (typeof p.slug !== 'string' || !p.slug)) {
+      if (!p || typeof p !== 'object') continue;
+      if (typeof p.slug !== 'string' || !p.slug) {
         const id = typeof p.id === 'string' ? p.id : '';
         const name = typeof p.name === 'string' ? p.name : '';
         p.slug = generatePaintingSlug(name, id);
+      }
+      if (typeof p.slugVersion !== 'number' || !Number.isInteger(p.slugVersion) || p.slugVersion < 1) {
+        p.slugVersion = 1;
       }
     }
   }

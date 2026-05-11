@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage, ensurePackUUIDs, migrate } from './defaults';
 import { ProjectSchema } from './schema';
+import { CURRENT_SLUG_VERSION } from './slug';
 
 describe('createEmptyProject', () => {
   it('produces a project that satisfies ProjectSchema', () => {
@@ -79,6 +80,13 @@ describe('createPaintingFromImage', () => {
     });
     expect(p.slug).toMatch(/^sunset_[0-9a-f]{8}$/);
   });
+
+  it('stamps the current slug-generation version on the painting', () => {
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    expect(p.slugVersion).toBe(CURRENT_SLUG_VERSION);
+  });
 });
 
 describe('migrate', () => {
@@ -126,5 +134,33 @@ describe('migrate', () => {
     raw.paintings[0].name = 'Renamed to something else';
     const migrated = migrate(raw);
     expect(migrated.paintings[0].slug).toBe(originalSlug);
+  });
+
+  it('backfills slugVersion to 1 on paintings predating the version field', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      paintings: Array<{ slugVersion?: number }>;
+    };
+    delete raw.paintings[0].slugVersion;
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slugVersion).toBe(1);
+  });
+
+  it('preserves an explicit slugVersion through migration', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      paintings: Array<{ slugVersion: number }>;
+    };
+    raw.paintings[0].slugVersion = 7;
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slugVersion).toBe(7);
   });
 });

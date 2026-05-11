@@ -4,7 +4,7 @@ import type { Painting } from './types';
 
 function painting(overrides: Partial<Painting> = {}): Painting {
   return {
-    id: 'p', name: 'p', slug: 'p',
+    id: 'p', name: 'p', slug: 'p', slugVersion: 1,
     canvasW16: 16, canvasH16: 16,
     source: { pngBase64: '', naturalW: 64, naturalH: 64 },
     transform: { x16: 0, y16: 0, w16: 16, h16: 16, rotation: 0, flipX: false, flipY: false },
