@@ -2,6 +2,15 @@
   import { project } from '../stores/project';
   import { buildMcaddonBlob, archiveFilename } from '../mcpack/build';
   import { exportProjectJSON, importProjectJSON } from '../stores/persistence';
+  import { z } from 'zod';
+  const NamespaceTest = z.string()
+    .regex(/^[a-z][a-z0-9_]{0,15}$/)
+    .refine((v) => v !== 'minecraft');
+  let namespaceError: string | null = null;
+  function validateNamespace() {
+    const r = NamespaceTest.safeParse($project.pack.namespace);
+    namespaceError = r.success ? null : 'Use lowercase a-z, 0-9, _ (max 16 chars), not "minecraft".';
+  }
 
   let building = false;
   let error: string | null = null;
@@ -50,7 +59,10 @@
 <h3>Pack Settings</h3>
 <label>Name <input bind:value={$project.pack.name} /></label>
 <label>Description <input bind:value={$project.pack.description} /></label>
-<label>Namespace <input bind:value={$project.pack.namespace} /></label>
+<label>Namespace
+  <input bind:value={$project.pack.namespace} on:blur={validateNamespace} class:invalid={namespaceError !== null} />
+  {#if namespaceError}<small class="err">{namespaceError}</small>{/if}
+</label>
 <label>Creative group name <input bind:value={$project.pack.creativeGroupName} /></label>
 
 <h4>Version</h4>
@@ -89,4 +101,6 @@
   button { margin: 4px 4px 4px 0; }
   .size { font-size: 0.85rem; color: #555; }
   .size.warn { color: #c60; font-weight: bold; }
+  input.invalid { border-color: #c00; }
+  small.err { display: block; color: #c00; font-size: 0.75rem; }
 </style>
