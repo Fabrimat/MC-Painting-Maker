@@ -15,6 +15,8 @@ describe('buildCatalog', () => {
     const group = cat['minecraft:crafting_items_catalog'].categories[0];
     expect(group.category_name).toBe('equipment');
     expect(group.groups[0].group_identifier.name).toBe('paintings:paintings');
+    const expectedIcon = `paintings:painting_${a.id.replace(/-/g, '_')}`;
+    expect(group.groups[0].group_identifier.icon).toBe(expectedIcon);
     expect(group.groups[0].items).toHaveLength(2);
     expect(group.groups[0].items[0]).toContain('_spawn_egg');
   });
