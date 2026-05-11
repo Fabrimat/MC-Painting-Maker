@@ -5,6 +5,7 @@
   import FileDrop from './FileDrop.svelte';
   import PaintingList from './PaintingList.svelte';
   export let selectedId: string | null;
+  export let onselect: (id: string) => void = () => {};
 
   async function addFromFiles(files: FileList) {
     const additions: Painting[] = [];
@@ -47,12 +48,12 @@
 
 <aside class="sidebar">
   <h4 class="title">Paintings · {$project.paintings.length}</h4>
-  <FileDrop on:files={(e) => addFromFiles(e.detail)} />
+  <FileDrop onfiles={(files) => addFromFiles(files)} />
   <PaintingList
     paintings={$project.paintings}
     {selectedId}
-    on:select={(e) => (selectedId = e.detail)}
-    on:remove={(e) => remove(e.detail)}
+    onselect={(id) => { selectedId = id; onselect(id); }}
+    onremove={(id) => remove(id)}
   />
 
   <footer class="credits">

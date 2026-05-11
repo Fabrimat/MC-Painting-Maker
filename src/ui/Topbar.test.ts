@@ -34,14 +34,13 @@ describe('Topbar', () => {
     expect(get(packDrawerOpen)).toBe(true);
   });
 
-  it('clicking Build dispatches a build event', async () => {
+  it('clicking Build calls onbuild', async () => {
     const s = createEmptyProject();
     s.paintings.push(createPaintingFromImage('Sunset', { pngBase64: '', naturalW: 32, naturalH: 32 }));
     project.set(s);
-    const { getByRole, component } = render(Topbar);
-    const fn = vi.fn();
-    component.$on('build', fn);
+    const onbuild = vi.fn();
+    const { getByRole } = render(Topbar, { props: { onbuild } });
     await fireEvent.click(getByRole('button', { name: /Build/ }));
-    expect(fn).toHaveBeenCalled();
+    expect(onbuild).toHaveBeenCalled();
   });
 });

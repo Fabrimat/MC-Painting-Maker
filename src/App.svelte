@@ -73,12 +73,12 @@
 </script>
 
 <div class="app">
-  <Topbar {building} on:build={onBuild} on:exportJSON={onExport} on:importJSON={onImport} />
+  <Topbar {building} onbuild={onBuild} onexport={onExport} onimport={onImport} />
   <input type="file" accept="application/json" hidden bind:this={importInput} on:change={onImportFile} />
 
   <div class="body">
     <aside class="col sidebar-col" data-active={$activeTab === 'paintings'}>
-      <Sidebar bind:selectedId on:select={(e) => selectFromList(e.detail)} />
+      <Sidebar bind:selectedId onselect={selectFromList} />
     </aside>
 
     <main class="col editor-col" data-active={$activeTab === 'edit'} id="tabpanel-edit">

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import { project } from '../stores/project';
   import { packDrawerOpen } from '../stores/ui';
   export let building = false;
-  const dispatch = createEventDispatcher<{ build: void; importJSON: void; exportJSON: void }>();
+  export let onbuild: () => void = () => {};
+  export let onimport: () => void = () => {};
+  export let onexport: () => void = () => {};
   $: canBuild = $project.paintings.length > 0 && !building;
   function togglePackDrawer() { packDrawerOpen.update((v) => !v); }
 </script>
@@ -23,8 +24,8 @@
     <span class="brand-name">Painting Maker</span>
   </span>
   <span class="spacer"></span>
-  <button type="button" class="ghost desktop-only" on:click={() => dispatch('importJSON')}>Import</button>
-  <button type="button" class="ghost desktop-only" on:click={() => dispatch('exportJSON')}>Export</button>
+  <button type="button" class="ghost desktop-only" on:click={onimport}>Import</button>
+  <button type="button" class="ghost desktop-only" on:click={onexport}>Export</button>
   <button
     type="button" class="icon"
     class:active={$packDrawerOpen}
@@ -36,7 +37,7 @@
     type="button" class="build"
     aria-label="Build .mcaddon"
     disabled={!canBuild}
-    on:click={() => dispatch('build')}
+    on:click={onbuild}
   >
     {#if building}<span class="spin" aria-hidden="true"></span>Building…
     {:else}<span aria-hidden="true">↓</span> Build<span class="ext desktop-only"> .mcaddon</span>

@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import type { Painting } from '../paintings/types';
 
   export let paintings: Painting[] = [];
   export let selectedId: string | null = null;
-
-  const dispatch = createEventDispatcher<{ select: string; remove: string }>();
+  export let onselect: (id: string) => void = () => {};
+  export let onremove: (id: string) => void = () => {};
 
   function sizeLabel(p: Painting) {
     return `${(p.canvasW16 / 16).toFixed(2)} × ${(p.canvasH16 / 16).toFixed(2)} blocks`;
@@ -20,7 +19,7 @@
         class="row"
         aria-label={`Select ${p.name}`}
         aria-pressed={selectedId === p.id}
-        on:click={() => dispatch('select', p.id)}
+        on:click={() => onselect(p.id)}
       >
         <span class="thumb">
           {#if p.source}
@@ -36,7 +35,7 @@
         type="button"
         class="p-del"
         aria-label={`Delete ${p.name}`}
-        on:click|stopPropagation={() => dispatch('remove', p.id)}
+        on:click|stopPropagation={() => onremove(p.id)}
       >
         ✕
       </button>

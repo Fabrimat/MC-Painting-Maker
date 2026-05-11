@@ -42,26 +42,24 @@ describe('PaintingList', () => {
     expect(container.querySelectorAll('input[type="text"]').length).toBe(0);
   });
 
-  it('emits select when a row is clicked', async () => {
-    const { getByRole, component } = render(PaintingList, {
-      props: { paintings: [painting('a', 'Sunset')], selectedId: null },
+  it('calls onselect when a row is clicked', async () => {
+    const onselect = vi.fn();
+    const { getByRole } = render(PaintingList, {
+      props: { paintings: [painting('a', 'Sunset')], selectedId: null, onselect },
     });
-    const fn = vi.fn();
-    component.$on('select', (e) => fn(e.detail));
     await fireEvent.click(
       getByRole('button', { name: /Select Sunset/ })
     );
-    expect(fn).toHaveBeenCalledWith('a');
+    expect(onselect).toHaveBeenCalledWith('a');
   });
 
-  it('emits remove when the ✕ button is clicked', async () => {
-    const { getAllByRole, component } = render(PaintingList, {
-      props: { paintings: [painting('a', 'Sunset')], selectedId: 'a' },
+  it('calls onremove when the ✕ button is clicked', async () => {
+    const onremove = vi.fn();
+    const { getAllByRole } = render(PaintingList, {
+      props: { paintings: [painting('a', 'Sunset')], selectedId: 'a', onremove },
     });
-    const fn = vi.fn();
-    component.$on('remove', (e) => fn(e.detail));
     const deleteButtons = getAllByRole('button', { name: /Delete Sunset/ });
     await fireEvent.click(deleteButtons[0]);
-    expect(fn).toHaveBeenCalledWith('a');
+    expect(onremove).toHaveBeenCalledWith('a');
   });
 });
