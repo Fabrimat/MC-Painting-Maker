@@ -42,7 +42,8 @@
     on:keydown={onKeyDown}
     role="presentation"
   ></div>
-  <aside
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div
     class="drawer"
     role="dialog" aria-modal="true" aria-labelledby="pack-drawer-title"
     on:keydown={onKeyDown}
@@ -101,7 +102,7 @@
         <input class="field" type="number" min="0" bind:value={$project.pack.semver[2]} aria-label="Patch version" />
       </div>
     </section>
-  </aside>
+  </div>
 {/if}
 
 <style>
