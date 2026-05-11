@@ -8,7 +8,7 @@ export function buildRenderController(p: Painting) {
   return {
     format_version: '1.10.0',
     render_controllers: {
-      [renderControllerName(p.id)]: {
+      [renderControllerName(p)]: {
         geometry: 'Geometry.default',
         part_visibility: [{ back: false }],
         materials: [{ '*': 'Material.default' }],

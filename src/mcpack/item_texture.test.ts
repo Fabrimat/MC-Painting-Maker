@@ -9,7 +9,7 @@ describe('buildItemTexture', () => {
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const it = buildItemTexture(proj);
-    const key = `${paintingFileBase(p.id)}_egg`;
+    const key = `${paintingFileBase(p)}_egg`;
     expect(it.texture_data[key].textures).toBe(`textures/items/${key}`);
     expect(it.resource_pack_name).toBe(proj.pack.name);
     expect(it.texture_name).toBe('atlas.items');

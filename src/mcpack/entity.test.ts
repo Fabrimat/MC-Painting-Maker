@@ -9,7 +9,7 @@ describe('buildEntityBehavior', () => {
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const j = buildEntityBehavior(proj, p);
-    expect(j['minecraft:entity'].description.identifier).toBe(`paintings:${paintingFileBase(p.id)}`);
+    expect(j['minecraft:entity'].description.identifier).toBe(`paintings:${paintingFileBase(p)}`);
     expect(j['minecraft:entity'].description.is_spawnable).toBe(true);
     expect(j['minecraft:entity'].description.is_summonable).toBe(true);
   });

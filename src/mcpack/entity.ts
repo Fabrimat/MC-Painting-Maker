@@ -12,7 +12,7 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
     format_version: '1.21.0',
     'minecraft:entity': {
       description: {
-        identifier: entityId(p.pack.namespace, painting.id),
+        identifier: entityId(p.pack.namespace, painting),
         is_spawnable: true,
         is_summonable: true,
         is_experimental: false,

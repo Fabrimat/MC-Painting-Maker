@@ -10,7 +10,7 @@ describe('buildClientEntity', () => {
     proj.paintings.push(p);
     const j = buildClientEntity(proj, p);
     const d = j['minecraft:client_entity'].description;
-    const fb = paintingFileBase(p.id);
+    const fb = paintingFileBase(p);
     expect(d.identifier).toBe(`paintings:${fb}`);
     expect(d.materials.default).toBe('entity_alphatest');
     expect(d.materials.back).toBe('entity_alphatest');

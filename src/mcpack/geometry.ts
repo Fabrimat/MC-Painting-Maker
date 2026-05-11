@@ -35,7 +35,7 @@ export function buildGeometry(p: Painting) {
     format_version: '1.12.0',
     'minecraft:geometry': [{
       description: {
-        identifier: geometryName(p.id),
+        identifier: geometryName(p),
         texture_width: W,
         texture_height: H,
         visible_bounds_width: vbHalf,

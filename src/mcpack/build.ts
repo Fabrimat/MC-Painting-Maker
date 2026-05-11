@@ -42,7 +42,7 @@ export async function assembleArchive(
     files[`${bp}pack_icon.png`] = base64ToUint8(state.pack.iconPngBase64);
   }
   for (const p of state.paintings) {
-    const fb = paintingFileBase(p.id);
+    const fb = paintingFileBase(p);
     files[`${bp}entities/${fb}.behavior.json`] = json(buildEntityBehavior(state, p));
   }
 
@@ -54,7 +54,7 @@ export async function assembleArchive(
     files[`${rp}pack_icon.png`] = base64ToUint8(state.pack.iconPngBase64);
   }
   for (const p of state.paintings) {
-    const fb = paintingFileBase(p.id);
+    const fb = paintingFileBase(p);
     files[`${rp}entity/${fb}.entity.json`] = json(buildClientEntity(state, p));
     files[`${rp}models/entity/${fb}.geo.json`] = json(buildGeometry(p));
     files[`${rp}render_controllers/${fb}.rc.json`] = json(buildRenderController(p));

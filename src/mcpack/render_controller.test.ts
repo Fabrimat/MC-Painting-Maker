@@ -7,7 +7,7 @@ describe('buildRenderController', () => {
   it('renders only the front bone, hiding the back bone', () => {
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     const j = buildRenderController(p);
-    const rcName = renderControllerName(p.id);
+    const rcName = renderControllerName(p);
     expect(j.render_controllers[rcName].geometry).toBe('Geometry.default');
     expect(j.render_controllers[rcName].textures).toEqual(['Texture.default']);
     expect(j.render_controllers[rcName].materials).toEqual([{ '*': 'Material.default' }]);

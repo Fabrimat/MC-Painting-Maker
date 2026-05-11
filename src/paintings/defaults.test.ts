@@ -72,6 +72,13 @@ describe('createPaintingFromImage', () => {
     expect(p.canvasW16 % 16).toBe(0);
     expect(p.canvasH16 % 16).toBe(0);
   });
+
+  it('derives a slug from the name with a uuid8 suffix', () => {
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    expect(p.slug).toMatch(/^sunset_[0-9a-f]{8}$/);
+  });
 });
 
 describe('migrate', () => {
@@ -94,5 +101,30 @@ describe('migrate', () => {
   it('accepts a valid project', () => {
     const valid = createEmptyProject();
     expect(() => migrate(valid)).not.toThrow();
+  });
+
+  it('backfills slug on paintings saved before the slug field existed', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as { paintings: Array<{ slug?: string }> };
+    delete raw.paintings[0].slug;
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slug).toBe(p.slug);
+  });
+
+  it('preserves an existing slug even when the display name has been changed', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const originalSlug = p.slug;
+    const raw = JSON.parse(JSON.stringify(proj)) as { paintings: Array<{ name: string }> };
+    raw.paintings[0].name = 'Renamed to something else';
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slug).toBe(originalSlug);
   });
 });

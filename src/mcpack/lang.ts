@@ -22,8 +22,8 @@ function commonKeys(p: ProjectState): string[] {
     `itemGroup.name.${p.pack.namespace}:paintings=${langSafe(p.pack.creativeGroupName)}`,
   ];
   for (const pt of p.paintings) {
-    const eid = entityId(p.pack.namespace, pt.id);
-    const itemId = spawnEggItemId(p.pack.namespace, pt.id);
+    const eid = entityId(p.pack.namespace, pt);
+    const itemId = spawnEggItemId(p.pack.namespace, pt);
     const safeName = langSafe(pt.name);
     // Entity display name - used when the mob is named or seen in dialogs.
     lines.push(`entity.${eid}.name=${safeName}`);

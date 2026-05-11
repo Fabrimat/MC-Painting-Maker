@@ -41,6 +41,10 @@ export type Material = 'alphatest' | 'alphablend';
 export type Painting = {
   id: string;
   name: string;
+  // Stable internal slug, derived once from name+id at creation. Used for entity
+  // identifiers, file names, geometry/render controller names. Renaming the
+  // painting's display name does NOT change the slug.
+  slug: string;
   canvasW16: number;
   canvasH16: number;
   source: Source | null;

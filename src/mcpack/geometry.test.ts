@@ -53,6 +53,6 @@ describe('buildGeometry', () => {
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const j = buildGeometry(p);
-    expect(j['minecraft:geometry'][0].description.identifier).toBe(`geometry.${paintingFileBase(p.id)}`);
+    expect(j['minecraft:geometry'][0].description.identifier).toBe(`geometry.${paintingFileBase(p)}`);
   });
 });

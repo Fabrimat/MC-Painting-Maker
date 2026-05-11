@@ -13,9 +13,9 @@ describe('lang', () => {
     const lang = buildBpLang(proj);
     expect(lang).toContain(`itemGroup.name.paintings:paintings=Custom Paintings`);
     // Modern Bedrock form
-    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
+    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p)}.name=Sunset`);
     // Fallback form for older versions
-    expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
+    expect(lang).toContain(`item.paintings:${paintingFileBase(p)}_spawn_egg.name=Sunset`);
   });
 
   it('builds the RP lang with entity name + both spawn egg name forms', () => {
@@ -26,11 +26,11 @@ describe('lang', () => {
     proj.paintings.push(p);
     const lang = buildRpLang(proj);
     // Entity name (mob name)
-    expect(lang).toContain(`entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
+    expect(lang).toContain(`entity.paintings:${paintingFileBase(p)}.name=Sunset`);
     // Spawn egg names - duplicated into RP lang because vanilla Bedrock resolves item
     // display names from the resource pack, not the behavior pack.
-    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
-    expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
+    expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p)}.name=Sunset`);
+    expect(lang).toContain(`item.paintings:${paintingFileBase(p)}_spawn_egg.name=Sunset`);
     // Creative group name - duplicated so that anything reading from the RP also finds it.
     expect(lang).toContain('itemGroup.name.paintings:paintings=Custom Paintings');
   });
