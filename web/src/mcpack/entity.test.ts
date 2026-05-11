@@ -58,4 +58,17 @@ describe('buildEntityBehavior', () => {
     const hb = (j['minecraft:entity'].components as any)['minecraft:custom_hit_test'].hitboxes[0];
     expect(hb.height).toBeCloseTo(1 / 16);
   });
+
+  it('emits damage_sensor with deals_damage="no" and event/target as strings inside on_damage', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('F', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const trigger = (j['minecraft:entity'].components as any)['minecraft:damage_sensor'].triggers[0];
+    expect(trigger.deals_damage).toBe('no');
+    expect(trigger.on_damage.event).toBe('despawn_self');
+    expect(trigger.on_damage.target).toBe('self');
+    expect(trigger.event).toBeUndefined();
+    expect(trigger.target).toBeUndefined();
+  });
 });

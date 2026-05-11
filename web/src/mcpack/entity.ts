@@ -31,9 +31,10 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
           triggers: [{
             on_damage: {
               filters: { test: 'is_family', subject: 'other', value: 'player' },
+              event: 'despawn_self',
+              target: 'self',
             },
-            deals_damage: false,
-            event: { event: 'despawn_self', target: 'self' },
+            deals_damage: 'no',
           }],
         },
         'minecraft:nameable': { allow_name_tag_renaming: false },
