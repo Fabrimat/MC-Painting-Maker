@@ -54,6 +54,18 @@
     on:select={(e) => (selectedId = e.detail)}
     on:remove={(e) => remove(e.detail)}
   />
+
+  <footer class="credits">
+    <p class="line">
+      Built with <span class="heart" aria-hidden="true">♥</span> by
+      <a href="https://larosa.work/" target="_blank" rel="noopener noreferrer">Fabrizio La Rosa</a>
+    </p>
+    <p class="line">
+      <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">Source</a>
+      ·
+      <a href="https://www.linkedin.com/in/fabriziolarosa/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    </p>
+  </footer>
 </aside>
 
 <style>
@@ -63,4 +75,18 @@
     text-transform: uppercase; letter-spacing: .06em; margin: 0;
     padding: 0 var(--space-1);
   }
+
+  .credits {
+    margin-top: auto;
+    padding: var(--space-5) var(--space-1) var(--space-1);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs);
+    color: var(--text-faint);
+    text-align: center;
+    line-height: 1.5;
+  }
+  .credits .line { margin: 0; }
+  .credits a { color: var(--text-muted); text-decoration: none; }
+  .credits a:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+  .credits .heart { color: var(--danger); }
 </style>
