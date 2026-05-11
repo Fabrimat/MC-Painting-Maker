@@ -54,6 +54,25 @@
   $: rawSize = JSON.stringify($project).length;
   $: sizeMb = (rawSize / (1024 * 1024)).toFixed(2);
   $: tooBig = rawSize > 4 * 1024 * 1024;
+
+  async function onPackIconPicked(e: Event) {
+    const f = (e.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    const b64 = await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const v = String(fr.result);
+        const idx = v.indexOf(',');
+        resolve(idx >= 0 ? v.slice(idx + 1) : v);
+      };
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(f);
+    });
+    project.update((s) => ({ ...s, pack: { ...s.pack, iconPngBase64: b64 } }));
+  }
+  function clearPackIcon() {
+    project.update((s) => ({ ...s, pack: { ...s.pack, iconPngBase64: null } }));
+  }
 </script>
 
 <h3>Pack Settings</h3>
@@ -64,6 +83,15 @@
   {#if namespaceError}<small class="err">{namespaceError}</small>{/if}
 </label>
 <label>Creative group name <input bind:value={$project.pack.creativeGroupName} /></label>
+<label>Pack icon
+  <input type="file" accept="image/png" on:change={onPackIconPicked} />
+</label>
+{#if $project.pack.iconPngBase64}
+  <div class="icon-preview">
+    <img src={`data:image/png;base64,${$project.pack.iconPngBase64}`} alt="pack icon" />
+    <button on:click={clearPackIcon}>Clear icon</button>
+  </div>
+{/if}
 
 <h4>Version</h4>
 <div class="row">
@@ -103,4 +131,6 @@
   .size.warn { color: #c60; font-weight: bold; }
   input.invalid { border-color: #c00; }
   small.err { display: block; color: #c00; font-size: 0.75rem; }
+  .icon-preview { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  .icon-preview img { width: 48px; height: 48px; object-fit: contain; border: 1px solid #ddd; }
 </style>
