@@ -3,6 +3,7 @@
   import { createPaintingFromImage, ensurePackUUIDs } from '../paintings/defaults';
   import type { Painting } from '../paintings/types';
   import FileDrop from './FileDrop.svelte';
+  import PaintingList from './PaintingList.svelte';
   export let selectedId: string | null;
 
   async function addFromFiles(files: FileList) {
@@ -16,11 +17,11 @@
         { pngBase64: dataUrl, naturalW: bmp.width, naturalH: bmp.height },
       ));
     }
-    // Assign pack identity (UUIDs) on the first image load. ensurePackUUIDs is idempotent.
     project.update((v) => {
       const withUuids = ensurePackUUIDs(v);
       return { ...withUuids, paintings: [...withUuids.paintings, ...additions] };
     });
+    if (selectedId === null && additions.length > 0) selectedId = additions[0].id;
   }
 
   function fileDataUrl(f: File): Promise<string> {
@@ -36,9 +37,7 @@
     });
   }
 
-  function stripExt(name: string): string {
-    return name.replace(/\.[^.]+$/, '');
-  }
+  function stripExt(name: string): string { return name.replace(/\.[^.]+$/, ''); }
 
   function remove(id: string) {
     project.update((v) => ({ ...v, paintings: v.paintings.filter((p) => p.id !== id) }));
@@ -46,54 +45,22 @@
   }
 </script>
 
-<header>
+<aside class="sidebar">
+  <h4 class="title">Paintings · {$project.paintings.length}</h4>
   <FileDrop on:files={(e) => addFromFiles(e.detail)} />
-</header>
-<ul>
-  {#each $project.paintings as p (p.id)}
-    <li class:selected={selectedId === p.id}>
-      <button class="thumb" on:click={() => (selectedId = p.id)} aria-label="Select painting">
-        {#if p.source}
-          <img src={`data:image/png;base64,${p.source.pngBase64}`} alt="" />
-        {:else}
-          <span class="ph">?</span>
-        {/if}
-      </button>
-      <div class="meta">
-        <input
-          type="text"
-          placeholder="Name"
-          bind:value={p.name}
-          on:input={() => project.update((v) => v)}
-        />
-        <small>{(p.canvasW16/16).toFixed(2)}×{(p.canvasH16/16).toFixed(2)}</small>
-      </div>
-      <button class="del" on:click={() => remove(p.id)} title="Delete">✕</button>
-    </li>
-  {/each}
-</ul>
-{#if $project.paintings.length === 0}
-  <p class="empty">No paintings yet. Drop images above.</p>
-{/if}
+  <PaintingList
+    paintings={$project.paintings}
+    {selectedId}
+    on:select={(e) => (selectedId = e.detail)}
+    on:remove={(e) => remove(e.detail)}
+  />
+</aside>
 
 <style>
-  ul { list-style: none; padding: 0; margin: 0.5rem 0; }
-  li {
-    display: flex; align-items: center; gap: 4px;
-    padding: 2px; margin-bottom: 2px;
-    border-radius: 4px;
+  .sidebar { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); height: 100%; overflow: auto; }
+  .title {
+    font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em; margin: 0;
+    padding: 0 var(--space-1);
   }
-  li.selected { background: #ddebff; }
-  .thumb {
-    flex: 0 0 auto; width: 28px; height: 28px;
-    padding: 0; border: 1px solid #ccc; background: #fff; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; overflow: hidden;
-  }
-  .thumb img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-  .thumb .ph { color: #aaa; font-size: 0.8rem; }
-  .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .meta input { width: 100%; box-sizing: border-box; font-size: 0.85rem; }
-  .meta small { color: #888; font-size: 0.7rem; }
-  .del { flex: 0 0 auto; }
-  .empty { color: #777; font-size: 0.9rem; }
 </style>
