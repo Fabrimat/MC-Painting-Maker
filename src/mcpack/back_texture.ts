@@ -13,7 +13,7 @@
 //   └────────────────────────────────────┘
 //
 // The side faces (east/west/up/down) of the back cube sample only the OUTER edge slice
-// of this texture, so they end up showing the dark frame edge — making the painting
+// of this texture, so they end up showing the dark frame edge - making the painting
 // look like a properly framed picture from oblique angles.
 
 const BACK_W = 64;
@@ -29,7 +29,7 @@ const COLOR_PLANK_SEAM = '#3d2c1a';    // darker wood: plank lines on the back p
 type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 function paint(ctx: Ctx2D, w: number, h: number): void {
-  // Outermost bevel — 1px dark line around the very edge
+  // Outermost bevel - 1px dark line around the very edge
   ctx.fillStyle = COLOR_FRAME_OUTER;
   ctx.fillRect(0, 0, w, h);
 
@@ -37,7 +37,7 @@ function paint(ctx: Ctx2D, w: number, h: number): void {
   ctx.fillStyle = COLOR_FRAME;
   ctx.fillRect(1, 1, w - 2, h - 2);
 
-  // Inner bevel highlight — 1px lighter line where the frame meets the back panel
+  // Inner bevel highlight - 1px lighter line where the frame meets the back panel
   const innerX = FRAME_THICKNESS - 1;
   const innerY = FRAME_THICKNESS - 1;
   const innerW = w - 2 * innerX;
@@ -45,7 +45,7 @@ function paint(ctx: Ctx2D, w: number, h: number): void {
   ctx.fillStyle = COLOR_FRAME_HIGHLIGHT;
   ctx.fillRect(innerX, innerY, innerW, innerH);
 
-  // Back panel (interior) — fills inside the bevel highlight
+  // Back panel (interior) - fills inside the bevel highlight
   ctx.fillStyle = COLOR_BACK_PANEL;
   ctx.fillRect(FRAME_THICKNESS, FRAME_THICKNESS, w - 2 * FRAME_THICKNESS, h - 2 * FRAME_THICKNESS);
 

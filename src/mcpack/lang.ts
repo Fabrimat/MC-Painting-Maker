@@ -10,7 +10,7 @@ function langSafe(value: string): string {
 // All user-visible string keys. Emitted into BOTH BP and RP lang files because:
 //   - pack.name / pack.description: required in the lang of the pack whose manifest
 //     references them. BP manifest references its own pack.name, RP manifest references
-//     its own pack.name — each side reads its own .lang.
+//     its own pack.name - each side reads its own .lang.
 //   - itemGroup.name.*: read from BP because the crafting catalog lives in BP.
 //   - item.* and entity.*: vanilla Bedrock looks for these in the RP lang.
 // Duplicating the keys in both files is harmless (the lookup just picks whichever side
@@ -25,12 +25,12 @@ function commonKeys(p: ProjectState): string[] {
     const eid = entityId(p.pack.namespace, pt.id);
     const itemId = spawnEggItemId(p.pack.namespace, pt.id);
     const safeName = langSafe(pt.name);
-    // Entity display name — used when the mob is named or seen in dialogs.
+    // Entity display name - used when the mob is named or seen in dialogs.
     lines.push(`entity.${eid}.name=${safeName}`);
-    // Spawn egg display names — Bedrock has changed format across versions, so emit
+    // Spawn egg display names - Bedrock has changed format across versions, so emit
     // every documented form to guarantee one resolves:
-    //   item.spawn_egg.entity.<entity>.name   — modern form (1.19+)
-    //   item.<entity>_spawn_egg.name          — fallback form
+    //   item.spawn_egg.entity.<entity>.name   - modern form (1.19+)
+    //   item.<entity>_spawn_egg.name          - fallback form
     lines.push(`item.spawn_egg.entity.${eid}.name=${safeName}`);
     lines.push(`item.${itemId}.name=${safeName}`);
   }

@@ -27,11 +27,11 @@ describe('lang', () => {
     const lang = buildRpLang(proj);
     // Entity name (mob name)
     expect(lang).toContain(`entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
-    // Spawn egg names — duplicated into RP lang because vanilla Bedrock resolves item
+    // Spawn egg names - duplicated into RP lang because vanilla Bedrock resolves item
     // display names from the resource pack, not the behavior pack.
     expect(lang).toContain(`item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`);
     expect(lang).toContain(`item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`);
-    // Creative group name — duplicated so that anything reading from the RP also finds it.
+    // Creative group name - duplicated so that anything reading from the RP also finds it.
     expect(lang).toContain('itemGroup.name.paintings:paintings=Custom Paintings');
   });
 

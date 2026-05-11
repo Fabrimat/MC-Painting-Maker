@@ -7,11 +7,11 @@ export function buildGeometry(p: Painting) {
   const halfW = W / 2;
   const vbHalf = Math.ceil(Math.max(W, H) / 16) + 1;
 
-  // Reference: test_painting.geo.json — two overlapping cubes of depth 1 at z=[6, 7].
+  // Reference: test_painting.geo.json - two overlapping cubes of depth 1 at z=[6, 7].
   // The painting cube renders only its north face (front, painting texture).
   // The frame cube renders south + the four side faces (back + outer frame, wood
-  // texture). Side faces sample the OUTER EDGE of the shared back texture — which is
-  // designed to look like a beveled wooden frame edge — so the painting appears as a
+  // texture). Side faces sample the OUTER EDGE of the shared back texture - which is
+  // designed to look like a beveled wooden frame edge - so the painting appears as a
   // real framed picture when viewed from any angle except straight-on.
   function planeCube(showNorth: boolean) {
     return {

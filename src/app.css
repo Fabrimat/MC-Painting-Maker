@@ -39,7 +39,7 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   outline-offset: 1px;
 }
 
-/* Shared field style — applied via .field class so inline tokens stay light */
+/* Shared field style - applied via .field class so inline tokens stay light */
 .field {
   background: #fff; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
   padding: 6px 9px; font-size: var(--fs-sm); color: var(--text);

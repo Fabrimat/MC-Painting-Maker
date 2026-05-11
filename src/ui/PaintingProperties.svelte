@@ -57,7 +57,7 @@
       <h4 class="section-title">Texture quality</h4>
       <label class="stack">
         <span class="field-label">Resolution</span>
-        <span class="field-hint">Pixels per 1/16-block — higher means more detail.</span>
+        <span class="field-hint">Pixels per 1/16-block - higher means more detail.</span>
         <select class="field"
           value={painting.textureDensity}
           on:change={(e) => patch({ textureDensity: parseDensity(e.currentTarget.value) })}>
@@ -94,7 +94,7 @@
           on:click={() => patch({ material: 'alphablend' })}>Blended</button>
       </span>
       <p class="field-hint" style="margin-top: var(--space-2)">
-        Cutout: pixels are either fully visible or fully invisible — fits most images.
+        Cutout: pixels are either fully visible or fully invisible - fits most images.
         Blended: supports partial transparency throughout the texture (glass, gradients, smoky effects).
       </p>
     </section>

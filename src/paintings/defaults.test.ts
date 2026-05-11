@@ -38,7 +38,7 @@ describe('ensurePackUUIDs', () => {
     expect(new Set(all).size).toBe(5);
   });
 
-  it('is idempotent — does not regenerate UUIDs that are already set', () => {
+  it('is idempotent - does not regenerate UUIDs that are already set', () => {
     const first = ensurePackUUIDs(createEmptyProject());
     const second = ensurePackUUIDs(first);
     expect(second.uuids).toEqual(first.uuids);
