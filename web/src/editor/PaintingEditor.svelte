@@ -173,6 +173,7 @@
     return 'auto';
   }
   function updateCanvas(axis: 'W' | 'H', blocks: number) {
+    if (!Number.isFinite(blocks) || blocks <= 0) return;
     const px16 = Math.max(1, Math.round(blocks * 16));
     project.update((v) => ({
       ...v,
@@ -200,12 +201,12 @@
     <label>W
       <input type="number" step="0.0625" min="0.0625"
         value={painting.canvasW16 / 16}
-        on:change={(e) => updateCanvas('W', e.currentTarget.valueAsNumber)} />
+        on:input={(e) => updateCanvas('W', e.currentTarget.valueAsNumber)} />
     </label>
     <label>H
       <input type="number" step="0.0625" min="0.0625"
         value={painting.canvasH16 / 16}
-        on:change={(e) => updateCanvas('H', e.currentTarget.valueAsNumber)} />
+        on:input={(e) => updateCanvas('H', e.currentTarget.valueAsNumber)} />
     </label>
     <label>Density
       <select value={painting.textureDensity}
