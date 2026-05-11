@@ -41,6 +41,10 @@
       error = `Import failed: ${(err as Error).message}`;
     }
   }
+
+  $: rawSize = JSON.stringify($project).length;
+  $: sizeMb = (rawSize / (1024 * 1024)).toFixed(2);
+  $: tooBig = rawSize > 4 * 1024 * 1024;
 </script>
 
 <h3>Pack Settings</h3>
@@ -63,6 +67,7 @@
   <input type="number" min="0" bind:value={$project.pack.minEngineVersion[2]} />
 </div>
 
+<p class="size" class:warn={tooBig}>Project size: {sizeMb} MB / ~5 MB</p>
 <hr />
 <button on:click={onBuild} disabled={building || $project.paintings.length === 0}>
   {building ? 'Building…' : 'Build .mcaddon'}
@@ -82,4 +87,6 @@
   .err { color: #c00; }
   .imp { display: inline-block; padding: 4px 8px; border: 1px solid #aaa; cursor: pointer; }
   button { margin: 4px 4px 4px 0; }
+  .size { font-size: 0.85rem; color: #555; }
+  .size.warn { color: #c60; font-weight: bold; }
 </style>
