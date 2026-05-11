@@ -73,6 +73,24 @@
     });
     imageNode.on('dragend', commitTransform);
     imageLayer.add(imageNode);
+
+    const tr = new Konva.Transformer({
+      nodes: [imageNode],
+      rotateEnabled: false,
+      keepRatio: false,
+      anchorSize: 10,
+      enabledAnchors: ['top-left','top-right','bottom-left','bottom-right','middle-left','middle-right','top-center','bottom-center'],
+    });
+    tr.on('transformend', () => {
+      if (!imageNode) return;
+      const w = imageNode.width() * imageNode.scaleX();
+      const h = imageNode.height() * imageNode.scaleY();
+      imageNode.scale({ x: 1, y: 1 });
+      imageNode.width(w);
+      imageNode.height(h);
+      commitTransform();
+    });
+    imageLayer.add(tr);
   }
 
   function drawGrid() {
@@ -109,14 +127,17 @@
 
   function commitTransform() {
     if (!painting || !imageNode) return;
-    const x16 = Math.round(imageNode.x() / pps);
-    const y16 = Math.round(imageNode.y() / pps);
+    const x16 = Math.max(0, Math.round(imageNode.x() / pps));
+    const y16 = Math.max(0, Math.round(imageNode.y() / pps));
+    const w16 = Math.max(1, Math.round(imageNode.width() / pps));
+    const h16 = Math.max(1, Math.round(imageNode.height() / pps));
     imageNode.position({ x: x16 * pps, y: y16 * pps });
+    imageNode.width(w16 * pps);
+    imageNode.height(h16 * pps);
     project.update((v) => ({
       ...v,
       paintings: v.paintings.map((p) =>
-        p.id === id ? { ...p, transform: { ...p.transform, x16, y16 } } : p,
-      ),
+        p.id === id ? { ...p, transform: { ...p.transform, x16, y16, w16, h16 } } : p),
     }));
   }
 
