@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { ProjectState, Painting, Source } from './types';
+import { ProjectSchema } from './schema';
 
 export function createEmptyProject(): ProjectState {
   return {
@@ -57,5 +58,5 @@ export function migrate(state: unknown): ProjectState {
   }
   const v = (state as { version: unknown }).version;
   if (v !== 1) throw new Error(`Unsupported project version: ${String(v)}`);
-  return state as ProjectState;
+  return ProjectSchema.parse(state);
 }
