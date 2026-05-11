@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from 'fflate';
 import type { ProjectState, Painting } from '../paintings/types';
-import { rasterize, computeRasterParams } from '../paintings/rasterize';
+import { rasterize } from '../paintings/rasterize';
 import { buildBpManifest, buildRpManifest } from './manifest';
 import { buildEntityBehavior } from './entity';
 import { buildClientEntity } from './client_entity';
@@ -104,7 +104,6 @@ async function rasterizeEgg(p: Painting): Promise<Uint8Array> {
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
   const textures = new Map<string, Textures>();
   for (const p of state.paintings) {
-    computeRasterParams(p);
     const texture = await rasterize(p);
     const eggTexture = await rasterizeEgg(p);
     textures.set(p.id, { texture, eggTexture });
