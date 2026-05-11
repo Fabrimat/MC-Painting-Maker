@@ -1,5 +1,6 @@
 import { zipSync, strToU8 } from 'fflate';
-import type { ProjectState } from '../paintings/types';
+import type { ProjectState, Painting } from '../paintings/types';
+import { rasterize, computeRasterParams } from '../paintings/rasterize';
 import { buildBpManifest, buildRpManifest } from './manifest';
 import { buildEntityBehavior } from './entity';
 import { buildClientEntity } from './client_entity';
@@ -66,4 +67,48 @@ export async function assembleArchive(
 export function archiveFilename(state: ProjectState): string {
   const safe = state.pack.name.replace(/[^a-zA-Z0-9_\- ]+/g, '').trim() || 'paintings';
   return `${safe}.mcaddon`;
+}
+
+function fitContain(p: Painting, w16: number, h16: number) {
+  if (!p.source) {
+    return { x16: 0, y16: 0, w16, h16, rotation: 0 as const, flipX: false, flipY: false };
+  }
+  const srcRatio = p.source.naturalW / p.source.naturalH;
+  const dstRatio = w16 / h16;
+  let dw: number, dh: number;
+  if (srcRatio >= dstRatio) {
+    dw = w16;
+    dh = Math.max(1, Math.round(w16 / srcRatio));
+  } else {
+    dh = h16;
+    dw = Math.max(1, Math.round(h16 * srcRatio));
+  }
+  return {
+    x16: Math.round((w16 - dw) / 2),
+    y16: Math.round((h16 - dh) / 2),
+    w16: dw, h16: dh, rotation: 0 as const, flipX: false, flipY: false,
+  };
+}
+
+async function rasterizeEgg(p: Painting): Promise<Uint8Array> {
+  const eggPainting: Painting = {
+    ...p,
+    canvasW16: 16,
+    canvasH16: 16,
+    textureDensity: 1,
+    transform: fitContain(p, 16, 16),
+  };
+  return await rasterize(eggPainting);
+}
+
+export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
+  const textures = new Map<string, Textures>();
+  for (const p of state.paintings) {
+    computeRasterParams(p);
+    const texture = await rasterize(p);
+    const eggTexture = await rasterizeEgg(p);
+    textures.set(p.id, { texture, eggTexture });
+  }
+  const bytes = await assembleArchive(state, textures);
+  return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }
