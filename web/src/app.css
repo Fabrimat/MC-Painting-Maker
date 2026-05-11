@@ -1,3 +1,62 @@
-:root { font-family: system-ui, sans-serif; color-scheme: light dark; }
-body  { margin: 0; min-height: 100vh; }
-main  { max-width: 960px; margin: 0 auto; padding: 1rem; }
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* Palette */
+  --bg:           #ffffff;
+  --surface:      #fafbfc;
+  --surface-2:    #f4f5f7;
+  --border:       #e5e7eb;
+  --border-strong:#d1d5db;
+  --text:         #1f2937;
+  --text-muted:   #6b7280;
+  --text-faint:   #94a3b8;
+  --primary:      #3b82f6;
+  --primary-tint: #eff6ff;
+  --primary-border:#bfdbfe;
+  --primary-deep: #1e40af;
+  --cta:          #f97316;
+  --cta-hover:    #ea580c;
+  --danger:       #dc2626;
+  --danger-tint:  #fee2e2;
+
+  /* Sizes */
+  --fs-xs: 10px; --fs-sm: 11px; --fs-base: 12px; --fs-md: 13px; --fs-lg: 15px;
+  --space-1: 4px; --space-2: 6px; --space-3: 8px; --space-4: 10px;
+  --space-5: 12px; --space-6: 14px; --space-7: 16px; --space-8: 18px;
+  --radius-sm: 5px; --radius: 7px; --radius-lg: 10px; --radius-xl: 14px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow:    0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: -12px 0 28px rgba(0,0,0,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-size: var(--fs-base); }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+input, select { font: inherit; color: inherit; }
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* Shared field style — applied via .field class so inline tokens stay light */
+.field {
+  background: #fff; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 6px 9px; font-size: var(--fs-sm); color: var(--text);
+  width: 100%;
+}
+.field:focus-visible { border-color: var(--primary); outline: 3px solid var(--primary-tint); outline-offset: 0; }
+.field.invalid { border-color: var(--danger); }
+
+.section-title {
+  font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin: 0 0 var(--space-3) 0;
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.section-title::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--primary);
+}
+
+.field-label { font-size: var(--fs-sm); color: var(--text); margin-bottom: var(--space-1); font-weight: 500; }
+.field-hint  { font-size: var(--fs-xs); color: var(--text-faint); margin-bottom: var(--space-1); }
