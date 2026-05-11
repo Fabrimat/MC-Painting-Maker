@@ -1,2 +1,4 @@
 # Local Claude Code / agent harness state — never committed.
 .claude/
+# Visual brainstorming mockups — local to the working copy.
+.superpowers/
