@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeId, entityId, paintingFileBase } from './identifiers';
+import {
+  sanitizeId,
+  entityId,
+  paintingFileBase,
+  spawnEggItemId,
+  spawnEggTextureKey,
+  geometryName,
+  renderControllerName,
+} from './identifiers';
 
 describe('identifiers', () => {
   it('sanitizes a UUID to snake_case', () => {
@@ -14,5 +22,21 @@ describe('identifiers', () => {
 
   it('builds the file base as painting_<sanitized>', () => {
     expect(paintingFileBase('a3f8-12')).toBe('painting_a3f8_12');
+  });
+
+  it('builds the spawn egg item id as <entityId>_spawn_egg', () => {
+    expect(spawnEggItemId('myart', 'a3f8-12')).toBe('myart:painting_a3f8_12_spawn_egg');
+  });
+
+  it('builds the spawn egg texture key as <paintingFileBase>_egg', () => {
+    expect(spawnEggTextureKey('a3f8-12')).toBe('painting_a3f8_12_egg');
+  });
+
+  it('builds the geometry name with the geometry. prefix', () => {
+    expect(geometryName('a3f8-12')).toBe('geometry.painting_a3f8_12');
+  });
+
+  it('builds the render controller name with the controller.render. prefix', () => {
+    expect(renderControllerName('a3f8-12')).toBe('controller.render.painting_a3f8_12');
   });
 });
