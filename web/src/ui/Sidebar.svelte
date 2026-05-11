@@ -22,7 +22,11 @@
   function fileDataUrl(f: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const fr = new FileReader();
-      fr.onload = () => resolve(String(fr.result));
+      fr.onload = () => {
+        const v = String(fr.result);
+        const idx = v.indexOf(',');
+        resolve(idx >= 0 ? v.slice(idx + 1) : v);
+      };
       fr.onerror = () => reject(fr.error);
       fr.readAsDataURL(f);
     });
