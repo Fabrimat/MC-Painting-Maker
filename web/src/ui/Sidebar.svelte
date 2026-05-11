@@ -1,6 +1,6 @@
 <script lang="ts">
   import { project } from '../stores/project';
-  import { createPaintingFromImage } from '../paintings/defaults';
+  import { createPaintingFromImage, ensurePackUUIDs } from '../paintings/defaults';
   import type { Painting } from '../paintings/types';
   import FileDrop from './FileDrop.svelte';
   export let selectedId: string | null;
@@ -16,7 +16,11 @@
         { pngBase64: dataUrl, naturalW: bmp.width, naturalH: bmp.height },
       ));
     }
-    project.update((v) => ({ ...v, paintings: [...v.paintings, ...additions] }));
+    // Assign pack identity (UUIDs) on the first image load. ensurePackUUIDs is idempotent.
+    project.update((v) => {
+      const withUuids = ensurePackUUIDs(v);
+      return { ...withUuids, paintings: [...withUuids.paintings, ...additions] };
+    });
   }
 
   function fileDataUrl(f: File): Promise<string> {

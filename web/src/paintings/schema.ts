@@ -20,12 +20,16 @@ export const PackMetaSchema = z.object({
   creativeGroupName: z.string().min(1),
 });
 
+// Each UUID slot is either an empty string (project has no identity yet — no images loaded)
+// or a valid uuidv4. Identity is assigned lazily on the first image load.
+const UuidOrEmpty = z.union([z.literal(''), z.string().uuid()]);
+
 export const PackUUIDsSchema = z.object({
-  bpHeader:        z.string().uuid(),
-  bpModule:        z.string().uuid(),
-  bpScriptModule:  z.string().uuid(),
-  rpHeader:        z.string().uuid(),
-  rpModule:        z.string().uuid(),
+  bpHeader:        UuidOrEmpty,
+  bpModule:        UuidOrEmpty,
+  bpScriptModule:  UuidOrEmpty,
+  rpHeader:        UuidOrEmpty,
+  rpModule:        UuidOrEmpty,
 });
 
 export const TransformSchema = z.object({

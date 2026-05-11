@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { ProjectState, Painting, Source } from './types';
+import type { ProjectState, Painting, PackUUIDs, Source } from './types';
 import { ProjectSchema } from './schema';
 
 export function createEmptyProject(): ProjectState {
@@ -14,15 +14,32 @@ export function createEmptyProject(): ProjectState {
       iconPngBase64: null,
       creativeGroupName: 'Custom Paintings',
     },
+    // Identity is assigned lazily on the first image load via ensurePackUUIDs.
     uuids: {
-      bpHeader: uuidv4(),
-      bpModule: uuidv4(),
-      bpScriptModule: uuidv4(),
-      rpHeader: uuidv4(),
-      rpModule: uuidv4(),
+      bpHeader: '',
+      bpModule: '',
+      bpScriptModule: '',
+      rpHeader: '',
+      rpModule: '',
     },
     paintings: [],
   };
+}
+
+// Returns a new ProjectState with any empty UUIDs filled with fresh uuidv4 values.
+// Idempotent: if all UUIDs are already set, the input is returned unchanged.
+export function ensurePackUUIDs(state: ProjectState): ProjectState {
+  const u = state.uuids;
+  const allSet = u.bpHeader && u.bpModule && u.bpScriptModule && u.rpHeader && u.rpModule;
+  if (allSet) return state;
+  const next: PackUUIDs = {
+    bpHeader: u.bpHeader || uuidv4(),
+    bpModule: u.bpModule || uuidv4(),
+    bpScriptModule: u.bpScriptModule || uuidv4(),
+    rpHeader: u.rpHeader || uuidv4(),
+    rpModule: u.rpModule || uuidv4(),
+  };
+  return { ...state, uuids: next };
 }
 
 export function createPaintingFromImage(

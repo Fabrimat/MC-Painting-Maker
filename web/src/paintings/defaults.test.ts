@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyProject, createPaintingFromImage, migrate } from './defaults';
+import { createEmptyProject, createPaintingFromImage, ensurePackUUIDs, migrate } from './defaults';
 import { ProjectSchema } from './schema';
 
 describe('createEmptyProject', () => {
@@ -8,14 +8,48 @@ describe('createEmptyProject', () => {
     expect(() => ProjectSchema.parse(p)).not.toThrow();
   });
 
-  it('produces unique UUIDs each call', () => {
-    const a = createEmptyProject();
-    const b = createEmptyProject();
-    expect(a.uuids.bpHeader).not.toBe(b.uuids.bpHeader);
+  it('leaves UUIDs empty until the first image is loaded', () => {
+    const p = createEmptyProject();
+    expect(p.uuids.bpHeader).toBe('');
+    expect(p.uuids.bpModule).toBe('');
+    expect(p.uuids.bpScriptModule).toBe('');
+    expect(p.uuids.rpHeader).toBe('');
+    expect(p.uuids.rpModule).toBe('');
   });
 
   it('starts with no paintings', () => {
     expect(createEmptyProject().paintings).toEqual([]);
+  });
+});
+
+describe('ensurePackUUIDs', () => {
+  it('fills all empty UUIDs with uuidv4 values', () => {
+    const filled = ensurePackUUIDs(createEmptyProject());
+    expect(filled.uuids.bpHeader).toMatch(/^[0-9a-f-]{36}$/);
+    expect(filled.uuids.bpModule).toMatch(/^[0-9a-f-]{36}$/);
+    expect(filled.uuids.bpScriptModule).toMatch(/^[0-9a-f-]{36}$/);
+    expect(filled.uuids.rpHeader).toMatch(/^[0-9a-f-]{36}$/);
+    expect(filled.uuids.rpModule).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('returns distinct UUIDs across the five slots', () => {
+    const u = ensurePackUUIDs(createEmptyProject()).uuids;
+    const all = [u.bpHeader, u.bpModule, u.bpScriptModule, u.rpHeader, u.rpModule];
+    expect(new Set(all).size).toBe(5);
+  });
+
+  it('is idempotent — does not regenerate UUIDs that are already set', () => {
+    const first = ensurePackUUIDs(createEmptyProject());
+    const second = ensurePackUUIDs(first);
+    expect(second.uuids).toEqual(first.uuids);
+  });
+
+  it('only fills the slots that are empty (preserves the rest)', () => {
+    const base = createEmptyProject();
+    base.uuids.bpHeader = '11111111-1111-4111-8111-111111111111';
+    const next = ensurePackUUIDs(base);
+    expect(next.uuids.bpHeader).toBe('11111111-1111-4111-8111-111111111111');
+    expect(next.uuids.bpModule).not.toBe('');
   });
 });
 

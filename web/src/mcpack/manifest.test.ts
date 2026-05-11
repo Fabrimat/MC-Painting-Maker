@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyProject } from '../paintings/defaults';
+import { createEmptyProject, ensurePackUUIDs } from '../paintings/defaults';
 import { buildBpManifest, buildRpManifest } from './manifest';
 
 describe('manifest', () => {
   it('builds a BP manifest with header, data + script modules, and RP+@minecraft/server deps', () => {
-    const proj = createEmptyProject();
+    const proj = ensurePackUUIDs(createEmptyProject());
     const m = buildBpManifest(proj);
     expect(m.format_version).toBe(2);
     expect(m.header.uuid).toBe(proj.uuids.bpHeader);
@@ -20,7 +20,7 @@ describe('manifest', () => {
   });
 
   it('builds an RP manifest with header and resources module + BP dep', () => {
-    const proj = createEmptyProject();
+    const proj = ensurePackUUIDs(createEmptyProject());
     const m = buildRpManifest(proj);
     expect(m.header.uuid).toBe(proj.uuids.rpHeader);
     expect(m.modules[0].type).toBe('resources');
@@ -28,7 +28,7 @@ describe('manifest', () => {
   });
 
   it('produces stable UUIDs across repeated builds with the same state', () => {
-    const proj = createEmptyProject();
+    const proj = ensurePackUUIDs(createEmptyProject());
     const a = buildBpManifest(proj);
     const b = buildBpManifest(proj);
     expect(a.header.uuid).toBe(b.header.uuid);

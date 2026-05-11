@@ -1,5 +1,6 @@
 import { zipSync, strToU8 } from 'fflate';
 import type { ProjectState, Painting } from '../paintings/types';
+import { ensurePackUUIDs } from '../paintings/defaults';
 import { rasterize } from '../paintings/rasterize';
 import { buildBpManifest, buildRpManifest } from './manifest';
 import { buildEntityBehavior } from './entity';
@@ -102,12 +103,15 @@ async function rasterizeEgg(p: Painting): Promise<Uint8Array> {
 }
 
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
+  // Defensive: if the caller somehow gets here with empty UUIDs (e.g. a project loaded
+  // from an external JSON that predates ensurePackUUIDs), populate them now.
+  const ready = ensurePackUUIDs(state);
   const textures = new Map<string, Textures>();
-  for (const p of state.paintings) {
+  for (const p of ready.paintings) {
     const texture = await rasterize(p);
     const eggTexture = await rasterizeEgg(p);
     textures.set(p.id, { texture, eggTexture });
   }
-  const bytes = await assembleArchive(state, textures);
+  const bytes = await assembleArchive(ready, textures);
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }
