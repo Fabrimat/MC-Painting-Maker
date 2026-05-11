@@ -1,7 +1,7 @@
 <script lang="ts">
   import { project } from '../stores/project';
   import { resolveDensity } from '../paintings/density';
-  import type { Painting, Density, Resampling, Material } from '../paintings/types';
+  import type { Painting, Density } from '../paintings/types';
   export let id: string;
   $: painting = $project.paintings.find((p) => p.id === id) ?? null;
   $: density = painting ? resolveDensity(painting) : 1;
