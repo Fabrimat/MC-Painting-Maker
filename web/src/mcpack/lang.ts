@@ -1,5 +1,5 @@
 import type { ProjectState } from '../paintings/types';
-import { entityId, spawnEggItemId } from './identifiers';
+import { entityId } from './identifiers';
 
 // .lang values cannot contain newlines or carriage returns; the manifest uses pack.name
 // / pack.description placeholders that resolve via these keys.
@@ -20,7 +20,7 @@ export function buildBpLang(p: ProjectState): string {
     `itemGroup.name.${p.pack.namespace}:paintings=${langSafe(p.pack.creativeGroupName)}`,
   ];
   for (const pt of p.paintings) {
-    lines.push(`item.${spawnEggItemId(p.pack.namespace, pt.id)}.name=${langSafe(pt.name)}`);
+    lines.push(`item.spawn_egg.entity.${entityId(p.pack.namespace, pt.id)}.name=${langSafe(pt.name)}`);
   }
   return lines.join('\n') + '\n';
 }

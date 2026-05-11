@@ -12,7 +12,7 @@ describe('lang', () => {
     proj.paintings.push(p);
     const lang = buildBpLang(proj);
     expect(lang).toContain(`itemGroup.name.paintings:paintings=Custom Paintings`);
-    const expected = `item.paintings:${paintingFileBase(p.id)}_spawn_egg.name=Sunset`;
+    const expected = `item.spawn_egg.entity.paintings:${paintingFileBase(p.id)}.name=Sunset`;
     expect(lang).toContain(expected);
   });
 
