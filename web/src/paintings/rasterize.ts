@@ -21,9 +21,16 @@ export function computeRasterParams(p: Painting): RasterParams {
 
 export async function rasterize(p: Painting): Promise<Uint8Array> {
   const { canvasPx, imageDstPx } = computeRasterParams(p);
-  const cvs = new OffscreenCanvas(Math.max(1, canvasPx.w), Math.max(1, canvasPx.h));
-  const ctx = cvs.getContext('2d');
+  const W = Math.max(1, canvasPx.w);
+  const H = Math.max(1, canvasPx.h);
+
+  const useOffscreen = typeof OffscreenCanvas !== 'undefined';
+  const cvs: OffscreenCanvas | HTMLCanvasElement = useOffscreen
+    ? new OffscreenCanvas(W, H)
+    : Object.assign(document.createElement('canvas'), { width: W, height: H });
+  const ctx = (cvs as HTMLCanvasElement).getContext('2d');
   if (!ctx) throw new Error('2d context unavailable');
+
   if (p.source && p.source.pngBase64) {
     const cleanB64 = p.source.pngBase64.replace(/^data:image\/[a-z]+;base64,/, '');
     const bytes = atob(cleanB64);
@@ -41,6 +48,11 @@ export async function rasterize(p: Painting): Promise<Uint8Array> {
     ctx.drawImage(bmp, -imageDstPx.w / 2, -imageDstPx.h / 2, imageDstPx.w, imageDstPx.h);
     ctx.restore();
   }
-  const blob = await cvs.convertToBlob({ type: 'image/png' });
+
+  const blob = useOffscreen
+    ? await (cvs as OffscreenCanvas).convertToBlob({ type: 'image/png' })
+    : await new Promise<Blob>((resolve, reject) => {
+        (cvs as HTMLCanvasElement).toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png');
+      });
   return new Uint8Array(await blob.arrayBuffer());
 }
