@@ -53,7 +53,7 @@ describe('PaintingList', () => {
     expect(onselect).toHaveBeenCalledWith('a');
   });
 
-  it('calls onremove when the ✕ button is clicked', async () => {
+  it('calls onremove when the delete button is clicked', async () => {
     const onremove = vi.fn();
     const { getAllByRole } = render(PaintingList, {
       props: { paintings: [painting('a', 'Sunset')], selectedId: 'a', onremove },

@@ -27,7 +27,7 @@ describe('Topbar', () => {
     expect(btn.disabled).toBe(false);
   });
 
-  it('clicking ⚙ flips packDrawerOpen', async () => {
+  it('clicking the settings button flips packDrawerOpen', async () => {
     packDrawerOpen.set(false);
     const { getByRole } = render(Topbar);
     await fireEvent.click(getByRole('button', { name: /Pack settings/ }));

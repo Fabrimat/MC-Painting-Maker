@@ -60,7 +60,11 @@
 
   <footer class="credits">
     <p class="line">
-      Built with <span class="heart" aria-hidden="true">♥</span> by
+      Built with
+      <svg class="heart" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>
+      </svg>
+      by
       <a href="https://larosa.work/" target="_blank" rel="noopener noreferrer">Fabrizio La Rosa</a>
     </p>
     <p class="line">
@@ -95,5 +99,5 @@
   .credits .line { margin: 0; }
   .credits a { color: var(--text-muted); text-decoration: none; }
   .credits a:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
-  .credits .heart { color: var(--danger); }
+  .credits .heart { color: var(--danger); vertical-align: -2px; display: inline-block; }
 </style>

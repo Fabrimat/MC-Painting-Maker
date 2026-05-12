@@ -26,7 +26,10 @@
 
   <div class="zoom-display">
     <button type="button" class="pct" on:click={toggleMenu} aria-haspopup="menu" aria-expanded={menuOpen} title="Zoom presets">
-      {pct}% <span aria-hidden="true">▾</span>
+      {pct}%
+      <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
     </button>
     {#if menuOpen}
       <ul class="menu" role="menu" on:keydown={onMenuKey}>
@@ -44,7 +47,13 @@
   <span class="sep" aria-hidden="true"></span>
 
   <button type="button" class="btn label" on:click={onFit} title="Fit to screen (0)">
-    <span class="icon" aria-hidden="true">⛶</span><span class="text">Fit</span>
+    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+      <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+      <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+      <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+    </svg>
+    <span class="text">Fit</span>
   </button>
   <button type="button" class="btn label" on:click={onResetOneToOne} title="Actual size (1)">
     <span class="text">1:1</span>
@@ -81,7 +90,9 @@
   .btn:hover:not(:disabled) { background: var(--surface); border-color: var(--border); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .label { display: inline-flex; align-items: center; gap: var(--space-2); }
-  .icon { font-size: var(--fs-lg); }
+  .icon { display: block; }
+  .pct { display: inline-flex; align-items: center; gap: var(--space-1); }
+  .chev { display: block; }
   .sep { width: 1px; height: 20px; background: var(--border); margin: 0 var(--space-1); }
   .zoom-display { position: relative; }
   .pct {
