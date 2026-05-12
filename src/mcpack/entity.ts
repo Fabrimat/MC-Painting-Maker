@@ -21,7 +21,7 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
         'minecraft:type_family': { family: [family, 'inanimate'] },
         'minecraft:collision_box': { width: 0, height: 0 },
         'minecraft:custom_hit_test': {
-          hitboxes: [{ pivot: [0, height / 2, -7 / 16], width, height }],
+          hitboxes: [{ pivot: [width / 2, height / 2, -7 / 16], width, height }],
         },
         'minecraft:physics': { has_collision: false, has_gravity: false },
         'minecraft:pushable': { is_pushable: false, is_pushable_by_piston: false },

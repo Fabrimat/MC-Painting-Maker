@@ -25,6 +25,7 @@ describe('buildEntityBehavior', () => {
     expect(hb).toHaveLength(1);
     expect(hb[0].width).toBeCloseTo(2.5);
     expect(hb[0].height).toBeCloseTo(3);
+    expect(hb[0].pivot[0]).toBeCloseTo(1.25);
     expect(hb[0].pivot[1]).toBeCloseTo(1.5);
     expect(hb[0].pivot[2]).toBeCloseTo(-7 / 16);
   });
