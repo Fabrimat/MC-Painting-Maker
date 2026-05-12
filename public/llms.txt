@@ -1,0 +1,37 @@
+# MC Painting Maker
+
+> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.30+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
+
+The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own spawn egg in a configurable Creative category.
+
+## Core features
+
+- Drop one or more images (PNG, JPG, WEBP) and choose a target size in Minecraft blocks (width x height).
+- Crop, resize, and reposition the source image inside the painting canvas with a Konva-based editor.
+- Per-painting in-game ID (slug) with namespace prefix; auto-derived from the name, lockable, and user-editable.
+- Configurable pack metadata: pack name, namespace, version, icon, Creative inventory group.
+- One-click export of a single `.mcaddon` containing both the behavior pack and the resource pack.
+- Deterministic UUIDs that survive renames so re-imports update existing entities instead of duplicating them.
+- Project state persisted in `localStorage`; nothing is uploaded.
+
+## How a Bedrock player uses the output
+
+1. Open the exported `.mcaddon` with Minecraft Bedrock; both packs install.
+2. Create a world with the Behavior pack and the Resource pack enabled.
+3. In the Creative inventory, open the `equipment` category and find the "Custom Paintings" group (name configurable).
+4. Use a spawn egg against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
+
+## Useful links
+
+- [Application](https://mc-paintings.larosa.work/): the painting maker itself.
+- [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
+- [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
+- [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.
+
+## Tech stack
+
+Svelte 5, TypeScript, Vite, Konva for the canvas editor, fflate for in-browser ZIP creation, Zod for schema validation, Vitest for tests. Deployed as a static site to GitHub Pages behind Cloudflare.
+
+## Author
+
+Fabrizio La Rosa (Belgian VAT BE1031214819, Ghent, Belgium). Contact via the GitHub repository.
