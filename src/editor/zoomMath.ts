@@ -82,9 +82,9 @@ export function clampPan(
   const maxPanX = hostW - minVisible;
   const minPanY = minVisible - canvasPxH;
   const maxPanY = hostH - minVisible;
-  return {
-    zoom: view.zoom,
-    panX: clamp(view.panX, Math.min(minPanX, maxPanX), Math.max(minPanX, maxPanX)),
-    panY: clamp(view.panY, Math.min(minPanY, maxPanY), Math.max(minPanY, maxPanY)),
-  };
+  const centerX = (hostW - canvasPxW) / 2;
+  const centerY = (hostH - canvasPxH) / 2;
+  const panX = minPanX <= maxPanX ? clamp(view.panX, minPanX, maxPanX) : centerX;
+  const panY = minPanY <= maxPanY ? clamp(view.panY, minPanY, maxPanY) : centerY;
+  return { zoom: view.zoom, panX, panY };
 }

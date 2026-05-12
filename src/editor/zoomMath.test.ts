@@ -22,8 +22,8 @@ describe('computeZoomBounds', () => {
 describe('fitView', () => {
   it('centers the canvas in the host at the fit zoom', () => {
     const v = fitView(16, 16, 1000, 600, 12);
-    // fitZoom = min((1000-64)/192, (600-64)/192) = (600-64)/192 ≈ 2.79, clamped to maxZoom 8 → 2.79.
-    // But minZoom = min(fitZoom, 1) = 1; fitView returns zoom = clamp(fitZoom, minZoom, maxZoom) = 2.79.
+    // fitZoom = min((1000-64)/192, (600-64)/192) ≈ 2.79.
+    // minZoom = min(2.79, 1) = 1; maxZoom = 8; zoom = clamp(2.79, 1, 8) = 2.79.
     expect(v.zoom).toBeCloseTo((600 - 64) / (16 * 12), 5);
     const canvasPx = 16 * 12 * v.zoom;
     expect(v.panX).toBeCloseTo((1000 - canvasPx) / 2, 5);
@@ -87,5 +87,16 @@ describe('clampPan', () => {
     // After clamp: panX + canvasW = 192 + panX must be >= 64, i.e. panX >= -128 (canvas extends past left).
     // Or: panX <= hostW - 64 = 936 (canvas not fully past right). So clamped panX = 936.
     expect(c.panX).toBe(1000 - 64);
+  });
+
+  it('centers the canvas when host + canvas is smaller than 2*minVisible', () => {
+    // host 80px, canvas 32px, minVisible 64 -> minPanX=32, maxPanX=16 (inverted).
+    // canvasW16=2, basePps=16 -> canvasPxW = 2*16*1 = 32.
+    // Center = (80-32)/2 = 24 on each axis.
+    const v = { zoom: 1, panX: 100, panY: 100 };
+    const c = clampPan(v, 2, 2, 80, 80, 16, 64);
+    // canvasPxW = canvasPxH = 32. Center = (80-32)/2 = 24 on each axis.
+    expect(c.panX).toBe(24);
+    expect(c.panY).toBe(24);
   });
 });
