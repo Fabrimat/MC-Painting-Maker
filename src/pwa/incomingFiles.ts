@@ -1,7 +1,12 @@
 import { writable, type Writable } from 'svelte/store';
 import { getShareFiles, deleteShareFiles } from './idb';
 
-export const incomingFiles: Writable<File[] | null> = writable(null);
+export type IncomingPayload = {
+  files: File[];
+  source: 'file-handler' | 'share-target';
+};
+
+export const incomingFiles: Writable<IncomingPayload | null> = writable(null);
 export const incomingError: Writable<string | null> = writable(null);
 
 function isAcceptedImage(f: File): boolean {
@@ -28,7 +33,9 @@ async function consumeShareTarget(error: boolean): Promise<void> {
     cleanSourceQueryParam();
     if (!files) return;
     const accepted = files.filter(isAcceptedImage);
-    if (accepted.length > 0) incomingFiles.set(accepted);
+    if (accepted.length > 0) {
+      incomingFiles.set({ files: accepted, source: 'share-target' });
+    }
   } catch {
     incomingError.set('Share failed');
     cleanSourceQueryParam();
@@ -49,7 +56,9 @@ function registerLaunchQueueConsumer(): void {
       const handles = params.files ?? [];
       const files = await Promise.all(handles.map((h) => h.getFile()));
       const accepted = files.filter(isAcceptedImage);
-      if (accepted.length > 0) incomingFiles.set(accepted);
+      if (accepted.length > 0) {
+        incomingFiles.set({ files: accepted, source: 'file-handler' });
+      }
     } catch {
       incomingError.set('Share failed');
     }

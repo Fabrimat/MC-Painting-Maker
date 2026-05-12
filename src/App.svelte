@@ -32,9 +32,10 @@
     const stopPersist = bindPersistence(project, 1000);
     window.addEventListener('keydown', onKeyDown);
 
-    const unsubFiles = incomingFiles.subscribe(async (files) => {
-      if (!files || files.length === 0) return;
+    const unsubFiles = incomingFiles.subscribe(async (payload) => {
+      if (!payload || payload.files.length === 0) return;
       incomingFiles.set(null);
+      const { files } = payload;
       try {
         const result = await addImagesToProject($project, files);
         project.set(result.state);

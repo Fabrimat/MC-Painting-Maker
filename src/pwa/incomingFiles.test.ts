@@ -48,9 +48,11 @@ describe('pwa/incomingFiles', () => {
     await vi.waitFor(() => {
       const v = get(mod.incomingFiles);
       expect(v).not.toBeNull();
-      expect(v).toHaveLength(1);
+      expect(v?.files).toHaveLength(1);
     });
-    expect((get(mod.incomingFiles) as File[])[0].name).toBe('cat.png');
+    const v = get(mod.incomingFiles);
+    expect(v?.files[0].name).toBe('cat.png');
+    expect(v?.source).toBe('share-target');
     expect(get(mod.incomingError)).toBeNull();
     expect(await getShareFiles()).toBeNull();
     expect(window.location.search).toBe('');
@@ -82,8 +84,10 @@ describe('pwa/incomingFiles', () => {
     expect(setConsumer).toHaveBeenCalledTimes(1);
     const file = makeFile('dog.png');
     await consumer!({ files: [{ getFile: () => Promise.resolve(file) }] });
-    expect(get(mod.incomingFiles)).toHaveLength(1);
-    expect((get(mod.incomingFiles) as File[])[0].name).toBe('dog.png');
+    const v = get(mod.incomingFiles);
+    expect(v?.files).toHaveLength(1);
+    expect(v?.files[0].name).toBe('dog.png');
+    expect(v?.source).toBe('file-handler');
   });
 
   it('emits incomingError when launchQueue getFile() rejects', async () => {
