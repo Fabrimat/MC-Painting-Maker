@@ -1,5 +1,6 @@
 <script lang="ts">
   import { project } from '../stores/project';
+  import { applyPaintingPatch } from '../paintings/painting';
   export let id: string;
   let editing = false;
   let draft = '';
@@ -15,7 +16,7 @@
     if (!name) { cancel(); return; }
     project.update((v) => ({
       ...v,
-      paintings: v.paintings.map((p) => p.id === id ? { ...p, name } : p),
+      paintings: v.paintings.map((p) => p.id === id ? applyPaintingPatch(p, { name }) : p),
     }));
     editing = false;
   }

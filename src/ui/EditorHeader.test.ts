@@ -41,4 +41,32 @@ describe('EditorHeader', () => {
     expect(get(project).paintings[0].name).toBe('Sunset');
     expect(queryByRole('textbox')).toBeNull();
   });
+
+  it('rederivates the slug from the new name when the painting is unlocked', async () => {
+    const id = seedWithPainting('Sunset');
+    const { getByText, getByRole } = render(EditorHeader, { props: { id } });
+    await fireEvent.click(getByText('Sunset'));
+    const input = getByRole('textbox') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: 'Mountain' } });
+    await fireEvent.keyDown(input, { key: 'Enter' });
+    const p = get(project).paintings[0];
+    expect(p.name).toBe('Mountain');
+    expect(p.slug).toMatch(/^mountain_[0-9a-f]{8}$/);
+  });
+
+  it('preserves the slug on rename when the painting is locked', async () => {
+    const id = seedWithPainting('Sunset');
+    project.update((v) => ({
+      ...v,
+      paintings: v.paintings.map((p) => p.id === id ? { ...p, slugLocked: true } : p),
+    }));
+    const beforeSlug = get(project).paintings[0].slug;
+    const { getByText, getByRole } = render(EditorHeader, { props: { id } });
+    await fireEvent.click(getByText('Sunset'));
+    const input = getByRole('textbox') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: 'Mountain' } });
+    await fireEvent.keyDown(input, { key: 'Enter' });
+    expect(get(project).paintings[0].name).toBe('Mountain');
+    expect(get(project).paintings[0].slug).toBe(beforeSlug);
+  });
 });
