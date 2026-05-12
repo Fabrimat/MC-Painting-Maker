@@ -80,6 +80,7 @@
       width: painting.transform.w16 * pps,
       height: painting.transform.h16 * pps,
       draggable: true,
+      imageSmoothingEnabled: painting.resampling === 'smooth',
     });
     imageNode.on('dragmove', () => {
       if (!imageNode) return;
