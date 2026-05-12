@@ -132,6 +132,8 @@
           bind:this={slugInputEl}
           value={painting.slug}
           readonly />
+      </div>
+      <div class="id-actions">
         <button type="button" class="id-btn id-lock"
           aria-label={painting.slugLocked ? 'Unlock slug' : 'Lock slug'}
           aria-pressed={painting.slugLocked}
@@ -194,7 +196,7 @@
     font-size: var(--fs-xs); color: var(--text-muted); font-family: monospace;
     white-space: nowrap;
   }
-  .id-slug { flex: 1; font-family: monospace; }
+  .id-slug { flex: 1; min-width: 0; font-family: monospace; }
   .id-btn {
     padding: 5px var(--space-3); font-size: var(--fs-xs); font-weight: 600;
     color: var(--text-muted); border: 1px solid var(--border-strong);
@@ -202,4 +204,8 @@
   }
   .id-btn:hover { background: var(--surface); }
   .id-lock { display: inline-flex; align-items: center; justify-content: center; }
+  .id-actions {
+    display: flex; gap: var(--space-2); justify-content: flex-end;
+    margin-top: var(--space-2);
+  }
 </style>
