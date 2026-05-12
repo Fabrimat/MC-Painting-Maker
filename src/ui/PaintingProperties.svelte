@@ -125,14 +125,12 @@
 
     <section>
       <h4 class="section-title">In-game ID</h4>
-      <div class="id-row">
-        <span class="id-prefix">{$project.pack.namespace}:</span>
-        <input class="field id-slug"
-          aria-label="In-game slug"
-          bind:this={slugInputEl}
-          value={painting.slug}
-          readonly />
-      </div>
+      <span class="id-prefix">{$project.pack.namespace}:</span>
+      <input class="field id-slug"
+        aria-label="In-game slug"
+        bind:this={slugInputEl}
+        value={painting.slug}
+        readonly />
       <div class="id-actions">
         <button type="button" class="id-btn id-lock"
           aria-label={painting.slugLocked ? 'Unlock slug' : 'Lock slug'}
@@ -191,12 +189,11 @@
     background: var(--primary-tint); color: var(--primary-deep);
     box-shadow: inset 0 0 0 1px var(--primary-border);
   }
-  .id-row { display: flex; gap: var(--space-2); align-items: center; }
   .id-prefix {
-    font-size: var(--fs-xs); color: var(--text-muted); font-family: monospace;
-    white-space: nowrap;
+    display: block; font-size: var(--fs-xs); color: var(--text-muted);
+    font-family: monospace; margin-bottom: var(--space-1);
   }
-  .id-slug { flex: 1; min-width: 0; font-family: monospace; }
+  .id-slug { width: 100%; font-family: monospace; }
   .id-btn {
     padding: 5px var(--space-3); font-size: var(--fs-xs); font-weight: 600;
     color: var(--text-muted); border: 1px solid var(--border-strong);
