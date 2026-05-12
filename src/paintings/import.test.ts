@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { addImagesToProject } from './import';
 import { createEmptyProject } from './defaults';
 
@@ -6,9 +6,11 @@ import { createEmptyProject } from './defaults';
 // a zero-dimension ImageBitmap object, which is what the happy-dom docs imply
 // would happen. The implementation guards against width/height 0 with || 1.
 beforeAll(() => {
-  if (typeof createImageBitmap === 'undefined') {
-    vi.stubGlobal('createImageBitmap', async () => ({ width: 0, height: 0, close: () => {} }));
-  }
+  vi.stubGlobal('createImageBitmap', async () => ({ width: 0, height: 0, close: () => {} }));
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 function makeFile(name: string, type = 'image/png'): File {

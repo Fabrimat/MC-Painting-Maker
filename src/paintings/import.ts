@@ -19,9 +19,8 @@ function fileDataUrl(f: File): Promise<string> {
 }
 
 async function decodeOne(f: File): Promise<Source> {
-  const bytes = new Uint8Array(await f.arrayBuffer());
   const dataUrl = await fileDataUrl(f);
-  const bmp = await createImageBitmap(new Blob([bytes], { type: f.type }));
+  const bmp = await createImageBitmap(f);
   return { pngBase64: dataUrl, naturalW: bmp.width || 1, naturalH: bmp.height || 1 };
 }
 
