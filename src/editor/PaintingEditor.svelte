@@ -3,6 +3,9 @@
   import Konva from 'konva';
   import { project } from '../stores/project';
   import { rasterizeForPreview } from './previewRaster';
+  import { computeZoomBounds, fitView, zoomAtPoint, clampPan, type View } from './zoomMath';
+  import { loadView, saveView, flushPendingSaves } from '../stores/viewState';
+  import CanvasToolbar from '../ui/CanvasToolbar.svelte';
   import type { Painting } from '../paintings/types';
 
   export let id: string;
@@ -22,6 +25,15 @@
   let rasterSig = '';
   let mode: 'live' | 'settled' = 'settled';
 
+  const basePps = 12;
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  $: pps = basePps * zoom;
+  $: bounds = stage
+    ? computeZoomBounds(painting?.canvasW16 ?? 16, painting?.canvasH16 ?? 16, stage.width(), stage.height(), basePps)
+    : { minZoom: 0.1, maxZoom: 8 };
+
   function currentRasterSig(p: Painting): string {
     const t = p.transform;
     const s = p.source;
@@ -34,8 +46,6 @@
 
   $: painting = $project.paintings.find((p) => p.id === id) ?? null;
 
-  let pps = 12;
-
   onMount(async () => {
     stage = new Konva.Stage({ container: host, width: host.clientWidth, height: host.clientHeight });
     bgLayer = new Konva.Layer();
@@ -44,10 +54,86 @@
     rasterLayer = new Konva.Layer();
     overlayLayer = new Konva.Layer({ listening: false });
     stage.add(bgLayer, imageLayer, rasterLayer, overlayLayer, gridLayer);
+    stage.draggable(true);
+    stage.on('dragend', onStageDragEnd);
+    initView();
     await refresh();
   });
 
-  onDestroy(() => stage?.destroy());
+  onDestroy(() => {
+    flushPendingSaves();
+    stage?.destroy();
+  });
+
+  function initView() {
+    if (!stage || !painting) return;
+    const hostW = stage.width();
+    const hostH = stage.height();
+    const saved = loadView(id);
+    if (saved) {
+      const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, hostW, hostH, basePps);
+      const clampedZoom = Math.max(b.minZoom, Math.min(b.maxZoom, saved.zoom));
+      const clamped = clampPan(
+        { zoom: clampedZoom, panX: saved.panX, panY: saved.panY },
+        painting.canvasW16, painting.canvasH16, hostW, hostH, basePps,
+      );
+      zoom = clamped.zoom; panX = clamped.panX; panY = clamped.panY;
+    } else {
+      const v = fitView(painting.canvasW16, painting.canvasH16, hostW, hostH, basePps);
+      zoom = v.zoom; panX = v.panX; panY = v.panY;
+    }
+  }
+
+  function applyView() {
+    if (!stage) return;
+    stage.position({ x: panX, y: panY });
+  }
+
+  function persistView() {
+    saveView(id, { zoom, panX, panY });
+  }
+
+  function onStageDragEnd() {
+    if (!stage) return;
+    const pos = stage.position();
+    if (!painting) return;
+    const clamped = clampPan(
+      { zoom, panX: pos.x, panY: pos.y },
+      painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps,
+    );
+    panX = clamped.panX; panY = clamped.panY;
+    applyView();
+    persistView();
+  }
+
+  function setZoom(nextZoom: number, pivot?: { x: number; y: number }) {
+    if (!stage || !painting) return;
+    const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    const px = pivot?.x ?? stage.width() / 2;
+    const py = pivot?.y ?? stage.height() / 2;
+    const factor = Math.max(b.minZoom, Math.min(b.maxZoom, nextZoom)) / zoom;
+    const next: View = zoomAtPoint({ zoom, panX, panY }, factor, { x: px, y: py }, basePps, b);
+    const clamped = clampPan(next, painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    zoom = clamped.zoom; panX = clamped.panX; panY = clamped.panY;
+    persistView();
+  }
+
+  function stepZoom(direction: 1 | -1) {
+    setZoom(zoom * (direction === 1 ? 1.25 : 1 / 1.25));
+  }
+
+  function onFit() {
+    if (!stage || !painting) return;
+    const v = fitView(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    zoom = v.zoom; panX = v.panX; panY = v.panY;
+    persistView();
+  }
+
+  function onResetOneToOne() {
+    if (!stage || !painting) return;
+    const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    setZoom(Math.max(1, b.minZoom));
+  }
 
   async function refresh() {
     if (!stage || !painting) return;
@@ -65,20 +151,16 @@
     drawRasterPreview();
     drawOverlay();
     drawGrid();
-    centerAndConfigurePan();
+    // Re-clamp view in case canvas dimensions or host size changed.
+    const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    const reclamped = clampPan(
+      { zoom: Math.max(b.minZoom, Math.min(b.maxZoom, zoom)), panX, panY },
+      painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps,
+    );
+    zoom = reclamped.zoom; panX = reclamped.panX; panY = reclamped.panY;
+    applyView();
     bgLayer.draw(); imageLayer.draw(); rasterLayer.draw(); overlayLayer.draw(); gridLayer.draw();
     maybeStartRaster();
-  }
-
-  function centerAndConfigurePan() {
-    if (!stage || !painting) return;
-    const canvasW = painting.canvasW16 * pps;
-    const canvasH = painting.canvasH16 * pps;
-    const hostW = stage.width();
-    const hostH = stage.height();
-    stage.position({ x: (hostW - canvasW) / 2, y: (hostH - canvasH) / 2 });
-    const overflows = canvasW > hostW || canvasH > hostH;
-    stage.draggable(overflows);
   }
 
   function drawCheckerboard() {
@@ -276,15 +358,34 @@
     rasterLayer.batchDraw();
   }
 
+  $: if (stage) { applyView(); }
   $: if (painting) refresh().catch(console.error);
 </script>
 
 <div class="canvas-wrap">
   <div class="canvas-host" bind:this={host}></div>
+  {#if painting && stage}
+    <CanvasToolbar
+      {zoom}
+      minZoom={bounds.minZoom}
+      maxZoom={bounds.maxZoom}
+      onZoomIn={() => stepZoom(1)}
+      onZoomOut={() => stepZoom(-1)}
+      onSetZoom={(z) => setZoom(z)}
+      {onFit}
+      {onResetOneToOne}
+    />
+  {/if}
 </div>
 
 <style>
-  .canvas-wrap { flex: 1; padding: var(--space-7); background: var(--surface-2); min-height: 0; }
+  .canvas-wrap {
+    flex: 1;
+    padding: var(--space-7);
+    background: var(--surface-2);
+    min-height: 0;
+    position: relative;
+  }
   .canvas-host {
     width: 100%; height: 100%;
     background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
