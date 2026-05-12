@@ -2,6 +2,7 @@
 .claude/
 # Visual brainstorming mockups - local to the working copy.
 .superpowers/
+docs/superpowers/
 
 # Build artefacts and toolchain caches.
 node_modules
