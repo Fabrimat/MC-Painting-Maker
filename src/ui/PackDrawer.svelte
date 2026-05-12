@@ -11,6 +11,18 @@
     const r = NamespaceTest.safeParse($project.pack.namespace);
     namespaceError = r.success ? null : 'Use lowercase a-z, 0-9, _ (max 16 chars), not "minecraft".';
   }
+  function onNamespaceInput(e: Event) {
+    const el = e.target as HTMLInputElement;
+    const lower = el.value.toLowerCase();
+    if (el.value !== lower) el.value = lower;
+    $project.pack.namespace = lower;
+  }
+
+  const buildSha = __BUILD_SHA__;
+  const buildDate = new Date(__BUILD_DATE__).toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
 
   function close() { packDrawerOpen.set(false); }
   function onKeyDown(e: KeyboardEvent) { if (e.key === 'Escape') close(); }
@@ -86,9 +98,11 @@
       <h4 class="section-title">Advanced</h4>
       <label class="stack">
         <span class="field-label">Namespace</span>
-        <span class="field-hint">Lowercase, used internally. Don't change after publishing.</span>
+        <span class="field-hint">Lowercase. Don't change after publishing.</span>
         <input class="field" class:invalid={namespaceError !== null}
-          bind:value={$project.pack.namespace} on:blur={validateNamespace} />
+          value={$project.pack.namespace}
+          on:input={onNamespaceInput}
+          on:blur={validateNamespace} />
         {#if namespaceError}<span class="err">{namespaceError}</span>{/if}
       </label>
       <label class="stack">
@@ -102,6 +116,11 @@
         <input class="field" type="number" min="0" bind:value={$project.pack.semver[2]} aria-label="Patch version" />
       </div>
     </section>
+
+    <footer class="build-info">
+      <span>Build <code>{buildSha}</code></span>
+      <span>{buildDate}</span>
+    </footer>
   </div>
 {/if}
 
@@ -141,6 +160,19 @@
   .pick { font-size: var(--fs-xs); font-weight: 600; color: var(--primary); cursor: pointer; }
   .link { font-size: var(--fs-xs); color: var(--text-muted); text-decoration: underline; }
   .err { font-size: var(--fs-xs); color: var(--danger); }
+  .build-info {
+    margin-top: auto;
+    display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs); color: var(--text-muted);
+  }
+  .build-info code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    background: var(--surface-2);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-sm);
+  }
 
   @media (max-width: 899px) {
     .drawer { width: 100%; padding: var(--space-6); }
