@@ -45,4 +45,18 @@ describe('Sidebar', () => {
     });
     expect(get(project).paintings).toHaveLength(1);
   });
+
+  it('emits import_failed with source=button when createImageBitmap rejects', async () => {
+    vi.stubGlobal('createImageBitmap', () => Promise.reject(new Error('image decode error')));
+    project.set(createEmptyProject());
+    const { container } = render(Sidebar, { props: { selectedId: null } });
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([1, 2, 3])], 'bad.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    await fireEvent.change(input);
+    await vi.waitFor(() => {
+      expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'button', reason: 'image-decode' });
+    });
+    expect(get(project).paintings).toHaveLength(0);
+  });
 });
