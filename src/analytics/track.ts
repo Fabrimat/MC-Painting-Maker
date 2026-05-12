@@ -39,3 +39,18 @@ export function trackPwaInstallAvailable(): void {
 export function trackPwaInstalled(): void {
   dispatch('pwa_installed');
 }
+
+export function classifyBuildReason(err: unknown): BuildReason {
+  const msg = (err instanceof Error ? err.message : '').toLowerCase();
+  if (msg.includes('jszip') || msg.includes('zip')) return 'jszip-error';
+  if (msg.includes('image') || msg.includes('decode') || msg.includes('encode') || msg.includes('bitmap')) return 'image-encode';
+  if (msg.includes('manifest')) return 'manifest-invalid';
+  return 'other';
+}
+
+export function classifyImportReason(err: unknown): ImportReason {
+  const msg = (err instanceof Error ? err.message : '').toLowerCase();
+  if (msg.includes('json')) return 'json-parse';
+  if (msg.includes('image') || msg.includes('decode') || msg.includes('bitmap')) return 'image-decode';
+  return 'other';
+}

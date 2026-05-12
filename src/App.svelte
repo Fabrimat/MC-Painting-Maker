@@ -13,8 +13,8 @@
     trackProjectExported,
     trackProjectImported,
     trackImportFailed,
-    type BuildReason,
-    type ImportReason,
+    classifyBuildReason,
+    classifyImportReason,
   } from './analytics/track';
   import Topbar from './ui/Topbar.svelte';
   import Sidebar from './ui/Sidebar.svelte';
@@ -51,10 +51,10 @@
         project.set(result.state);
         if (result.addedIds.length > 0) {
           trackPaintingsAdded(source, result.addedIds.length);
-        }
-        if (selectedId === null && result.addedIds.length > 0) {
-          selectedId = result.addedIds[0];
-          activeTab.set('edit');
+          if (selectedId === null) {
+            selectedId = result.addedIds[0];
+            activeTab.set('edit');
+          }
         }
       } catch (err) {
         trackImportFailed(source, classifyImportReason(err));
@@ -95,21 +95,6 @@
 
   $: if (selectedId && !$project.paintings.find((p) => p.id === selectedId)) selectedId = null;
   $: if (selectedId === null && $project.paintings.length > 0) selectedId = $project.paintings[0].id;
-
-  function classifyBuildReason(err: unknown): BuildReason {
-    const msg = (err as { message?: string })?.message?.toLowerCase() ?? '';
-    if (msg.includes('jszip') || msg.includes('zip')) return 'jszip-error';
-    if (msg.includes('image') || msg.includes('decode') || msg.includes('encode') || msg.includes('bitmap')) return 'image-encode';
-    if (msg.includes('manifest')) return 'manifest-invalid';
-    return 'other';
-  }
-
-  function classifyImportReason(err: unknown): ImportReason {
-    const msg = (err as { message?: string })?.message?.toLowerCase() ?? '';
-    if (msg.includes('json')) return 'json-parse';
-    if (msg.includes('image') || msg.includes('decode') || msg.includes('bitmap')) return 'image-decode';
-    return 'other';
-  }
 
   function showToast(msg: string) {
     toast = msg;

@@ -73,4 +73,53 @@ describe('analytics/track', () => {
     expect(() => track.trackPwaInstalled()).not.toThrow();
     expect(saEvent).not.toHaveBeenCalled();
   });
+
+  describe('classifyBuildReason', () => {
+    it('returns "jszip-error" when message contains "jszip"', () => {
+      expect(track.classifyBuildReason(new Error('JSZip stream error'))).toBe('jszip-error');
+    });
+
+    it('returns "jszip-error" when message contains "zip"', () => {
+      expect(track.classifyBuildReason(new Error('Failed to zip directory'))).toBe('jszip-error');
+    });
+
+    it('returns "image-encode" when message mentions image, decode, encode, or bitmap', () => {
+      expect(track.classifyBuildReason(new Error('Failed to encode image'))).toBe('image-encode');
+      expect(track.classifyBuildReason(new Error('decode error'))).toBe('image-encode');
+      expect(track.classifyBuildReason(new Error('createImageBitmap failed'))).toBe('image-encode');
+    });
+
+    it('returns "manifest-invalid" when message mentions manifest', () => {
+      expect(track.classifyBuildReason(new Error('manifest is invalid'))).toBe('manifest-invalid');
+    });
+
+    it('returns "other" when message does not match any known pattern', () => {
+      expect(track.classifyBuildReason(new Error('something unexpected'))).toBe('other');
+    });
+
+    it('returns "other" when err is not an Error instance', () => {
+      expect(track.classifyBuildReason('a string')).toBe('other');
+      expect(track.classifyBuildReason(undefined)).toBe('other');
+      expect(track.classifyBuildReason({ message: 'jszip' })).toBe('other');
+    });
+  });
+
+  describe('classifyImportReason', () => {
+    it('returns "json-parse" when message contains "json"', () => {
+      expect(track.classifyImportReason(new Error('Invalid JSON at position 5'))).toBe('json-parse');
+    });
+
+    it('returns "image-decode" when message mentions image, decode, or bitmap', () => {
+      expect(track.classifyImportReason(new Error('image decode failed'))).toBe('image-decode');
+      expect(track.classifyImportReason(new Error('bitmap unsupported'))).toBe('image-decode');
+    });
+
+    it('returns "other" when message does not match any known pattern', () => {
+      expect(track.classifyImportReason(new Error('disk full'))).toBe('other');
+    });
+
+    it('returns "other" when err is not an Error instance', () => {
+      expect(track.classifyImportReason(undefined)).toBe('other');
+    });
+  });
 });
