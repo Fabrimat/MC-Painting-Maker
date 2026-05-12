@@ -15,6 +15,8 @@
   let imageNode: Konva.Image | null = null;
   let rasterLayer: Konva.Layer;
   let rasterImageNode: Konva.Image | null = null;
+  let overlayLayer: Konva.Layer;
+  let overlayRects: { top: Konva.Rect; bottom: Konva.Rect; left: Konva.Rect; right: Konva.Rect } | null = null;
   let cachedRasterImg: HTMLImageElement | null = null;
   let rasterToken = 0;
   let rasterSig = '';
@@ -40,7 +42,8 @@
     imageLayer = new Konva.Layer();
     gridLayer = new Konva.Layer();
     rasterLayer = new Konva.Layer();
-    stage.add(bgLayer, imageLayer, rasterLayer, gridLayer);
+    overlayLayer = new Konva.Layer({ listening: false });
+    stage.add(bgLayer, imageLayer, rasterLayer, overlayLayer, gridLayer);
     await refresh();
   });
 
@@ -53,14 +56,17 @@
     bgLayer.destroyChildren();
     imageLayer.destroyChildren();
     rasterLayer.destroyChildren();
+    overlayLayer.destroyChildren();
     gridLayer.destroyChildren();
     rasterImageNode = null;
+    overlayRects = null;
     drawCheckerboard();
     await drawImage();
     drawRasterPreview();
+    drawOverlay();
     drawGrid();
     centerAndConfigurePan();
-    bgLayer.draw(); imageLayer.draw(); rasterLayer.draw(); gridLayer.draw();
+    bgLayer.draw(); imageLayer.draw(); rasterLayer.draw(); overlayLayer.draw(); gridLayer.draw();
     maybeStartRaster();
   }
 
@@ -116,6 +122,7 @@
       const sx = Math.round(imageNode.x() / pps) * pps;
       const sy = Math.round(imageNode.y() / pps) * pps;
       imageNode.position({ x: sx, y: sy });
+      updateOverlayGeometry();
     });
     imageNode.on('dragend', () => {
       mode = 'settled';
@@ -136,6 +143,9 @@
       mode = 'live';
       rasterToken++;
       if (rasterImageNode) { rasterImageNode.hide(); rasterLayer.batchDraw(); }
+    });
+    tr.on('transform', () => {
+      updateOverlayGeometry();
     });
     tr.on('transformend', () => {
       if (!imageNode) return;
@@ -164,6 +174,51 @@
       visible: mode === 'settled',
     });
     rasterLayer.add(rasterImageNode);
+  }
+
+  function drawOverlay() {
+    if (!painting) return;
+    const top = new Konva.Rect({ fill: 'white', opacity: 0.6, listening: false });
+    const bottom = new Konva.Rect({ fill: 'white', opacity: 0.6, listening: false });
+    const left = new Konva.Rect({ fill: 'white', opacity: 0.6, listening: false });
+    const right = new Konva.Rect({ fill: 'white', opacity: 0.6, listening: false });
+    overlayLayer.add(top, bottom, left, right);
+    overlayRects = { top, bottom, left, right };
+    updateOverlayGeometry();
+  }
+
+  function updateOverlayGeometry() {
+    if (!painting || !overlayRects || !imageNode) return;
+    const imgX = imageNode.x();
+    const imgY = imageNode.y();
+    const imgW = imageNode.width();
+    const imgH = imageNode.height();
+    const cR = painting.canvasW16 * pps;
+    const cB = painting.canvasH16 * pps;
+    const imgR = imgX + imgW;
+    const imgB = imgY + imgH;
+
+    const topH = Math.max(0, 0 - imgY);
+    overlayRects.top.position({ x: imgX, y: imgY });
+    overlayRects.top.size({ width: imgW, height: topH });
+
+    const bottomH = Math.max(0, imgB - cB);
+    overlayRects.bottom.position({ x: imgX, y: cB });
+    overlayRects.bottom.size({ width: imgW, height: bottomH });
+
+    const innerTop = Math.max(imgY, 0);
+    const innerBottom = Math.min(imgB, cB);
+    const innerH = Math.max(0, innerBottom - innerTop);
+
+    const leftW = Math.max(0, 0 - imgX);
+    overlayRects.left.position({ x: imgX, y: innerTop });
+    overlayRects.left.size({ width: leftW, height: innerH });
+
+    const rightW = Math.max(0, imgR - cR);
+    overlayRects.right.position({ x: cR, y: innerTop });
+    overlayRects.right.size({ width: rightW, height: innerH });
+
+    overlayLayer.batchDraw();
   }
 
   function drawGrid() {
