@@ -12,6 +12,7 @@
 
   let host: HTMLDivElement;
   let stage: Konva.Stage | null = null;
+  let resizeObs: ResizeObserver | null = null;
   let bgLayer: Konva.Layer;
   let imageLayer: Konva.Layer;
   let gridLayer: Konva.Layer;
@@ -56,11 +57,18 @@
     stage.add(bgLayer, imageLayer, rasterLayer, overlayLayer, gridLayer);
     stage.draggable(true);
     stage.on('dragend', onStageDragEnd);
+    stage.on('wheel', onWheel);
+    window.addEventListener('keydown', onKeyDown);
+    resizeObs = new ResizeObserver(() => { onResize(); });
+    resizeObs.observe(host);
     initView();
     await refresh();
   });
 
   onDestroy(() => {
+    window.removeEventListener('keydown', onKeyDown);
+    resizeObs?.disconnect();
+    resizeObs = null;
     flushPendingSaves();
     stage?.destroy();
   });
@@ -104,6 +112,63 @@
     );
     panX = clamped.panX; panY = clamped.panY;
     applyView();
+    persistView();
+  }
+
+  function onWheel(e: Konva.KonvaEventObject<WheelEvent>) {
+    if (!stage || !painting) return;
+    e.evt.preventDefault();
+    const ev = e.evt;
+    if (ev.ctrlKey || ev.metaKey) {
+      const factor = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
+      const pivot = { x: ev.offsetX, y: ev.offsetY };
+      const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+      const next = zoomAtPoint({ zoom, panX, panY }, factor, pivot, basePps, b);
+      const clamped = clampPan(next, painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+      zoom = clamped.zoom; panX = clamped.panX; panY = clamped.panY;
+      pps = basePps * zoom;
+      persistView();
+      refresh().catch(console.error);
+    } else {
+      const dx = ev.shiftKey ? ev.deltaY : ev.deltaX;
+      const dy = ev.shiftKey ? 0 : ev.deltaY;
+      const next = clampPan(
+        { zoom, panX: panX - dx, panY: panY - dy },
+        painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps,
+      );
+      panX = next.panX; panY = next.panY;
+      applyView();
+      persistView();
+    }
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); stepZoom(1); }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); stepZoom(-1); }
+    else if (e.key === '0') { e.preventDefault(); onFit(); }
+    else if (e.key === '1') { e.preventDefault(); onResetOneToOne(); }
+  }
+
+  function onResize() {
+    if (!stage || !painting) return;
+    stage.size({ width: host.clientWidth, height: host.clientHeight });
+    const b = computeZoomBounds(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
+    const clampedZoom = Math.max(b.minZoom, Math.min(b.maxZoom, zoom));
+    const clamped = clampPan(
+      { zoom: clampedZoom, panX, panY },
+      painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps,
+    );
+    const zoomChanged = clamped.zoom !== zoom;
+    zoom = clamped.zoom; panX = clamped.panX; panY = clamped.panY;
+    pps = basePps * zoom;
+    if (zoomChanged) {
+      refresh().catch(console.error);
+    } else {
+      applyView();
+    }
     persistView();
   }
 
