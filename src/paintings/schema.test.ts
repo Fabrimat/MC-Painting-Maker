@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { ProjectSchema } from './schema';
 
 const minimalProject = {
-  version: 1,
+  version: 2,
   pack: {
     name: 'Test',
     description: '',

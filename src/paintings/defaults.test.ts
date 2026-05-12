@@ -118,11 +118,50 @@ describe('migrate', () => {
   });
 
   it('throws on unsupported version', () => {
-    expect(() => migrate({ version: 2 })).toThrow();
+    expect(() => migrate({ version: 3 })).toThrow();
   });
 
   it('throws on structurally invalid version-1 object (e.g. missing pack)', () => {
     expect(() => migrate({ version: 1 })).toThrow();
+  });
+
+  it('upgrades a version-1 project to version 2 and flips y16 (Y-down to Y-up)', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    p.canvasH16 = 32;
+    p.transform = { x16: 4, y16: 8, w16: 16, h16: 16, rotation: 0, flipX: false, flipY: false };
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      version: number;
+      paintings: Array<{ transform: { y16: number } }>;
+    };
+    raw.version = 1;
+    const migrated = migrate(raw);
+    expect(migrated.version).toBe(2);
+    // Old y16 = 8 from top, h16 = 16, canvasH16 = 32 -> new y16 = 32 - 8 - 16 = 8 (symmetric case).
+    expect(migrated.paintings[0].transform.y16).toBe(8);
+  });
+
+  it('flipping y16 on v1 migration preserves the visual position', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    p.canvasH16 = 32;
+    // Old top-edge-from-top y16 = 0 (image flush to top, screen).
+    p.transform = { x16: 0, y16: 0, w16: 16, h16: 16, rotation: 0, flipX: false, flipY: false };
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      version: number;
+      paintings: Array<{ transform: { y16: number } }>;
+    };
+    raw.version = 1;
+    const migrated = migrate(raw);
+    // New y16 must place the image's bottom edge 16 above the canvas bottom
+    // (so its top edge is flush to the canvas top, matching old behaviour).
+    expect(migrated.paintings[0].transform.y16).toBe(16);
   });
 
   it('accepts a valid project', () => {

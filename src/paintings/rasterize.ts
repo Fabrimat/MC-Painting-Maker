@@ -10,9 +10,12 @@ export type RasterParams = {
 export function computeRasterParams(p: Painting): RasterParams {
   const density = resolveDensity(p);
   const canvasPx = { w: p.canvasW16 * density, h: p.canvasH16 * density };
+  // Stored y16 is Y-up (offset of image bottom edge from canvas bottom edge).
+  // Translate to the canvas's pixel-space top edge for the 2D context, whose
+  // Y axis grows downward.
   const imageDstPx = {
     x: p.transform.x16 * density,
-    y: p.transform.y16 * density,
+    y: (p.canvasH16 - p.transform.y16 - p.transform.h16) * density,
     w: p.transform.w16 * density,
     h: p.transform.h16 * density,
   };

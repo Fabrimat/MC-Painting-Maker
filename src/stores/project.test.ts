@@ -6,7 +6,7 @@ describe('project store', () => {
   it('exposes an initial empty project', () => {
     const s = createProjectStore();
     const v = get(s);
-    expect(v.version).toBe(1);
+    expect(v.version).toBe(2);
     expect(v.paintings).toEqual([]);
   });
 

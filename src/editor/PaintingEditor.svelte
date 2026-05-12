@@ -266,7 +266,7 @@
     imageNode = new Konva.Image({
       image: img,
       x: painting.transform.x16 * pps,
-      y: painting.transform.y16 * pps,
+      y: (painting.canvasH16 - painting.transform.y16 - painting.transform.h16) * pps,
       width: painting.transform.w16 * pps,
       height: painting.transform.h16 * pps,
       draggable: true,
@@ -396,18 +396,24 @@
     for (let i = 0; i <= painting.canvasW16 / 16; i++) {
       gridLayer.add(new Konva.Line({ points: [i * 16 * pps, 0, i * 16 * pps, H], stroke: '#000a', strokeWidth: 2, listening: false }));
     }
+    // Horizontal major grid lines align to the bottom-left origin (Y-up
+    // convention): when the canvas height is not a whole multiple of 16, the
+    // partial block lands at the top rather than the bottom.
     for (let i = 0; i <= painting.canvasH16 / 16; i++) {
-      gridLayer.add(new Konva.Line({ points: [0, i * 16 * pps, W, i * 16 * pps], stroke: '#000a', strokeWidth: 2, listening: false }));
+      const y = H - i * 16 * pps;
+      gridLayer.add(new Konva.Line({ points: [0, y, W, y], stroke: '#000a', strokeWidth: 2, listening: false }));
     }
   }
 
   function commitTransform() {
     if (!painting || !imageNode) return;
     const x16 = Math.round(imageNode.x() / pps);
-    const y16 = Math.round(imageNode.y() / pps);
+    const screenY16 = Math.round(imageNode.y() / pps);
     const w16 = Math.max(1, Math.round(imageNode.width() / pps));
     const h16 = Math.max(1, Math.round(imageNode.height() / pps));
-    imageNode.position({ x: x16 * pps, y: y16 * pps });
+    // Convert screen-space top edge back to Y-up offset from canvas bottom.
+    const y16 = painting.canvasH16 - h16 - screenY16;
+    imageNode.position({ x: x16 * pps, y: screenY16 * pps });
     imageNode.width(w16 * pps);
     imageNode.height(h16 * pps);
     project.update((v) => ({

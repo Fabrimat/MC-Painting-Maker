@@ -68,7 +68,7 @@ export const PaintingSchema = z.object({
 });
 
 export const ProjectSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   pack: PackMetaSchema,
   uuids: PackUUIDsSchema,
   paintings: z.array(PaintingSchema),
