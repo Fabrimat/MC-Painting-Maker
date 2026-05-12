@@ -60,7 +60,7 @@ export type Painting = {
 };
 
 export type ProjectState = {
-  version: 1;
+  version: 2;
   pack: PackMeta;
   uuids: PackUUIDs;
   paintings: Painting[];
