@@ -1,15 +1,15 @@
 <script lang="ts">
-  export let onfiles: (files: FileList) => void = () => {};
+  export let onfiles: (files: FileList, source: 'drop' | 'button') => void = () => {};
   let dragOver = false;
 
   function onDrop(e: DragEvent) {
     e.preventDefault();
     dragOver = false;
-    if (e.dataTransfer?.files?.length) onfiles(e.dataTransfer.files);
+    if (e.dataTransfer?.files?.length) onfiles(e.dataTransfer.files, 'drop');
   }
   function onPick(e: Event) {
     const t = e.target as HTMLInputElement;
-    if (t.files?.length) onfiles(t.files);
+    if (t.files?.length) onfiles(t.files, 'button');
     t.value = '';
   }
 </script>

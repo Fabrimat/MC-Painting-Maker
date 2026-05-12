@@ -2,16 +2,18 @@
   import { project } from '../stores/project';
   import { clearView } from '../stores/viewState';
   import { addImagesToProject } from '../paintings/import';
+  import { trackPaintingsAdded } from '../analytics/track';
   import FileDrop from './FileDrop.svelte';
   import PaintingList from './PaintingList.svelte';
   export let selectedId: string | null;
   export let onselect: (id: string) => void = () => {};
 
-  async function addFromFiles(files: FileList) {
+  async function addFromFiles(files: FileList, source: 'drop' | 'button') {
     const result = await addImagesToProject($project, files);
     project.set(result.state);
-    if (selectedId === null && result.addedIds.length > 0) {
-      selectedId = result.addedIds[0];
+    if (result.addedIds.length > 0) {
+      trackPaintingsAdded(source, result.addedIds.length);
+      if (selectedId === null) selectedId = result.addedIds[0];
     }
   }
 
@@ -24,7 +26,7 @@
 
 <aside class="sidebar">
   <h4 class="title">Paintings · {$project.paintings.length}</h4>
-  <FileDrop onfiles={(files) => addFromFiles(files)} />
+  <FileDrop onfiles={(files, source) => addFromFiles(files, source)} />
   <PaintingList
     paintings={$project.paintings}
     {selectedId}
