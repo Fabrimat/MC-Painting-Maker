@@ -1,4 +1,5 @@
 import './app.css';
+import './pwa/register';
 import { mount } from 'svelte';
 import App from './App.svelte';
 

@@ -12,6 +12,7 @@
   import EmptyState from './ui/EmptyState.svelte';
   import PackDrawer from './ui/PackDrawer.svelte';
   import TabBar from './ui/TabBar.svelte';
+  import UpdateToast from './ui/UpdateToast.svelte';
   import { buildMcaddonBlob, archiveFilename } from './mcpack/build';
 
   let selectedId: string | null = null;
@@ -139,6 +140,8 @@
   {#if toast}
     <div class="toast" role="alert">{toast}</div>
   {/if}
+
+  <UpdateToast />
 </div>
 
 <style>
