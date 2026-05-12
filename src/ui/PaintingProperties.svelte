@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { project } from '../stores/project';
   import { resolveDensity } from '../paintings/density';
   import type { Painting, Density } from '../paintings/types';
@@ -25,6 +26,7 @@
   }
   let copied = false;
   let copyTimer: ReturnType<typeof setTimeout> | null = null;
+  let slugInputEl: HTMLInputElement | null = null;
   async function copyInGameId() {
     if (!painting) return;
     const text = `${$project.pack.namespace}:${painting.slug}`;
@@ -32,14 +34,14 @@
       await navigator.clipboard.writeText(text);
     } catch {
       // Fallback: select the input so the user can press Ctrl+C.
-      const el = document.querySelector('.id-slug') as HTMLInputElement | null;
-      el?.select();
+      slugInputEl?.select();
       return;
     }
     copied = true;
     if (copyTimer) clearTimeout(copyTimer);
     copyTimer = setTimeout(() => { copied = false; }, 1500);
   }
+  onDestroy(() => { if (copyTimer) clearTimeout(copyTimer); });
 </script>
 
 {#if painting}
@@ -122,6 +124,7 @@
         <span class="id-prefix">{$project.pack.namespace}:</span>
         <input class="field id-slug"
           aria-label="In-game slug"
+          bind:this={slugInputEl}
           value={painting.slug}
           readonly />
         <button type="button" class="id-btn"
