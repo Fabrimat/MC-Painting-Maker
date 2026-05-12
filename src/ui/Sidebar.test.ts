@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { get } from 'svelte/store';
 import { render, fireEvent } from '@testing-library/svelte';
 import Sidebar from './Sidebar.svelte';
 import { project } from '../stores/project';
@@ -10,7 +11,6 @@ describe('Sidebar', () => {
   beforeEach(() => {
     saEvent = vi.fn();
     vi.stubGlobal('sa_event', saEvent);
-    vi.stubGlobal('createImageBitmap', async () => ({ width: 16, height: 16, close: () => {} }));
   });
 
   afterEach(() => {
@@ -33,6 +33,7 @@ describe('Sidebar', () => {
   });
 
   it('emits painting_added with source=button when files are picked via the file input', async () => {
+    vi.stubGlobal('createImageBitmap', async () => ({ width: 16, height: 16, close: () => {} }));
     project.set(createEmptyProject());
     const { container } = render(Sidebar, { props: { selectedId: null } });
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -42,5 +43,6 @@ describe('Sidebar', () => {
     await vi.waitFor(() => {
       expect(saEvent).toHaveBeenCalledWith('painting_added', { source: 'button', count: 1 });
     });
+    expect(get(project).paintings).toHaveLength(1);
   });
 });

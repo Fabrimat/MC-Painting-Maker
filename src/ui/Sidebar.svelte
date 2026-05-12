@@ -26,7 +26,7 @@
 
 <aside class="sidebar">
   <h4 class="title">Paintings · {$project.paintings.length}</h4>
-  <FileDrop onfiles={(files, source) => addFromFiles(files, source)} />
+  <FileDrop onfiles={addFromFiles} />
   <PaintingList
     paintings={$project.paintings}
     {selectedId}
