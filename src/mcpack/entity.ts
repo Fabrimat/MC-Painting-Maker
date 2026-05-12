@@ -1,9 +1,9 @@
 import type { ProjectState, Painting } from '../paintings/types';
 import { entityId } from './identifiers';
 
-// Matches X_ORIGIN_PX in geometry.ts (8 pixels = 0.5 blocks) so the hit area
-// stays flush with the rendered painting after the model's +X shift.
-const X_PIVOT_OFFSET_BLOCKS = 8 / 16;
+// Matches X_ORIGIN_PX in geometry.ts (-8 pixels = -0.5 blocks) so the hit
+// area stays flush with the rendered painting after the model's X shift.
+const X_PIVOT_OFFSET_BLOCKS = -8 / 16;
 
 export function buildEntityBehavior(p: ProjectState, painting: Painting) {
   const W = painting.canvasW16 / 16;

@@ -1,9 +1,9 @@
 import type { Painting } from '../paintings/types';
 import { geometryName } from './identifiers';
 
-// Shift along the entity-local +X axis so the painting's visible bounds land
+// Shift along the entity-local X axis so the painting's visible bounds land
 // flush against the wall block instead of starting at its half-way mark.
-const X_ORIGIN_PX = 8;
+const X_ORIGIN_PX = -8;
 
 export function buildGeometry(p: Painting) {
   const W = p.canvasW16;
