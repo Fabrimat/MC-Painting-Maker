@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./brush.svg" />
+    <title>Privacy - MC Painting Maker</title>
+    <style>
+      :root {
+        --text: #1f2937;
+        --text-muted: #6b7280;
+        --text-faint: #9ca3af;
+        --border: #e5e7eb;
+        --primary: #f97316;
+        --bg: #ffffff;
+        --surface: #fafafa;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+        line-height: 1.65;
+        font-size: 16px;
+      }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+      header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+      header img { width: 32px; height: 32px; }
+      header a { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+      header a:hover { color: var(--primary); }
+      h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; }
+      .lede { color: var(--text-muted); font-size: 17px; margin-top: 0; }
+      h2 { font-size: 20px; margin: 40px 0 12px; letter-spacing: -0.01em; }
+      ul { padding-left: 24px; }
+      li { margin: 6px 0; }
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; text-underline-offset: 2px; }
+      strong { font-weight: 600; }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em; background: var(--surface);
+        padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+      }
+      hr { border: none; border-top: 1px solid var(--border); margin: 48px 0 24px; }
+      footer { color: var(--text-faint); font-size: 14px; }
+      .back {
+        display: inline-block; margin-top: 32px;
+        font-size: 14px; color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <img src="./brush.svg" alt="" />
+        <a href="./">&larr; Back to MC Painting Maker</a>
+      </header>
+
+      <h1>Privacy</h1>
+      <p class="lede">
+        MC Painting Maker is a free, browser-based tool. This page explains in plain words what happens to your data when you use it, no legal filler.
+      </p>
+
+      <h2>Who runs this site</h2>
+      <p>
+        Fabrizio La Rosa, Belgian VAT BE1031214819, based in Ghent, Belgium.
+        You can reach me via the links on the homepage or by opening an issue on the
+        <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">project repository</a>.
+      </p>
+
+      <h2>What I do NOT collect</h2>
+      <ul>
+        <li>No tracking or advertising cookies.</li>
+        <li>No Google Analytics, Meta Pixel, or advertising trackers.</li>
+        <li>No accounts, no logins.</li>
+        <li>No newsletter, no mailing lists.</li>
+        <li>No image uploads. Your pictures never leave the browser.</li>
+      </ul>
+
+      <h2>What I measure, and how</h2>
+      <p>
+        To know how many people use the tool and which pages get traffic, I use
+        <a href="https://www.simpleanalytics.com/" target="_blank" rel="noopener noreferrer"><strong>Simple Analytics</strong></a>,
+        a European service (Netherlands) built specifically not to profile anyone. What it collects:
+      </p>
+      <ul>
+        <li>Number of visits per page.</li>
+        <li>Which site you came from (referrer), if any.</li>
+        <li>Country, device type, browser, in aggregate form.</li>
+      </ul>
+      <p>What it does NOT collect:</p>
+      <ul>
+        <li>No cookies.</li>
+        <li>No ID or fingerprint that follows you across sessions or sites.</li>
+        <li>No stored IP address.</li>
+        <li>No personal data.</li>
+      </ul>
+      <p>
+        That's why the site has no consent banner: there's nothing to ask your permission for.
+      </p>
+      <p>
+        A technical note: even if you have <strong>Do Not Track</strong> turned on in your browser, visits still get counted.
+        The DNT signal asks not to be profiled; here there's no profiling to turn off, so excluding privacy-conscious readers would skew aggregate numbers.
+      </p>
+
+      <h2>Cloudflare in front of the site</h2>
+      <p>
+        The site sits behind <strong>Cloudflare</strong> as a reverse proxy for global speed and abuse protection.
+        Cloudflare sees your IP address necessarily and keeps standard access logs for technical and security purposes.
+        It doesn't use cookies for profiling, except rarely in anti-bot scenarios with very short-lived technical cookies.
+      </p>
+
+      <h2>What stays on your browser</h2>
+      <p>
+        MC Painting Maker is built to run entirely on your machine. Everything you do here lives in your browser:
+      </p>
+      <ul>
+        <li>The images you import, their names, canvas sizes, and transforms.</li>
+        <li>Pack metadata: name, namespace, version, icon, creative group.</li>
+        <li>The UUIDs assigned to your pack.</li>
+      </ul>
+      <p>
+        All of this is stored in <code>localStorage</code> so you can pick up where you left off when you reopen the tab.
+        It never leaves your browser. It doesn't reach me, or any third party, or any external service.
+        The <code>.mcaddon</code> archive is also built locally in your browser and downloaded directly; no upload happens at any step.
+      </p>
+      <p>
+        You can wipe everything by clearing the site's storage in your browser settings, or by removing the paintings one by one from the sidebar.
+      </p>
+
+      <h2>If you write to me</h2>
+      <p>
+        There's no contact form on this site. To report bugs, request features, or ask questions, open an issue on the
+        <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+        For anything private, use the contact channels on
+        <a href="https://larosa.work/" target="_blank" rel="noopener noreferrer">larosa.work</a>.
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        Technically there's no user database to modify. For checks or actions on server log data, contact me through the channels above.
+      </p>
+
+      <h2>Changes to this page</h2>
+      <p>
+        Policy updates will be flagged on the footer or homepage for a reasonable period.
+      </p>
+
+      <hr />
+      <footer>Last updated 2026-05-12.</footer>
+
+      <a class="back" href="./">&larr; Back to MC Painting Maker</a>
+    </div>
+
+    <!-- 100% privacy-first analytics -->
+    <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+  </body>
+</html>

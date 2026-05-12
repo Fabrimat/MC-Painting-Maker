@@ -65,6 +65,8 @@
       <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">Source</a>
       ·
       <a href="https://www.linkedin.com/in/fabriziolarosa/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      ·
+      <a href="./privacy.html">Privacy</a>
     </p>
   </footer>
 </aside>
