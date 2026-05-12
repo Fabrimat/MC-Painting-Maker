@@ -3,12 +3,9 @@ export type ImportSource = 'json' | AddSource;
 export type BuildReason = 'jszip-error' | 'image-encode' | 'manifest-invalid' | 'other';
 export type ImportReason = 'json-parse' | 'image-decode' | 'no-valid-files' | 'idb-read' | 'other';
 
-type SaEvent = (name: string, metadata?: Record<string, unknown>) => void;
-
 function dispatch(name: string, metadata?: Record<string, unknown>): void {
-  const fn = (window as unknown as { sa_event?: SaEvent }).sa_event;
-  if (typeof fn !== 'function') return;
-  fn(name, metadata);
+  if (typeof window.sa_event !== 'function') return;
+  window.sa_event(name, metadata);
 }
 
 export function trackPaintingsAdded(source: AddSource, count: number): void {

@@ -71,5 +71,6 @@ describe('analytics/track', () => {
     expect(() => track.trackImportFailed('json', 'other')).not.toThrow();
     expect(() => track.trackPwaInstallAvailable()).not.toThrow();
     expect(() => track.trackPwaInstalled()).not.toThrow();
+    expect(saEvent).not.toHaveBeenCalled();
   });
 });

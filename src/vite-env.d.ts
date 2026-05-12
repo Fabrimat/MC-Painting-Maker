@@ -1,5 +1,13 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
-declare const __BUILD_SHA__: string;
-declare const __BUILD_DATE__: string;
+declare global {
+  const __BUILD_SHA__: string;
+  const __BUILD_DATE__: string;
+
+  interface Window {
+    sa_event?: (name: string, metadata?: Record<string, unknown>) => void;
+  }
+}
+
+export {};
