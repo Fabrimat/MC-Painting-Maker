@@ -60,10 +60,9 @@ describe('pwa/incomingFiles', () => {
     setUrl('http://localhost/?source=share-target');
     const mod = await freshModule();
     mod.initIncomingFiles();
-    await new Promise((r) => setTimeout(r, 10));
+    await vi.waitFor(() => expect(window.location.search).toBe(''));
     expect(get(mod.incomingFiles)).toBeNull();
     expect(get(mod.incomingError)).toBeNull();
-    expect(window.location.search).toBe('');
   });
 
   it('emits incomingError on source=share-target&error=1', async () => {
@@ -85,6 +84,17 @@ describe('pwa/incomingFiles', () => {
     await consumer!({ files: [{ getFile: () => Promise.resolve(file) }] });
     expect(get(mod.incomingFiles)).toHaveLength(1);
     expect((get(mod.incomingFiles) as File[])[0].name).toBe('dog.png');
+  });
+
+  it('emits incomingError when launchQueue getFile() rejects', async () => {
+    const mod = await freshModule();
+    mod.initIncomingFiles();
+    expect(setConsumer).toHaveBeenCalledTimes(1);
+    await consumer!({
+      files: [{ getFile: () => Promise.reject(new Error('handle revoked')) }],
+    });
+    expect(get(mod.incomingError)).toBe('Share failed');
+    expect(get(mod.incomingFiles)).toBeNull();
   });
 
   it('is a no-op when launchQueue is missing and no share query param is set', async () => {

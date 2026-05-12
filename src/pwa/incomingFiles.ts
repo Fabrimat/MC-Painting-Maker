@@ -43,12 +43,16 @@ function registerLaunchQueueConsumer(): void {
       }) => unknown) => void;
     };
   }).launchQueue;
-  if (!lq) return;
+  if (!lq || typeof lq.setConsumer !== 'function') return;
   lq.setConsumer(async (params) => {
-    const handles = params.files ?? [];
-    const files = await Promise.all(handles.map((h) => h.getFile()));
-    const accepted = files.filter(isAcceptedImage);
-    if (accepted.length > 0) incomingFiles.set(accepted);
+    try {
+      const handles = params.files ?? [];
+      const files = await Promise.all(handles.map((h) => h.getFile()));
+      const accepted = files.filter(isAcceptedImage);
+      if (accepted.length > 0) incomingFiles.set(accepted);
+    } catch {
+      incomingError.set('Share failed');
+    }
   });
 }
 
