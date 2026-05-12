@@ -1,6 +1,10 @@
 import type { ProjectState, Painting } from '../paintings/types';
 import { entityId } from './identifiers';
 
+// Matches X_ORIGIN_PX in geometry.ts (8 pixels = 0.5 blocks) so the hit area
+// stays flush with the rendered painting after the model's +X shift.
+const X_PIVOT_OFFSET_BLOCKS = 8 / 16;
+
 export function buildEntityBehavior(p: ProjectState, painting: Painting) {
   const W = painting.canvasW16 / 16;
   const H = painting.canvasH16 / 16;
@@ -21,7 +25,7 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
         'minecraft:type_family': { family: [family, 'inanimate'] },
         'minecraft:collision_box': { width: 0, height: 0 },
         'minecraft:custom_hit_test': {
-          hitboxes: [{ pivot: [width / 2, height / 2, -7 / 16], width, height }],
+          hitboxes: [{ pivot: [width / 2 + X_PIVOT_OFFSET_BLOCKS, height / 2, -7 / 16], width, height }],
         },
         'minecraft:physics': { has_collision: false, has_gravity: false },
         'minecraft:pushable': { is_pushable: false, is_pushable_by_piston: false },
