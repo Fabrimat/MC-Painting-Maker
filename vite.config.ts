@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'node:child_process';
 
 function resolveBuildSha(): string {
@@ -15,7 +16,44 @@ function resolveBuildSha(): string {
 }
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [
+    svelte(),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: false,
+      strategies: 'generateSW',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/sa\//, /\.(?:png|jpg|gif|svg|ico|woff2?)$/],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: false,
+      },
+      manifest: {
+        name: 'MC Painting Maker',
+        short_name: 'Painting Maker',
+        description: 'Turn any image into a custom Minecraft Bedrock painting and export a ready-to-install .mcaddon.',
+        theme_color: '#f97316',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'any',
+        start_url: './',
+        scope: './',
+        lang: 'en',
+        categories: ['design', 'utilities', 'graphics'],
+        icons: [
+          { src: 'pwa-192x192.png',           sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png',           sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+        type: 'module',
+      },
+    }),
+  ],
   base: './',
   define: {
     __BUILD_SHA__: JSON.stringify(resolveBuildSha()),
