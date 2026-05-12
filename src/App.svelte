@@ -4,6 +4,8 @@
   import { bindPersistence, loadFromStorage, importProjectJSON, exportProjectJSON } from './stores/persistence';
   import { createHistory, type HistoryController } from './stores/history';
   import { activeTab } from './stores/ui';
+  import { incomingFiles, incomingError } from './pwa/incomingFiles';
+  import { addImagesToProject } from './paintings/import';
   import Topbar from './ui/Topbar.svelte';
   import Sidebar from './ui/Sidebar.svelte';
   import PaintingEditor from './editor/PaintingEditor.svelte';
@@ -26,22 +28,38 @@
     const saved = loadFromStorage();
     if (saved) project.set(saved);
     if (selectedId === null && $project.paintings.length > 0) selectedId = $project.paintings[0].id;
-    // Wire history AFTER the initial load so the loaded snapshot becomes the
-    // baseline rather than a step that an early undo would clear away.
     history = createHistory(project);
     const stopPersist = bindPersistence(project, 1000);
     window.addEventListener('keydown', onKeyDown);
+
+    const unsubFiles = incomingFiles.subscribe(async (files) => {
+      if (!files || files.length === 0) return;
+      incomingFiles.set(null);
+      const result = await addImagesToProject($project, files);
+      project.set(result.state);
+      if (selectedId === null && result.addedIds.length > 0) {
+        selectedId = result.addedIds[0];
+        activeTab.set('edit');
+      }
+    });
+    const unsubError = incomingError.subscribe((msg) => {
+      if (!msg) return;
+      incomingError.set(null);
+      showToast(msg);
+    });
+
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       history?.destroy();
       history = null;
       stopPersist();
+      unsubFiles();
+      unsubError();
     };
   });
 
   function onKeyDown(e: KeyboardEvent) {
     if (!history) return;
-    // Let inputs handle their own native text undo/redo.
     const t = e.target as HTMLElement | null;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     const mod = e.ctrlKey || e.metaKey;
