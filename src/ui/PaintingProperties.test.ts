@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import PaintingProperties from './PaintingProperties.svelte';
@@ -46,5 +46,39 @@ describe('PaintingProperties', () => {
     const w = getByLabelText(/Width in blocks/) as HTMLInputElement;
     await fireEvent.input(w, { target: { value: '2.5' } });
     expect(get(project).paintings[0].canvasW16).toBe(40);
+  });
+
+  it('renders the In-game ID section showing namespace:slug', () => {
+    const id = seed();
+    const slug = get(project).paintings[0].slug;
+    const ns = get(project).pack.namespace;
+    const { getByText, getByLabelText } = render(PaintingProperties, { props: { id } });
+    expect(getByText('In-game ID')).toBeTruthy();
+    expect(getByText(`${ns}:`)).toBeTruthy();
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    expect(input.value).toBe(slug);
+  });
+
+  it('reactively updates the namespace prefix when pack.namespace changes', async () => {
+    const id = seed();
+    const { getByText } = render(PaintingProperties, { props: { id } });
+    expect(getByText('paintings:')).toBeTruthy();
+    project.update((v) => ({ ...v, pack: { ...v.pack, namespace: 'custom_ns' } }));
+    await Promise.resolve();
+    expect(getByText('custom_ns:')).toBeTruthy();
+  });
+
+  it('Copy button writes "<namespace>:<slug>" to the clipboard', async () => {
+    const id = seed();
+    const ns = get(project).pack.namespace;
+    const slug = get(project).paintings[0].slug;
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    const { getByRole } = render(PaintingProperties, { props: { id } });
+    await fireEvent.click(getByRole('button', { name: 'Copy in-game ID' }));
+    expect(writeText).toHaveBeenCalledWith(`${ns}:${slug}`);
   });
 });

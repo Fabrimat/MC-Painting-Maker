@@ -23,6 +23,23 @@
     if ([1,2,4,8,16,32,64].includes(n)) return n as Density;
     return 'auto';
   }
+  let copied = false;
+  let copyTimer: ReturnType<typeof setTimeout> | null = null;
+  async function copyInGameId() {
+    if (!painting) return;
+    const text = `${$project.pack.namespace}:${painting.slug}`;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback: select the input so the user can press Ctrl+C.
+      const el = document.querySelector('.id-slug') as HTMLInputElement | null;
+      el?.select();
+      return;
+    }
+    copied = true;
+    if (copyTimer) clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { copied = false; }, 1500);
+  }
 </script>
 
 {#if painting}
@@ -98,6 +115,25 @@
         Blended: supports partial transparency throughout the texture (glass, gradients, smoky effects).
       </p>
     </section>
+
+    <section>
+      <h4 class="section-title">In-game ID</h4>
+      <div class="id-row">
+        <span class="id-prefix">{$project.pack.namespace}:</span>
+        <input class="field id-slug"
+          aria-label="In-game slug"
+          value={painting.slug}
+          readonly />
+        <button type="button" class="id-btn"
+          aria-label="Copy in-game ID"
+          on:click={copyInGameId}>
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+      <p class="field-hint">
+        Used to summon this painting in-game (for example, with the /summon command).
+      </p>
+    </section>
   </aside>
 {/if}
 
@@ -125,4 +161,16 @@
     background: var(--primary-tint); color: var(--primary-deep);
     box-shadow: inset 0 0 0 1px var(--primary-border);
   }
+  .id-row { display: flex; gap: var(--space-2); align-items: center; }
+  .id-prefix {
+    font-size: var(--fs-xs); color: var(--text-muted); font-family: monospace;
+    white-space: nowrap;
+  }
+  .id-slug { flex: 1; font-family: monospace; }
+  .id-btn {
+    padding: 5px var(--space-3); font-size: var(--fs-xs); font-weight: 600;
+    color: var(--text-muted); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); background: #fff;
+  }
+  .id-btn:hover { background: var(--surface); }
 </style>
