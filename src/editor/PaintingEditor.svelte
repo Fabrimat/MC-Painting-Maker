@@ -191,8 +191,8 @@
     if (!painting || !overlayRects || !imageNode) return;
     const imgX = imageNode.x();
     const imgY = imageNode.y();
-    const imgW = imageNode.width();
-    const imgH = imageNode.height();
+    const imgW = imageNode.width() * imageNode.scaleX();
+    const imgH = imageNode.height() * imageNode.scaleY();
     const cR = painting.canvasW16 * pps;
     const cB = painting.canvasH16 * pps;
     const imgR = imgX + imgW;
@@ -243,8 +243,8 @@
 
   function commitTransform() {
     if (!painting || !imageNode) return;
-    const x16 = Math.max(0, Math.round(imageNode.x() / pps));
-    const y16 = Math.max(0, Math.round(imageNode.y() / pps));
+    const x16 = Math.round(imageNode.x() / pps);
+    const y16 = Math.round(imageNode.y() / pps);
     const w16 = Math.max(1, Math.round(imageNode.width() / pps));
     const h16 = Math.max(1, Math.round(imageNode.height() / pps));
     imageNode.position({ x: x16 * pps, y: y16 * pps });
