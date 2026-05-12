@@ -1,6 +1,6 @@
 export type AddSource = 'drop' | 'paste' | 'file-handler' | 'share-target' | 'button';
 export type ImportSource = 'json' | AddSource;
-export type BuildReason = 'jszip-error' | 'image-encode' | 'manifest-invalid' | 'other';
+export type BuildReason = 'archive-error' | 'image-encode' | 'other';
 export type ImportReason = 'json-parse' | 'image-decode' | 'no-valid-files' | 'idb-read' | 'other';
 
 function dispatch(name: string, metadata?: Record<string, unknown>): void {
@@ -42,9 +42,8 @@ export function trackPwaInstalled(): void {
 
 export function classifyBuildReason(err: unknown): BuildReason {
   const msg = (err instanceof Error ? err.message : '').toLowerCase();
-  if (msg.includes('jszip') || msg.includes('zip')) return 'jszip-error';
+  if (msg.includes('zip') || msg.includes('archive') || msg.includes('deflate') || msg.includes('inflate')) return 'archive-error';
   if (msg.includes('image') || msg.includes('decode') || msg.includes('encode') || msg.includes('bitmap')) return 'image-encode';
-  if (msg.includes('manifest')) return 'manifest-invalid';
   return 'other';
 }
 

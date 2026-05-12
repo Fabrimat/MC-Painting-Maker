@@ -26,9 +26,9 @@ describe('analytics/track', () => {
   });
 
   it('trackBuildFailed dispatches build_failed with reason', () => {
-    track.trackBuildFailed('jszip-error');
+    track.trackBuildFailed('archive-error');
     expect(saEvent).toHaveBeenCalledTimes(1);
-    expect(saEvent).toHaveBeenCalledWith('build_failed', { reason: 'jszip-error' });
+    expect(saEvent).toHaveBeenCalledWith('build_failed', { reason: 'archive-error' });
   });
 
   it('trackProjectExported dispatches project_exported with paintings count', () => {
@@ -75,12 +75,14 @@ describe('analytics/track', () => {
   });
 
   describe('classifyBuildReason', () => {
-    it('returns "jszip-error" when message contains "jszip"', () => {
-      expect(track.classifyBuildReason(new Error('JSZip stream error'))).toBe('jszip-error');
+    it('returns "archive-error" when message contains "zip"', () => {
+      expect(track.classifyBuildReason(new Error('Failed to zip directory'))).toBe('archive-error');
     });
 
-    it('returns "jszip-error" when message contains "zip"', () => {
-      expect(track.classifyBuildReason(new Error('Failed to zip directory'))).toBe('jszip-error');
+    it('returns "archive-error" when message contains "archive", "deflate", or "inflate"', () => {
+      expect(track.classifyBuildReason(new Error('archive corruption'))).toBe('archive-error');
+      expect(track.classifyBuildReason(new Error('deflate failed'))).toBe('archive-error');
+      expect(track.classifyBuildReason(new Error('inflate stream error'))).toBe('archive-error');
     });
 
     it('returns "image-encode" when message mentions image, decode, encode, or bitmap', () => {
@@ -89,18 +91,15 @@ describe('analytics/track', () => {
       expect(track.classifyBuildReason(new Error('createImageBitmap failed'))).toBe('image-encode');
     });
 
-    it('returns "manifest-invalid" when message mentions manifest', () => {
-      expect(track.classifyBuildReason(new Error('manifest is invalid'))).toBe('manifest-invalid');
-    });
-
     it('returns "other" when message does not match any known pattern', () => {
       expect(track.classifyBuildReason(new Error('something unexpected'))).toBe('other');
+      expect(track.classifyBuildReason(new Error('manifest is invalid'))).toBe('other');
     });
 
     it('returns "other" when err is not an Error instance', () => {
       expect(track.classifyBuildReason('a string')).toBe('other');
       expect(track.classifyBuildReason(undefined)).toBe('other');
-      expect(track.classifyBuildReason({ message: 'jszip' })).toBe('other');
+      expect(track.classifyBuildReason({ message: 'zip' })).toBe('other');
     });
   });
 
