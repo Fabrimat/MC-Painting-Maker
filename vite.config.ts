@@ -21,14 +21,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      strategies: 'generateSW',
-      workbox: {
+      strategies: 'injectManifest',
+      srcDir: 'src/pwa',
+      filename: 'sw.ts',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/\/sa\//, /\.(?:png|jpe?g|gif|svg|ico|woff2?)$/],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: false,
       },
       manifest: {
         name: 'MC Painting Maker',
@@ -47,6 +44,26 @@ export default defineConfig({
           { src: 'pwa-512x512.png',           sizes: '512x512', type: 'image/png' },
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        file_handlers: [
+          {
+            action: './?source=file-handler',
+            accept: {
+              'image/png': ['.png'],
+              'image/jpeg': ['.jpg', '.jpeg'],
+            },
+          },
+        ],
+        share_target: {
+          action: './share-target',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            files: [
+              { name: 'images', accept: ['image/png', 'image/jpeg'] },
+            ],
+          },
+        },
+        launch_handler: { client_mode: 'navigate-existing' },
       },
       devOptions: {
         enabled: false,
@@ -60,9 +77,6 @@ export default defineConfig({
     __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
   },
   resolve: {
-    // Force the client Svelte bundle when running under Vitest so @testing-library
-    // can mount components. Without this, Vitest's SSR-style resolution picks
-    // svelte/index-server.js, which only exposes the server render API.
     conditions: process.env.VITEST ? ['browser'] : undefined,
   },
   test: {
