@@ -63,6 +63,7 @@ export function createPaintingFromImage(
     name,
     slug: generatePaintingSlug(name, id),
     slugVersion: CURRENT_SLUG_VERSION,
+    slugLocked: false,
     canvasW16: w16,
     canvasH16: h16,
     source,
@@ -83,8 +84,11 @@ export function migrate(state: unknown): ProjectState {
   // the current name + id before validation. Once set, both fields are frozen, so
   // this only runs on the migration boundary. Paintings without slugVersion are
   // assumed v1 because that was the only algorithm before the field existed.
+  // slugLocked defaults to true for legacy paintings so their existing slug is
+  // preserved verbatim. New paintings created today default to false.
   const raw = state as { paintings?: Array<{
-    id?: unknown; name?: unknown; slug?: unknown; slugVersion?: unknown;
+    id?: unknown; name?: unknown; slug?: unknown;
+    slugVersion?: unknown; slugLocked?: unknown;
   }> };
   if (Array.isArray(raw.paintings)) {
     for (const p of raw.paintings) {
@@ -96,6 +100,9 @@ export function migrate(state: unknown): ProjectState {
       }
       if (typeof p.slugVersion !== 'number' || !Number.isInteger(p.slugVersion) || p.slugVersion < 1) {
         p.slugVersion = 1;
+      }
+      if (typeof p.slugLocked !== 'boolean') {
+        p.slugLocked = true;
       }
     }
   }

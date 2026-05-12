@@ -99,6 +99,13 @@ describe('createPaintingFromImage', () => {
     });
     expect(p.slugVersion).toBe(CURRENT_SLUG_VERSION);
   });
+
+  it('starts unlocked so the slug follows the painting name by default', () => {
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    expect(p.slugLocked).toBe(false);
+  });
 });
 
 describe('migrate', () => {
@@ -174,5 +181,33 @@ describe('migrate', () => {
     raw.paintings[0].slugVersion = 7;
     const migrated = migrate(raw);
     expect(migrated.paintings[0].slugVersion).toBe(7);
+  });
+
+  it('defaults slugLocked to true when missing (preserves existing slugs)', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      paintings: Array<{ slugLocked?: boolean }>;
+    };
+    delete raw.paintings[0].slugLocked;
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slugLocked).toBe(true);
+  });
+
+  it('preserves an explicit slugLocked through migration', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as {
+      paintings: Array<{ slugLocked: boolean }>;
+    };
+    raw.paintings[0].slugLocked = false;
+    const migrated = migrate(raw);
+    expect(migrated.paintings[0].slugLocked).toBe(false);
   });
 });

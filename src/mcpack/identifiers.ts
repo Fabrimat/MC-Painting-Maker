@@ -1,6 +1,7 @@
-// Identifier helpers for a single painting. They consume the painting's stable
-// `slug` (generated once at creation, see paintings/slug.ts) so that file names,
-// entity IDs and resource keys all match and stay constant across renames.
+// Identifier helpers for a single painting. They consume the painting's current
+// `slug` so that file names, entity IDs and resource keys all match. When the
+// painting is unlocked (see paintings/slug.ts), the slug follows renames and
+// these identifiers change accordingly.
 
 type WithSlug = { slug: string };
 

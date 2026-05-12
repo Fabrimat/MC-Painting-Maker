@@ -1,6 +1,6 @@
-// Stable internal slug derived from a painting's display name + UUID.
+// Internal slug derived from a painting's display name + UUID.
 // Format: <sanitized_name>_<uuid8>, e.g. "sunset_a3f8b1c2".
-// Generated once at painting creation, persisted on the painting, and never changed.
+// Re-derived on rename when the painting is unlocked; frozen when locked.
 // The UUID suffix guarantees uniqueness across paintings that share a name.
 
 // Bump when the slug-generation algorithm changes. New paintings get the bumped

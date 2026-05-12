@@ -41,13 +41,15 @@ export type Material = 'alphatest' | 'alphablend';
 export type Painting = {
   id: string;
   name: string;
-  // Stable internal slug, derived once from name+id at creation. Used for entity
-  // identifiers, file names, geometry/render controller names. Renaming the
-  // painting's display name does NOT change the slug.
+  // Internal slug used for entity identifiers, file names, geometry/render
+  // controller names. When `slugLocked` is false the slug auto-derives from
+  // `name`+`id`; when true it is user-owned and survives renames.
   slug: string;
-  // Version of the slug-generation algorithm that produced `slug`. Frozen with
-  // the slug; future algorithm bumps only affect newly-created paintings.
+  // Version of the slug-generation algorithm that produced `slug`. Stamped with
+  // `CURRENT_SLUG_VERSION` whenever the slug is (re)derived.
   slugVersion: number;
+  // Lock state controlling whether `slug` follows `name`. See applyPaintingPatch.
+  slugLocked: boolean;
   canvasW16: number;
   canvasH16: number;
   source: Source | null;

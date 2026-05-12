@@ -53,6 +53,7 @@ export const PaintingSchema = z.object({
   name: z.string(),
   slug: z.string().min(1),
   slugVersion: z.number().int().positive(),
+  slugLocked: z.boolean(),
   canvasW16: z.number().int().positive(),
   canvasH16: z.number().int().positive(),
   source: SourceSchema.nullable(),

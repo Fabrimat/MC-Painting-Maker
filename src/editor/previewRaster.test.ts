@@ -12,7 +12,7 @@ const mockRasterize = vi.mocked(rasterize);
 
 function painting(): Painting {
   return {
-    id: 'p', name: 'p', slug: 'p', slugVersion: 1,
+    id: 'p', name: 'p', slug: 'p', slugVersion: 1, slugLocked: false,
     canvasW16: 16, canvasH16: 16,
     source: { pngBase64: '', naturalW: 64, naturalH: 64 },
     transform: { x16: 0, y16: 0, w16: 16, h16: 16, rotation: 0, flipX: false, flipY: false },
