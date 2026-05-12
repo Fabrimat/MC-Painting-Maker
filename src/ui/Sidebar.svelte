@@ -1,5 +1,6 @@
 <script lang="ts">
   import { project } from '../stores/project';
+  import { clearView } from '../stores/viewState';
   import { createPaintingFromImage, ensurePackUUIDs } from '../paintings/defaults';
   import type { Painting } from '../paintings/types';
   import FileDrop from './FileDrop.svelte';
@@ -42,6 +43,7 @@
 
   function remove(id: string) {
     project.update((v) => ({ ...v, paintings: v.paintings.filter((p) => p.id !== id) }));
+    clearView(id);
     if (selectedId === id) selectedId = null;
   }
 </script>
