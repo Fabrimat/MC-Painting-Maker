@@ -63,8 +63,9 @@
       <h2>Who runs this site</h2>
       <p>
         Fabrizio La Rosa, Belgian VAT BE1031214819, based in Ghent, Belgium.
-        You can reach me via the links on the homepage or by opening an issue on the
-        <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">project repository</a>.
+        You can reach me by opening an issue on the
+        <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">project repository</a>
+        or by writing to <a class="js-email" href="#" rel="noreferrer">the email below</a>.
       </p>
 
       <h2>What I do NOT collect</h2>
@@ -131,8 +132,8 @@
       <p>
         There's no contact form on this site. To report bugs, request features, or ask questions, open an issue on the
         <a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
-        For anything private, use the contact channels on
-        <a href="https://larosa.work/" target="_blank" rel="noopener noreferrer">larosa.work</a>.
+        For anything private, write to <a class="js-email" href="#" rel="noreferrer" hidden></a><noscript>&#109;&#99;&#45;&#112;&#97;&#105;&#110;&#116;&#105;&#110;&#103;&#115;&#64;&#108;&#97;&#114;&#111;&#115;&#97;&#46;&#119;&#111;&#114;&#107;</noscript>.
+        Messages land in my personal email and are used only for replying, with no forwarding, list additions, or secondary uses.
       </p>
 
       <h2>Your rights</h2>
@@ -150,6 +151,25 @@
 
       <a class="back" href="./">&larr; Back to MC Painting Maker</a>
     </div>
+
+    <script>
+      // Email is built at runtime so the address never appears verbatim in
+      // the served HTML. Naive crawlers that grep for "@" or "mailto:" in
+      // source miss it. Users with JS disabled fall back to the noscript
+      // block which renders the address as HTML entities.
+      (function () {
+        var u = 'mc-paintings';
+        var d = ['larosa', 'work'].join('.');
+        var addr = u + String.fromCharCode(64) + d;
+        var anchors = document.getElementsByClassName('js-email');
+        for (var i = 0; i < anchors.length; i++) {
+          var a = anchors[i];
+          a.setAttribute('href', 'mai' + 'lto:' + addr);
+          if (!a.textContent) a.textContent = addr;
+          a.removeAttribute('hidden');
+        }
+      })();
+    </script>
 
     <!-- 100% privacy-first analytics -->
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
