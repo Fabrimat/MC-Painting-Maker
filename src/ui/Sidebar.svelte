@@ -68,6 +68,8 @@
       ·
       <a href="https://www.linkedin.com/in/fabriziolarosa/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       ·
+      <a href="https://ko-fi.com/fabriziolarosa" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+      ·
       <a href="./privacy.html">Privacy</a>
     </p>
   </footer>

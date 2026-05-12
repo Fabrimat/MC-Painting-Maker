@@ -27,6 +27,7 @@ The site is a single-page web application. All work happens client-side: images,
 - [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
 - [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
 - [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.
+- [Support on Ko-fi](https://ko-fi.com/fabriziolarosa): tip jar for the author.
 
 ## Tech stack
 
