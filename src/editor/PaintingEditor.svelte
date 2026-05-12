@@ -2,6 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import Konva from 'konva';
   import { project } from '../stores/project';
+  import { rasterizeForPreview } from './previewRaster';
+  import type { Painting } from '../paintings/types';
 
   export let id: string;
 
@@ -11,6 +13,22 @@
   let imageLayer: Konva.Layer;
   let gridLayer: Konva.Layer;
   let imageNode: Konva.Image | null = null;
+  let rasterLayer: Konva.Layer;
+  let rasterImageNode: Konva.Image | null = null;
+  let cachedRasterImg: HTMLImageElement | null = null;
+  let rasterToken = 0;
+  let rasterSig = '';
+  let mode: 'live' | 'settled' = 'settled';
+
+  function currentRasterSig(p: Painting): string {
+    const t = p.transform;
+    const s = p.source;
+    return [
+      p.canvasW16, p.canvasH16, p.textureDensity, p.resampling,
+      t.x16, t.y16, t.w16, t.h16, t.rotation, t.flipX, t.flipY,
+      s ? s.pngBase64.length : 0, s ? s.naturalW : 0, s ? s.naturalH : 0,
+    ].join(':');
+  }
 
   $: painting = $project.paintings.find((p) => p.id === id) ?? null;
 
@@ -21,7 +39,8 @@
     bgLayer = new Konva.Layer();
     imageLayer = new Konva.Layer();
     gridLayer = new Konva.Layer();
-    stage.add(bgLayer, imageLayer, gridLayer);
+    rasterLayer = new Konva.Layer();
+    stage.add(bgLayer, imageLayer, rasterLayer, gridLayer);
     await refresh();
   });
 
@@ -32,12 +51,16 @@
     stage.size({ width: host.clientWidth, height: host.clientHeight });
     bgLayer.destroyChildren();
     imageLayer.destroyChildren();
+    rasterLayer.destroyChildren();
     gridLayer.destroyChildren();
+    rasterImageNode = null;
     drawCheckerboard();
     await drawImage();
+    drawRasterPreview();
     drawGrid();
     centerAndConfigurePan();
-    bgLayer.draw(); imageLayer.draw(); gridLayer.draw();
+    bgLayer.draw(); imageLayer.draw(); rasterLayer.draw(); gridLayer.draw();
+    maybeStartRaster();
   }
 
   function centerAndConfigurePan() {
@@ -82,13 +105,22 @@
       draggable: true,
       imageSmoothingEnabled: painting.resampling === 'smooth',
     });
+    imageNode.on('dragstart', () => {
+      mode = 'live';
+      rasterToken++;
+      if (rasterImageNode) { rasterImageNode.hide(); rasterLayer.batchDraw(); }
+    });
     imageNode.on('dragmove', () => {
       if (!imageNode) return;
       const sx = Math.round(imageNode.x() / pps) * pps;
       const sy = Math.round(imageNode.y() / pps) * pps;
       imageNode.position({ x: sx, y: sy });
     });
-    imageNode.on('dragend', commitTransform);
+    imageNode.on('dragend', () => {
+      mode = 'settled';
+      if (rasterImageNode) { rasterImageNode.show(); rasterLayer.batchDraw(); }
+      commitTransform();
+    });
     imageLayer.add(imageNode);
 
     const tr = new Konva.Transformer({
@@ -98,6 +130,11 @@
       anchorSize: 10,
       enabledAnchors: ['top-left','top-right','bottom-left','bottom-right','middle-left','middle-right','top-center','bottom-center'],
     });
+    tr.on('transformstart', () => {
+      mode = 'live';
+      rasterToken++;
+      if (rasterImageNode) { rasterImageNode.hide(); rasterLayer.batchDraw(); }
+    });
     tr.on('transformend', () => {
       if (!imageNode) return;
       const w = imageNode.width() * imageNode.scaleX();
@@ -105,9 +142,26 @@
       imageNode.scale({ x: 1, y: 1 });
       imageNode.width(w);
       imageNode.height(h);
+      mode = 'settled';
+      if (rasterImageNode) { rasterImageNode.show(); rasterLayer.batchDraw(); }
       commitTransform();
     });
     imageLayer.add(tr);
+  }
+
+  function drawRasterPreview() {
+    if (!painting || !cachedRasterImg) return;
+    rasterImageNode = new Konva.Image({
+      image: cachedRasterImg,
+      x: 0,
+      y: 0,
+      width: painting.canvasW16 * pps,
+      height: painting.canvasH16 * pps,
+      imageSmoothingEnabled: false,
+      listening: false,
+      visible: mode === 'settled',
+    });
+    rasterLayer.add(rasterImageNode);
   }
 
   function drawGrid() {
@@ -144,6 +198,23 @@
       paintings: v.paintings.map((p) =>
         p.id === id ? { ...p, transform: { ...p.transform, x16, y16, w16, h16 } } : p),
     }));
+  }
+
+  async function maybeStartRaster() {
+    if (!painting) return;
+    if (mode === 'live') return;
+    const sig = currentRasterSig(painting);
+    if (sig === rasterSig && cachedRasterImg) return;
+    rasterSig = sig;
+    rasterToken++;
+    const myToken = rasterToken;
+    const result = await rasterizeForPreview(painting, myToken);
+    if (!result || result.token !== rasterToken) return;
+    cachedRasterImg = result.image;
+    if (rasterImageNode) {
+      rasterImageNode.image(cachedRasterImg);
+      rasterLayer.batchDraw();
+    }
   }
 
   $: if (painting) refresh().catch(console.error);
