@@ -1,4 +1,4 @@
-export type AddSource = 'drop' | 'paste' | 'file-handler' | 'share-target' | 'button';
+export type AddSource = 'drop' | 'file-handler' | 'share-target' | 'button';
 export type ImportSource = 'json' | AddSource;
 export type BuildReason = 'archive-error' | 'image-encode' | 'other';
 export type ImportReason = 'json-parse' | 'image-decode' | 'no-valid-files' | 'idb-read' | 'other';
