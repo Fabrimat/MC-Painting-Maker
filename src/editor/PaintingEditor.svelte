@@ -29,7 +29,7 @@
   let zoom = 1;
   let panX = 0;
   let panY = 0;
-  $: pps = basePps * zoom;
+  let pps = basePps;
   $: bounds = stage
     ? computeZoomBounds(painting?.canvasW16 ?? 16, painting?.canvasH16 ?? 16, stage.width(), stage.height(), basePps)
     : { minZoom: 0.1, maxZoom: 8 };
@@ -82,6 +82,7 @@
       const v = fitView(painting.canvasW16, painting.canvasH16, hostW, hostH, basePps);
       zoom = v.zoom; panX = v.panX; panY = v.panY;
     }
+    pps = basePps * zoom;
   }
 
   function applyView() {
@@ -115,7 +116,9 @@
     const next: View = zoomAtPoint({ zoom, panX, panY }, factor, { x: px, y: py }, basePps, b);
     const clamped = clampPan(next, painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
     zoom = clamped.zoom; panX = clamped.panX; panY = clamped.panY;
+    pps = basePps * zoom;
     persistView();
+    refresh().catch(console.error);
   }
 
   function stepZoom(direction: 1 | -1) {
@@ -126,7 +129,9 @@
     if (!stage || !painting) return;
     const v = fitView(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
     zoom = v.zoom; panX = v.panX; panY = v.panY;
+    pps = basePps * zoom;
     persistView();
+    refresh().catch(console.error);
   }
 
   function onResetOneToOne() {
@@ -158,6 +163,7 @@
       painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps,
     );
     zoom = reclamped.zoom; panX = reclamped.panX; panY = reclamped.panY;
+    pps = basePps * zoom;
     applyView();
     bgLayer.draw(); imageLayer.draw(); rasterLayer.draw(); overlayLayer.draw(); gridLayer.draw();
     maybeStartRaster();
@@ -358,7 +364,6 @@
     rasterLayer.batchDraw();
   }
 
-  $: if (stage) { applyView(); }
   $: if (painting) refresh().catch(console.error);
 </script>
 
