@@ -213,8 +213,10 @@
     cachedRasterImg = result.image;
     if (rasterImageNode) {
       rasterImageNode.image(cachedRasterImg);
-      rasterLayer.batchDraw();
+    } else {
+      drawRasterPreview();
     }
+    rasterLayer.batchDraw();
   }
 
   $: if (painting) refresh().catch(console.error);
