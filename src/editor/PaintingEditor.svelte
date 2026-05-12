@@ -192,8 +192,15 @@
 
   function onFit() {
     if (!stage || !painting) return;
-    const v = fitView(painting.canvasW16, painting.canvasH16, stage.width(), stage.height(), basePps);
-    zoom = v.zoom; panX = v.panX; panY = v.panY;
+    const hostW = host.clientWidth;
+    const hostH = host.clientHeight;
+    if (stage.width() !== hostW || stage.height() !== hostH) {
+      stage.size({ width: hostW, height: hostH });
+    }
+    const v = fitView(painting.canvasW16, painting.canvasH16, hostW, hostH, basePps);
+    zoom = v.zoom;
+    panX = Math.round(v.panX);
+    panY = Math.round(v.panY);
     pps = basePps * zoom;
     persistView();
     refresh().catch(console.error);
