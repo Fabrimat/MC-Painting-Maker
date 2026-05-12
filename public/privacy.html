@@ -173,6 +173,20 @@
         A technical note: even if you have <strong>Do Not Track</strong> turned on in your browser, visits still get counted.
         The DNT signal asks not to be profiled; here there's no profiling to turn off, so excluding privacy-conscious readers would skew aggregate numbers.
       </p>
+      <p>
+        On top of page views, the same Simple Analytics pipeline receives a small set of
+        <strong>aggregate counters of in-app actions</strong>, with no user identifier attached:
+      </p>
+      <ul>
+        <li>Number of paintings added to a project, with the source channel (drag-and-drop, paste, file picker, system share sheet, system file association).</li>
+        <li>Number of <code>.mcaddon</code> archives built locally and number of paintings per archive.</li>
+        <li>Number of JSON project exports and imports.</li>
+        <li>Generic failure counters for build and import (categorical reason tag only, no error messages, no filenames).</li>
+        <li>PWA installability availability and PWA install completion events.</li>
+      </ul>
+      <p>
+        These counters carry no user ID, no session ID, no IP, no fingerprint, no filenames, and no image content.
+      </p>
 
       <h2>Cloudflare in front of the site</h2>
       <p>
