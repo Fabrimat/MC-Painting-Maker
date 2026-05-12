@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { putShareFiles, deleteShareFiles, getShareFiles } from './idb';
 
@@ -108,5 +108,69 @@ describe('pwa/incomingFiles', () => {
     await new Promise((r) => setTimeout(r, 10));
     expect(get(mod.incomingFiles)).toBeNull();
     expect(get(mod.incomingError)).toBeNull();
+  });
+
+  describe('analytics tracking', () => {
+    let saEvent: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      saEvent = vi.fn();
+      vi.stubGlobal('sa_event', saEvent);
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('tracks import_failed with reason=other when error=1', async () => {
+      setUrl('http://localhost/?source=share-target&error=1');
+      const mod = await freshModule();
+      mod.initIncomingFiles();
+      await vi.waitFor(() => {
+        expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'share-target', reason: 'other' });
+      });
+    });
+
+    it('tracks import_failed with reason=no-valid-files when all share files are filtered out', async () => {
+      await putShareFiles([makeFile('movie.mp4', 'video/mp4')]);
+      setUrl('http://localhost/?source=share-target');
+      const mod = await freshModule();
+      mod.initIncomingFiles();
+      await vi.waitFor(() => {
+        expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'share-target', reason: 'no-valid-files' });
+      });
+      expect(get(mod.incomingFiles)).toBeNull();
+      expect(get(mod.incomingError)).toBeNull();
+    });
+
+    it('tracks import_failed with reason=other when launchQueue getFile rejects', async () => {
+      const mod = await freshModule();
+      mod.initIncomingFiles();
+      await consumer!({
+        files: [{ getFile: () => Promise.reject(new Error('handle revoked')) }],
+      });
+      expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'file-handler', reason: 'other' });
+    });
+
+    it('tracks import_failed with reason=no-valid-files when launchQueue files are all filtered out', async () => {
+      const mod = await freshModule();
+      mod.initIncomingFiles();
+      const video = makeFile('movie.mp4', 'video/mp4');
+      await consumer!({ files: [{ getFile: () => Promise.resolve(video) }] });
+      expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'file-handler', reason: 'no-valid-files' });
+      expect(get(mod.incomingFiles)).toBeNull();
+    });
+
+    it('does not fire import_failed on a clean share-target success', async () => {
+      await putShareFiles([makeFile('cat.png')]);
+      setUrl('http://localhost/?source=share-target');
+      const mod = await freshModule();
+      mod.initIncomingFiles();
+      await vi.waitFor(() => {
+        expect(get(mod.incomingFiles)).not.toBeNull();
+      });
+      const failureCalls = saEvent.mock.calls.filter((c) => c[0] === 'import_failed');
+      expect(failureCalls).toHaveLength(0);
+    });
   });
 });

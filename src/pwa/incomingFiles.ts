@@ -1,5 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import { getShareFiles, deleteShareFiles } from './idb';
+import { trackImportFailed } from '../analytics/track';
 
 export type IncomingPayload = {
   files: File[];
@@ -23,6 +24,7 @@ function cleanSourceQueryParam(): void {
 
 async function consumeShareTarget(error: boolean): Promise<void> {
   if (error) {
+    trackImportFailed('share-target', 'other');
     incomingError.set('Share failed');
     cleanSourceQueryParam();
     return;
@@ -35,8 +37,11 @@ async function consumeShareTarget(error: boolean): Promise<void> {
     const accepted = files.filter(isAcceptedImage);
     if (accepted.length > 0) {
       incomingFiles.set({ files: accepted, source: 'share-target' });
+    } else {
+      trackImportFailed('share-target', 'no-valid-files');
     }
   } catch {
+    trackImportFailed('share-target', 'idb-read');
     incomingError.set('Share failed');
     cleanSourceQueryParam();
   }
@@ -58,8 +63,11 @@ function registerLaunchQueueConsumer(): void {
       const accepted = files.filter(isAcceptedImage);
       if (accepted.length > 0) {
         incomingFiles.set({ files: accepted, source: 'file-handler' });
+      } else if (files.length > 0) {
+        trackImportFailed('file-handler', 'no-valid-files');
       }
     } catch {
+      trackImportFailed('file-handler', 'other');
       incomingError.set('Share failed');
     }
   });
