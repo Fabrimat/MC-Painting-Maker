@@ -161,6 +161,27 @@ describe('pwa/incomingFiles', () => {
       expect(get(mod.incomingFiles)).toBeNull();
     });
 
+    it('tracks import_failed with reason=idb-read when getShareFiles throws', async () => {
+      vi.doMock('./idb', async () => {
+        const actual = await vi.importActual<typeof import('./idb')>('./idb');
+        return {
+          ...actual,
+          getShareFiles: () => Promise.reject(new Error('IDB unavailable')),
+        };
+      });
+      try {
+        setUrl('http://localhost/?source=share-target');
+        const mod = await freshModule();
+        mod.initIncomingFiles();
+        await vi.waitFor(() => {
+          expect(saEvent).toHaveBeenCalledWith('import_failed', { source: 'share-target', reason: 'idb-read' });
+        });
+        expect(get(mod.incomingError)).toBe('Share failed');
+      } finally {
+        vi.doUnmock('./idb');
+      }
+    });
+
     it('does not fire import_failed on a clean share-target success', async () => {
       await putShareFiles([makeFile('cat.png')]);
       setUrl('http://localhost/?source=share-target');
