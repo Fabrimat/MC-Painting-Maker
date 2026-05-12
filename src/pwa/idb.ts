@@ -25,30 +25,40 @@ function txDone(tx: IDBTransaction): Promise<void> {
 
 export async function putShareFiles(files: File[]): Promise<void> {
   const d = await openDB();
-  const tx = d.transaction(STORE, 'readwrite');
-  tx.objectStore(STORE).put(files, KEY);
-  await txDone(tx);
-  d.close();
+  try {
+    const tx = d.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(files, KEY);
+    await txDone(tx);
+  } finally {
+    d.close();
+  }
 }
 
 export async function getShareFiles(): Promise<File[] | null> {
   const d = await openDB();
-  const tx = d.transaction(STORE, 'readonly');
-  const req = tx.objectStore(STORE).get(KEY);
-  const value = await new Promise<unknown>((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  await txDone(tx);
-  d.close();
-  if (!Array.isArray(value)) return null;
-  return value as File[];
+  try {
+    const tx = d.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(KEY);
+    const value = await new Promise<unknown>((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    await txDone(tx);
+    if (!Array.isArray(value)) return null;
+    if (!value.every((v) => v instanceof File || (typeof v === 'object' && v !== null && 'name' in v && 'type' in v))) return null;
+    return value as File[];
+  } finally {
+    d.close();
+  }
 }
 
 export async function deleteShareFiles(): Promise<void> {
   const d = await openDB();
-  const tx = d.transaction(STORE, 'readwrite');
-  tx.objectStore(STORE).delete(KEY);
-  await txDone(tx);
-  d.close();
+  try {
+    const tx = d.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(KEY);
+    await txDone(tx);
+  } finally {
+    d.close();
+  }
 }
