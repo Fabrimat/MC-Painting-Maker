@@ -48,6 +48,7 @@
 
   async function refresh() {
     if (!stage || !painting) return;
+    mode = 'settled';
     stage.size({ width: host.clientWidth, height: host.clientHeight });
     bgLayer.destroyChildren();
     imageLayer.destroyChildren();
@@ -126,7 +127,7 @@
     const tr = new Konva.Transformer({
       nodes: [imageNode],
       rotateEnabled: false,
-      keepRatio: false,
+      keepRatio: true,
       anchorSize: 10,
       enabledAnchors: ['top-left','top-right','bottom-left','bottom-right','middle-left','middle-right','top-center','bottom-center'],
     });
