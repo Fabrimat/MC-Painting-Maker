@@ -117,4 +117,64 @@ describe('PaintingProperties', () => {
     expect(get(project).paintings[0].slug).toBe(before);
     expect(get(project).paintings[0].slugLocked).toBe(true);
   });
+
+  it('editing the slug auto-locks the painting and persists the value', async () => {
+    const id = seed();
+    const { getByLabelText } = render(PaintingProperties, { props: { id } });
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: 'custom_slug' } });
+    await fireEvent.blur(input);
+    const p = get(project).paintings[0];
+    expect(p.slug).toBe('custom_slug');
+    expect(p.slugLocked).toBe(true);
+  });
+
+  it('shows an error and reverts on blur when the slug is invalid', async () => {
+    const id = seed();
+    const before = get(project).paintings[0].slug;
+    const { getByLabelText, getByText } = render(PaintingProperties, { props: { id } });
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: 'Invalid-Slug!' } });
+    expect(getByText(/lowercase a-z, 0-9, _/i)).toBeTruthy();
+    await fireEvent.blur(input);
+    expect(get(project).paintings[0].slug).toBe(before);
+    expect(input.value).toBe(before);
+  });
+
+  it('rejects a slug longer than 32 characters', async () => {
+    const id = seed();
+    const before = get(project).paintings[0].slug;
+    const { getByLabelText, getByText } = render(PaintingProperties, { props: { id } });
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    const tooLong = 'a' + 'b'.repeat(32);
+    await fireEvent.input(input, { target: { value: tooLong } });
+    expect(getByText(/32 characters/i)).toBeTruthy();
+    await fireEvent.blur(input);
+    expect(get(project).paintings[0].slug).toBe(before);
+  });
+
+  it('rejects a slug that collides with another painting', async () => {
+    const s = createEmptyProject();
+    const a = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    const b = createPaintingFromImage('B', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    s.paintings.push(a, b);
+    project.set(s);
+    const beforeA = a.slug;
+    const { getByLabelText, getByText } = render(PaintingProperties, { props: { id: a.id } });
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: b.slug } });
+    expect(getByText(/already used/i)).toBeTruthy();
+    await fireEvent.blur(input);
+    expect(get(project).paintings.find((p) => p.id === a.id)!.slug).toBe(beforeA);
+  });
+
+  it('accepts editing back to the existing slug (self is not a collision)', async () => {
+    const id = seed();
+    const before = get(project).paintings[0].slug;
+    const { getByLabelText } = render(PaintingProperties, { props: { id } });
+    const input = getByLabelText('In-game slug') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: before } });
+    await fireEvent.blur(input);
+    expect(get(project).paintings[0].slug).toBe(before);
+  });
 });

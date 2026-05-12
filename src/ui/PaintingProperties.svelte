@@ -18,6 +18,38 @@
     if (!painting) return;
     patch({ slugLocked: !painting.slugLocked });
   }
+  const SLUG_PATTERN = /^[a-z][a-z0-9_]*$/;
+  const SLUG_MAX = 32;
+  let slugDraft = '';
+  let slugError: string | null = null;
+  let lastSyncedSlug = '';
+  $: if (painting && painting.slug !== lastSyncedSlug && document.activeElement?.getAttribute('aria-label') !== 'In-game slug') {
+    slugDraft = painting.slug;
+    slugError = null;
+    lastSyncedSlug = painting.slug;
+  }
+  function validateSlug(value: string): string | null {
+    if (!value) return 'Slug cannot be empty.';
+    if (value.length > SLUG_MAX) return `Use at most ${SLUG_MAX} characters.`;
+    if (!SLUG_PATTERN.test(value)) return 'Use lowercase a-z, 0-9, _ (must start with a letter).';
+    const collision = $project.paintings.some((p) => p.id !== id && p.slug === value);
+    if (collision) return 'This ID is already used by another painting.';
+    return null;
+  }
+  function onSlugInput(e: Event) {
+    slugDraft = (e.currentTarget as HTMLInputElement).value;
+    slugError = validateSlug(slugDraft);
+  }
+  function onSlugBlur() {
+    if (!painting) return;
+    if (slugError) {
+      slugDraft = painting.slug;
+      slugError = null;
+      return;
+    }
+    if (slugDraft === painting.slug) return;
+    patch({ slug: slugDraft, slugLocked: true });
+  }
   function setCanvas(axis: 'W' | 'H', blocks: number) {
     if (!Number.isFinite(blocks) || blocks <= 0) return;
     const v = Math.max(1, Math.round(blocks * 16));
@@ -127,10 +159,13 @@
       <h4 class="section-title">In-game ID</h4>
       <span class="id-prefix">{$project.pack.namespace}:</span>
       <input class="field id-slug"
+        class:invalid={slugError !== null}
         aria-label="In-game slug"
         bind:this={slugInputEl}
-        value={painting.slug}
-        readonly />
+        value={slugDraft}
+        on:input={onSlugInput}
+        on:blur={onSlugBlur} />
+      {#if slugError}<span class="err">{slugError}</span>{/if}
       <div class="id-actions">
         <button type="button" class="id-btn id-lock"
           aria-label={painting.slugLocked ? 'Unlock slug' : 'Lock slug'}
@@ -204,5 +239,10 @@
   .id-actions {
     display: flex; gap: var(--space-2); justify-content: flex-end;
     margin-top: var(--space-2);
+  }
+  .id-slug.invalid { border-color: var(--danger, #c00); }
+  .err {
+    display: block; margin-top: var(--space-1);
+    font-size: var(--fs-xs); color: var(--danger, #c00);
   }
 </style>
