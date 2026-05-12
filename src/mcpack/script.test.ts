@@ -16,4 +16,12 @@ describe('buildMainJs', () => {
     expect(code).toContain('afterEvents.entitySpawn.subscribe');
     expect(code).toContain('Math.round(');
   });
+
+  it('guards entity calls with isValid checks and filters by family', () => {
+    const code = buildMainJs('a');
+    expect(code).toContain('e?.isValid');
+    expect(code).toContain('e.matches({ families: [FAMILY] })');
+    // isValid is consulted before every entity method invocation, not just once.
+    expect(code.match(/isValid/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+  });
 });
