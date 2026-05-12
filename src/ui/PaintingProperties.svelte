@@ -190,6 +190,9 @@
         </button>
       </div>
       <p class="field-hint">
+        Used to summon this painting in-game (for example, with the /summon command).
+      </p>
+      <p class="field-hint">
         {#if painting.slugLocked}
           Custom value. Click the lock icon to resume auto-update from the painting name.
         {:else}
