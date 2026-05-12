@@ -4,6 +4,9 @@ import { loadView, saveView, clearView, flushPendingSaves } from './viewState';
 const KEY = 'mc-pm-views';
 
 beforeEach(() => {
+  // Flush any module-level pending state left over from a previous test
+  // before clearing storage, so the next test starts from a clean slate.
+  flushPendingSaves();
   localStorage.clear();
 });
 
