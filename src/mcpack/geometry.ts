@@ -4,7 +4,6 @@ import { geometryName } from './identifiers';
 export function buildGeometry(p: Painting) {
   const W = p.canvasW16;
   const H = p.canvasH16;
-  const halfW = W / 2;
   const vbHalf = Math.ceil(Math.max(W, H) / 16) + 1;
 
   // Reference: test_painting.geo.json - two overlapping cubes of depth 1 at z=[6, 7].
@@ -15,7 +14,7 @@ export function buildGeometry(p: Painting) {
   // real framed picture when viewed from any angle except straight-on.
   function planeCube(showNorth: boolean) {
     return {
-      origin: [-halfW, 0, 6],
+      origin: [0, 0, 6],
       size: [W, H, 1],
       uv: showNorth
         ? {
@@ -40,7 +39,7 @@ export function buildGeometry(p: Painting) {
         texture_height: H,
         visible_bounds_width: vbHalf,
         visible_bounds_height: vbHalf,
-        visible_bounds_offset: [0, H / 32, 0],
+        visible_bounds_offset: [W / 32, H / 32, 0],
       },
       bones: [
         { name: 'root', pivot: [0, 0, 0] },
