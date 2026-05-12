@@ -128,6 +128,7 @@
       nodes: [imageNode],
       rotateEnabled: false,
       keepRatio: true,
+      shiftBehavior: 'inverted',
       anchorSize: 10,
       enabledAnchors: ['top-left','top-right','bottom-left','bottom-right','middle-left','middle-right','top-center','bottom-center'],
     });
