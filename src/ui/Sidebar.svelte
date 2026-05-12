@@ -1,45 +1,19 @@
 <script lang="ts">
   import { project } from '../stores/project';
   import { clearView } from '../stores/viewState';
-  import { createPaintingFromImage, ensurePackUUIDs } from '../paintings/defaults';
-  import type { Painting } from '../paintings/types';
+  import { addImagesToProject } from '../paintings/import';
   import FileDrop from './FileDrop.svelte';
   import PaintingList from './PaintingList.svelte';
   export let selectedId: string | null;
   export let onselect: (id: string) => void = () => {};
 
   async function addFromFiles(files: FileList) {
-    const additions: Painting[] = [];
-    for (const f of Array.from(files)) {
-      const bytes = new Uint8Array(await f.arrayBuffer());
-      const dataUrl = await fileDataUrl(f);
-      const bmp = await createImageBitmap(new Blob([bytes], { type: f.type }));
-      additions.push(createPaintingFromImage(
-        stripExt(f.name),
-        { pngBase64: dataUrl, naturalW: bmp.width, naturalH: bmp.height },
-      ));
+    const result = await addImagesToProject($project, files);
+    project.set(result.state);
+    if (selectedId === null && result.addedIds.length > 0) {
+      selectedId = result.addedIds[0];
     }
-    project.update((v) => {
-      const withUuids = ensurePackUUIDs(v);
-      return { ...withUuids, paintings: [...withUuids.paintings, ...additions] };
-    });
-    if (selectedId === null && additions.length > 0) selectedId = additions[0].id;
   }
-
-  function fileDataUrl(f: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const fr = new FileReader();
-      fr.onload = () => {
-        const v = String(fr.result);
-        const idx = v.indexOf(',');
-        resolve(idx >= 0 ? v.slice(idx + 1) : v);
-      };
-      fr.onerror = () => reject(fr.error);
-      fr.readAsDataURL(f);
-    });
-  }
-
-  function stripExt(name: string): string { return name.replace(/\.[^.]+$/, ''); }
 
   function remove(id: string) {
     project.update((v) => ({ ...v, paintings: v.paintings.filter((p) => p.id !== id) }));
