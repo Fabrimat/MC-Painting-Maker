@@ -50,4 +50,19 @@ describe('ProjectSchema', () => {
     };
     expect(() => ProjectSchema.parse(bad)).toThrow();
   });
+
+  it('rejects a painting missing slugLocked', () => {
+    const bad = {
+      ...minimalProject,
+      paintings: [{
+        id: 'p1', name: 'a',
+        slug: 'a_uuid8', slugVersion: 1,
+        canvasW16: 16, canvasH16: 16,
+        source: null,
+        transform: { x16: 0, y16: 0, w16: 16, h16: 16, rotation: 0, flipX: false, flipY: false },
+        resampling: 'smooth', textureDensity: 'auto', material: 'alphatest',
+      }],
+    };
+    expect(() => ProjectSchema.parse(bad)).toThrow();
+  });
 });

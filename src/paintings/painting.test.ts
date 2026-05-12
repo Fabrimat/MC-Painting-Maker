@@ -63,4 +63,12 @@ describe('applyPaintingPatch', () => {
     expect(next.slug).toBe(generatePaintingSlug('Mountain', p.id));
     expect(next.slugLocked).toBe(false);
   });
+
+  it('discards an explicit slug in the patch when the result is unlocked (rederivation wins)', () => {
+    const p = fresh('Sunset');
+    const next = applyPaintingPatch(p, { slug: 'should_be_discarded', slugLocked: false });
+    expect(next.slug).toBe(generatePaintingSlug('Sunset', p.id));
+    expect(next.slug).not.toBe('should_be_discarded');
+    expect(next.slugLocked).toBe(false);
+  });
 });
