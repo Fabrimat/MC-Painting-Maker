@@ -6,6 +6,16 @@
   import { activeTab } from './stores/ui';
   import { incomingFiles, incomingError } from './pwa/incomingFiles';
   import { addImagesToProject } from './paintings/import';
+  import {
+    trackPaintingsAdded,
+    trackMcaddonBuilt,
+    trackBuildFailed,
+    trackProjectExported,
+    trackProjectImported,
+    trackImportFailed,
+    type BuildReason,
+    type ImportReason,
+  } from './analytics/track';
   import Topbar from './ui/Topbar.svelte';
   import Sidebar from './ui/Sidebar.svelte';
   import PaintingEditor from './editor/PaintingEditor.svelte';
@@ -35,15 +45,19 @@
     const unsubFiles = incomingFiles.subscribe(async (payload) => {
       if (!payload || payload.files.length === 0) return;
       incomingFiles.set(null);
-      const { files } = payload;
+      const { files, source } = payload;
       try {
         const result = await addImagesToProject($project, files);
         project.set(result.state);
+        if (result.addedIds.length > 0) {
+          trackPaintingsAdded(source, result.addedIds.length);
+        }
         if (selectedId === null && result.addedIds.length > 0) {
           selectedId = result.addedIds[0];
           activeTab.set('edit');
         }
       } catch (err) {
+        trackImportFailed(source, classifyImportReason(err));
         showToast(`Import failed: ${(err as Error).message}`);
       }
     });
@@ -82,6 +96,21 @@
   $: if (selectedId && !$project.paintings.find((p) => p.id === selectedId)) selectedId = null;
   $: if (selectedId === null && $project.paintings.length > 0) selectedId = $project.paintings[0].id;
 
+  function classifyBuildReason(err: unknown): BuildReason {
+    const msg = (err as { message?: string })?.message?.toLowerCase() ?? '';
+    if (msg.includes('jszip') || msg.includes('zip')) return 'jszip-error';
+    if (msg.includes('image') || msg.includes('decode') || msg.includes('encode') || msg.includes('bitmap')) return 'image-encode';
+    if (msg.includes('manifest')) return 'manifest-invalid';
+    return 'other';
+  }
+
+  function classifyImportReason(err: unknown): ImportReason {
+    const msg = (err as { message?: string })?.message?.toLowerCase() ?? '';
+    if (msg.includes('json')) return 'json-parse';
+    if (msg.includes('image') || msg.includes('decode') || msg.includes('bitmap')) return 'image-decode';
+    return 'other';
+  }
+
   function showToast(msg: string) {
     toast = msg;
     if (toastTimer) clearTimeout(toastTimer);
@@ -93,7 +122,9 @@
     try {
       const blob = await buildMcaddonBlob($project);
       downloadBlob(blob, archiveFilename($project));
+      trackMcaddonBuilt($project.paintings.length);
     } catch (err) {
+      trackBuildFailed(classifyBuildReason(err));
       showToast(`Build failed: ${(err as Error).message}`);
     } finally {
       building = false;
@@ -110,13 +141,20 @@
   function onExport() {
     downloadBlob(new Blob([exportProjectJSON($project)], { type: 'application/json' }),
       `${$project.pack.name || 'project'}-project.json`);
+    trackProjectExported($project.paintings.length);
   }
   function onImport() { importInput?.click(); }
   async function onImportFile(e: Event) {
     const f = (e.target as HTMLInputElement).files?.[0];
     if (!f) return;
-    try { project.set(importProjectJSON(await f.text())); }
-    catch (err) { showToast(`Import failed: ${(err as Error).message}`); }
+    try {
+      const state = importProjectJSON(await f.text());
+      project.set(state);
+      trackProjectImported(state.paintings.length);
+    } catch (err) {
+      trackImportFailed('json', classifyImportReason(err));
+      showToast(`Import failed: ${(err as Error).message}`);
+    }
   }
 
   function selectFromList(id: string) {
