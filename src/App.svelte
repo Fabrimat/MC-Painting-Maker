@@ -35,11 +35,15 @@
     const unsubFiles = incomingFiles.subscribe(async (files) => {
       if (!files || files.length === 0) return;
       incomingFiles.set(null);
-      const result = await addImagesToProject($project, files);
-      project.set(result.state);
-      if (selectedId === null && result.addedIds.length > 0) {
-        selectedId = result.addedIds[0];
-        activeTab.set('edit');
+      try {
+        const result = await addImagesToProject($project, files);
+        project.set(result.state);
+        if (selectedId === null && result.addedIds.length > 0) {
+          selectedId = result.addedIds[0];
+          activeTab.set('edit');
+        }
+      } catch (err) {
+        showToast(`Import failed: ${(err as Error).message}`);
       }
     });
     const unsubError = incomingError.subscribe((msg) => {
