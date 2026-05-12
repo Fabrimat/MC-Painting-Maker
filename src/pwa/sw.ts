@@ -42,7 +42,8 @@ async function handleShareTarget(request: Request): Promise<Response> {
         v instanceof File &&
         (v.type === 'image/png' || /^image\/jpe?g$/.test(v.type)),
     );
-    if (files.length > 0) await putShareFiles(files);
+    if (files.length === 0) return Response.redirect(errUrl, 303);
+    await putShareFiles(files);
     return Response.redirect(okUrl, 303);
   } catch {
     return Response.redirect(errUrl, 303);
