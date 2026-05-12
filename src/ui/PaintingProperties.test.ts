@@ -81,4 +81,40 @@ describe('PaintingProperties', () => {
     await fireEvent.click(getByRole('button', { name: 'Copy in-game ID' }));
     expect(writeText).toHaveBeenCalledWith(`${ns}:${slug}`);
   });
+
+  it('lock button reflects slugLocked and toggles it on click', async () => {
+    const id = seed();
+    const { getByRole } = render(PaintingProperties, { props: { id } });
+    const btn = getByRole('button', { name: /Lock|Unlock/ });
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    await fireEvent.click(btn);
+    expect(get(project).paintings[0].slugLocked).toBe(true);
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    await fireEvent.click(btn);
+    expect(get(project).paintings[0].slugLocked).toBe(false);
+  });
+
+  it('unlocking rederivates the slug from the current painting name', async () => {
+    const id = seed();
+    project.update((v) => ({
+      ...v,
+      paintings: v.paintings.map((p) => p.id === id
+        ? { ...p, name: 'Mountain', slug: 'frozen_value', slugLocked: true }
+        : p),
+    }));
+    const { getByRole } = render(PaintingProperties, { props: { id } });
+    await fireEvent.click(getByRole('button', { name: /Unlock/ }));
+    const p = get(project).paintings[0];
+    expect(p.slugLocked).toBe(false);
+    expect(p.slug).toMatch(/^mountain_[0-9a-f]{8}$/);
+  });
+
+  it('locking keeps the current slug unchanged', async () => {
+    const id = seed();
+    const before = get(project).paintings[0].slug;
+    const { getByRole } = render(PaintingProperties, { props: { id } });
+    await fireEvent.click(getByRole('button', { name: /Lock/ }));
+    expect(get(project).paintings[0].slug).toBe(before);
+    expect(get(project).paintings[0].slugLocked).toBe(true);
+  });
 });

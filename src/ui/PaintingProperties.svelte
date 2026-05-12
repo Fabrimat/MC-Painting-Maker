@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import { project } from '../stores/project';
   import { resolveDensity } from '../paintings/density';
+  import { applyPaintingPatch } from '../paintings/painting';
   import type { Painting, Density } from '../paintings/types';
   export let id: string;
   $: painting = $project.paintings.find((p) => p.id === id) ?? null;
@@ -10,8 +11,12 @@
   function patch(update: Partial<Painting>) {
     project.update((v) => ({
       ...v,
-      paintings: v.paintings.map((p) => p.id === id ? { ...p, ...update } : p),
+      paintings: v.paintings.map((p) => p.id === id ? applyPaintingPatch(p, update) : p),
     }));
+  }
+  function toggleLock() {
+    if (!painting) return;
+    patch({ slugLocked: !painting.slugLocked });
   }
   function setCanvas(axis: 'W' | 'H', blocks: number) {
     if (!Number.isFinite(blocks) || blocks <= 0) return;
@@ -127,6 +132,10 @@
           bind:this={slugInputEl}
           value={painting.slug}
           readonly />
+        <button type="button" class="id-btn id-lock"
+          aria-label={painting.slugLocked ? 'Unlock slug' : 'Lock slug'}
+          aria-pressed={painting.slugLocked}
+          on:click={toggleLock}>{painting.slugLocked ? '🔒' : '🔓'}</button>
         <button type="button" class="id-btn"
           aria-label="Copy in-game ID"
           on:click={copyInGameId}>
@@ -134,7 +143,11 @@
         </button>
       </div>
       <p class="field-hint">
-        Used to summon this painting in-game (for example, with the /summon command).
+        {#if painting.slugLocked}
+          Custom value. Click the lock icon to resume auto-update from the painting name.
+        {:else}
+          Auto-updates with the painting name. Lock to keep the current value when renaming.
+        {/if}
       </p>
     </section>
   </aside>
@@ -176,4 +189,5 @@
     border-radius: var(--radius-sm); background: #fff;
   }
   .id-btn:hover { background: var(--surface); }
+  .id-lock { font-size: var(--fs-sm); }
 </style>
