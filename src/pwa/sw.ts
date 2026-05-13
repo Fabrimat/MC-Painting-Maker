@@ -12,6 +12,15 @@ precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 clientsClaim();
 
+// With registerType: 'prompt', the new SW stays in "waiting" until the client
+// posts SKIP_WAITING (triggered by updateSW(true) in register.ts). Without this
+// handler the reload button is a no-op.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    void self.skipWaiting();
+  }
+});
+
 // SPA navigation fallback: serve precached index.html for navigation requests.
 // Denylist matches what the previous generateSW config had: analytics path and
 // static asset extensions stay on the network.

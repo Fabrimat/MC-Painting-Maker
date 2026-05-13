@@ -4,8 +4,8 @@
 
 {#if $needRefresh}
   <div class="update-toast" role="status" aria-live="polite">
-    <span class="msg">Nuova versione disponibile</span>
-    <button type="button" class="reload" on:click={applyUpdate}>Ricarica</button>
+    <span class="msg">New version available</span>
+    <button type="button" class="reload" on:click={applyUpdate}>Reload</button>
   </div>
 {/if}
 

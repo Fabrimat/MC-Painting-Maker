@@ -26,14 +26,14 @@ describe('UpdateToast', () => {
     needRefresh.set(true);
     const { getByRole, getByText } = render(UpdateToast);
     expect(getByRole('status')).toBeTruthy();
-    expect(getByText(/Nuova versione disponibile/)).toBeTruthy();
-    expect(getByRole('button', { name: /Ricarica/ })).toBeTruthy();
+    expect(getByText(/New version available/)).toBeTruthy();
+    expect(getByRole('button', { name: /Reload/ })).toBeTruthy();
   });
 
   it('clicking the reload button calls updateSW(true)', async () => {
     needRefresh.set(true);
     const { getByRole } = render(UpdateToast);
-    await fireEvent.click(getByRole('button', { name: /Ricarica/ }));
+    await fireEvent.click(getByRole('button', { name: /Reload/ }));
     expect(mockUpdateSW).toHaveBeenCalledWith(true);
   });
 });
