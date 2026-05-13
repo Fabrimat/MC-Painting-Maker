@@ -1,20 +1,33 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 
-const { mockUpdateSW } = vi.hoisted(() => ({ mockUpdateSW: vi.fn() }));
-
 vi.mock('virtual:pwa-register', () => ({
-  registerSW: () => mockUpdateSW,
+  registerSW: () => vi.fn(),
 }));
 
 import UpdateToast from './UpdateToast.svelte';
 import { needRefresh } from '../pwa/register';
 
 describe('UpdateToast', () => {
+  let reloadSpy: ReturnType<typeof vi.fn>;
+  let originalLocation: PropertyDescriptor | undefined;
+
   beforeEach(() => {
     document.body.innerHTML = '';
     needRefresh.set(false);
-    mockUpdateSW.mockClear();
+    reloadSpy = vi.fn();
+    originalLocation = Object.getOwnPropertyDescriptor(window, 'location');
+    Object.defineProperty(window, 'location', {
+      value: { reload: reloadSpy },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    if (originalLocation) {
+      Object.defineProperty(window, 'location', originalLocation);
+    }
   });
 
   it('renders nothing when no update is pending', () => {
@@ -30,10 +43,10 @@ describe('UpdateToast', () => {
     expect(getByRole('button', { name: /Reload/ })).toBeTruthy();
   });
 
-  it('clicking the reload button calls updateSW(true)', async () => {
+  it('clicking the reload button triggers the page reload', async () => {
     needRefresh.set(true);
     const { getByRole } = render(UpdateToast);
     await fireEvent.click(getByRole('button', { name: /Reload/ }));
-    expect(mockUpdateSW).toHaveBeenCalledWith(true);
+    expect(reloadSpy).toHaveBeenCalled();
   });
 });

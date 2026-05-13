@@ -59,7 +59,6 @@ describe('pwa/register', () => {
     let originalLocation: PropertyDescriptor | undefined;
 
     beforeEach(() => {
-      vi.useFakeTimers();
       reloadSpy = vi.fn();
       originalLocation = Object.getOwnPropertyDescriptor(window, 'location');
       Object.defineProperty(window, 'location', {
@@ -70,69 +69,67 @@ describe('pwa/register', () => {
     });
 
     afterEach(() => {
-      vi.useRealTimers();
       vi.unstubAllGlobals();
       if (originalLocation) {
         Object.defineProperty(window, 'location', originalLocation);
       }
     });
 
-    it('posts SKIP_WAITING via updateSW(true)', () => {
-      void applyUpdate();
-      expect(mockUpdateSW).toHaveBeenCalledWith(true);
+    it('hides the toast immediately for instant user feedback', async () => {
+      needRefresh.set(true);
+      await applyUpdate();
+      expect(get(needRefresh)).toBe(false);
     });
 
-    it('reloads on controllerchange without waiting for the timeout', () => {
-      let controllerChangeHandler: EventListener | undefined;
+    it('unregisters every service worker registration', async () => {
+      const unregister1 = vi.fn().mockResolvedValue(true);
+      const unregister2 = vi.fn().mockResolvedValue(true);
       vi.stubGlobal('navigator', {
         serviceWorker: {
-          addEventListener: (event: string, handler: EventListener) => {
-            if (event === 'controllerchange') controllerChangeHandler = handler;
-          },
-          getRegistration: vi.fn().mockResolvedValue(null),
+          getRegistrations: vi.fn().mockResolvedValue([
+            { unregister: unregister1 },
+            { unregister: unregister2 },
+          ]),
         },
       });
 
-      void applyUpdate();
-      controllerChangeHandler?.(new Event('controllerchange'));
+      await applyUpdate();
 
-      expect(reloadSpy).toHaveBeenCalledTimes(1);
+      expect(unregister1).toHaveBeenCalled();
+      expect(unregister2).toHaveBeenCalled();
     });
 
-    it('falls back to unregister + reload after the timeout when controllerchange never fires', async () => {
-      const unregister = vi.fn().mockResolvedValue(true);
-      vi.stubGlobal('navigator', {
-        serviceWorker: {
-          addEventListener: vi.fn(),
-          getRegistration: vi.fn().mockResolvedValue({ unregister }),
-        },
+    it('clears every cache', async () => {
+      const deleteSpy = vi.fn().mockResolvedValue(true);
+      vi.stubGlobal('caches', {
+        keys: vi.fn().mockResolvedValue(['workbox-precache', 'runtime-cache']),
+        delete: deleteSpy,
       });
 
-      void applyUpdate();
-      await vi.runAllTimersAsync();
+      await applyUpdate();
 
-      expect(unregister).toHaveBeenCalled();
+      expect(deleteSpy).toHaveBeenCalledWith('workbox-precache');
+      expect(deleteSpy).toHaveBeenCalledWith('runtime-cache');
+    });
+
+    it('reloads the page after cleanup', async () => {
+      await applyUpdate();
       expect(reloadSpy).toHaveBeenCalled();
     });
 
-    it('does not reload twice when controllerchange beats the timeout', async () => {
-      let controllerChangeHandler: EventListener | undefined;
-      const unregister = vi.fn().mockResolvedValue(true);
+    it('still reloads when unregister throws', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       vi.stubGlobal('navigator', {
         serviceWorker: {
-          addEventListener: (event: string, handler: EventListener) => {
-            if (event === 'controllerchange') controllerChangeHandler = handler;
-          },
-          getRegistration: vi.fn().mockResolvedValue({ unregister }),
+          getRegistrations: vi.fn().mockRejectedValue(new Error('boom')),
         },
       });
 
-      void applyUpdate();
-      controllerChangeHandler?.(new Event('controllerchange'));
-      await vi.runAllTimersAsync();
+      await applyUpdate();
 
-      expect(reloadSpy).toHaveBeenCalledTimes(1);
-      expect(unregister).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      expect(reloadSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
   });
 });

@@ -4,7 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 export const needRefresh: Writable<boolean> = writable(false);
 export const offlineReady: Writable<boolean> = writable(false);
 
-const updateSW = registerSW({
+registerSW({
   onNeedRefresh() {
     needRefresh.set(true);
   },
@@ -16,38 +16,32 @@ const updateSW = registerSW({
   },
 });
 
-const FALLBACK_DELAY_MS = 2000;
-
-// Activate the waiting SW and reload. The elegant path posts SKIP_WAITING and
-// relies on controllerchange to reload, but it silently fails when the waiting
-// SW pre-dates the SKIP_WAITING handler (older deploys) or when there is no
-// waiting SW at all. The timeout below catches those cases by unregistering the
-// SW entirely so the next navigation fetches fresh assets from the network.
+// Force a clean update: unregister every SW registration and clear every cache
+// before reloading. The SKIP_WAITING dance is fragile - it silently fails when
+// the waiting SW pre-dates the message handler, and stale registrations from
+// older scopes can keep firing onNeedRefresh after a successful reload. Nuking
+// the SW state guarantees the next navigation comes through fresh from the
+// network and installs the latest SW from scratch.
 export async function applyUpdate(): Promise<void> {
-  let done = false;
-  const reload = (): void => {
-    if (done) return;
-    done = true;
-    window.location.reload();
-  };
+  needRefresh.set(false);
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', reload, { once: true });
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((r) => r.unregister()));
+    } catch (err) {
+      console.warn('Failed to unregister service workers', err);
+    }
   }
 
-  void updateSW(true);
-
-  window.setTimeout(async () => {
-    if (done) return;
-    done = true;
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        await registration?.unregister();
-      } catch (err) {
-        console.warn('Failed to unregister service worker before reload', err);
-      }
+  if (typeof caches !== 'undefined') {
+    try {
+      const names = await caches.keys();
+      await Promise.all(names.map((n) => caches.delete(n)));
+    } catch (err) {
+      console.warn('Failed to clear caches', err);
     }
-    window.location.reload();
-  }, FALLBACK_DELAY_MS);
+  }
+
+  window.location.reload();
 }
