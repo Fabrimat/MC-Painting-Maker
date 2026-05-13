@@ -30,6 +30,11 @@ describe('pwa/register', () => {
     needRefresh.set(false);
     offlineReady.set(false);
     mockUpdateSW.mockClear();
+    try {
+      sessionStorage.clear();
+    } catch {
+      // ignore
+    }
   });
 
   it('exposes writable stores with initial value false', () => {
@@ -40,6 +45,19 @@ describe('pwa/register', () => {
   it('sets needRefresh to true when the SW reports a pending update', () => {
     captured.onNeedRefresh?.();
     expect(get(needRefresh)).toBe(true);
+  });
+
+  it('suppresses onNeedRefresh inside the post-applyUpdate window', () => {
+    sessionStorage.setItem('pwa-update-in-flight', String(Date.now()));
+    captured.onNeedRefresh?.();
+    expect(get(needRefresh)).toBe(false);
+  });
+
+  it('clears the suppression flag and fires once the window expires', () => {
+    sessionStorage.setItem('pwa-update-in-flight', String(Date.now() - 60_000));
+    captured.onNeedRefresh?.();
+    expect(get(needRefresh)).toBe(true);
+    expect(sessionStorage.getItem('pwa-update-in-flight')).toBeNull();
   });
 
   it('sets offlineReady to true when the SW reports offline-ready', () => {
@@ -79,6 +97,14 @@ describe('pwa/register', () => {
       needRefresh.set(true);
       await applyUpdate();
       expect(get(needRefresh)).toBe(false);
+    });
+
+    it('sets a suppression flag in sessionStorage before reloading', async () => {
+      const before = Date.now();
+      await applyUpdate();
+      const raw = sessionStorage.getItem('pwa-update-in-flight');
+      expect(raw).not.toBeNull();
+      expect(Number(raw)).toBeGreaterThanOrEqual(before);
     });
 
     it('unregisters every service worker registration', async () => {
