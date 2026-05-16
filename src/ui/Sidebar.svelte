@@ -57,6 +57,9 @@
       ·
       <a href="./privacy.html">Privacy</a>
     </p>
+    <p class="line disclaimer">
+      Not affiliated with Minecraft, Mojang Studios or Microsoft Inc.
+    </p>
   </footer>
 </aside>
 
@@ -81,4 +84,5 @@
   .credits a { color: var(--text-muted); text-decoration: none; }
   .credits a:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
   .credits .heart { color: var(--danger); vertical-align: -2px; display: inline-block; }
+  .credits .disclaimer { margin-top: var(--space-2); font-size: 10px; opacity: .7; }
 </style>
