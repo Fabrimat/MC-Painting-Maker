@@ -6,7 +6,7 @@
 
     <!-- Primary metadata -->
     <title>MC Painting Maker - Custom Minecraft Bedrock Paintings (.mcaddon)</title>
-    <meta name="description" content="Free browser-based tool that turns any image into a custom Minecraft Bedrock painting. No upload, no account, no tracking. Exports a ready-to-install .mcaddon add-on for Bedrock 1.21.40+ and Minecraft Education Edition." />
+    <meta name="description" content="Free browser-based generator for custom Minecraft Bedrock paintings. Exports ready-to-install .mcaddon for Bedrock 1.21.40+ and Education Edition. No tracking." />
     <meta name="keywords" content="Minecraft Bedrock, custom paintings, mcaddon, painting maker, Minecraft Education Edition, behavior pack, resource pack, painting add-on, Minecraft mod, Bedrock 1.21" />
     <meta name="author" content="Fabrizio La Rosa" />
     <meta name="application-name" content="MC Painting Maker" />
@@ -255,6 +255,34 @@ Fabrizio La Rosa (Belgian VAT BE1031214819, Ghent, Belgium). Contact via the Git
     </script>
   </head>
   <body>
+    <!-- Static landing content for SEO and accessibility. Visually hidden
+         but present in the DOM and the served HTML source, so crawlers and
+         audit tools that do not execute JavaScript still find the page's H1,
+         heading outline, and the internal and external link graph. Lives
+         outside <div id="app"></div> on purpose so Svelte's mount() never
+         touches it. -->
+    <header
+      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;"
+      aria-label="MC Painting Maker"
+    >
+      <h1>MC Painting Maker</h1>
+      <p>Free, browser-based generator for custom Minecraft Bedrock paintings. Turn any image into a ready-to-install .mcaddon add-on for Bedrock Edition 1.21.40 and newer, and for Minecraft Education Edition. Everything runs locally in your browser: no upload, no account, no tracking.</p>
+      <nav aria-label="Documentation and policies">
+        <h2>Documentation and policies</h2>
+        <ul>
+          <li><a href="./how-to.html">How to use MC Painting Maker</a></li>
+          <li><a href="./privacy.html">Privacy policy</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Source code and support">
+        <h2>Source code and support</h2>
+        <ul>
+          <li><a href="https://github.com/Fabrimat/MC-Painting-Maker" rel="noopener">Source code on GitHub</a></li>
+          <li><a href="https://github.com/Fabrimat/MC-Painting-Maker/issues" rel="noopener">Issue tracker on GitHub</a></li>
+          <li><a href="https://ko-fi.com/fabriziolarosa" rel="noopener">Support the author on Ko-fi</a></li>
+        </ul>
+      </nav>
+    </header>
     <div id="app"></div>
     <noscript>
       <header style="max-width:720px;margin:0 auto;padding:64px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1f2937;">
