@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>How to use - MC Painting Maker</title>
-    <meta name="description" content="Step-by-step guide for MC Painting Maker: create your custom paintings, export a .mcaddon, install it in Minecraft Bedrock or Education Edition, and place paintings in-game with the spawn egg or the /summon and /give commands." />
+    <meta name="description" content="Step-by-step guide for MC Painting Maker: create your custom paintings, export a .mcaddon, install it in Minecraft Bedrock or Education Edition, and place paintings in-game from the Creative inventory or with the /give and /summon commands." />
     <meta name="author" content="Fabrizio La Rosa" />
     <meta name="theme-color" content="#f97316" />
     <meta name="color-scheme" content="light" />
@@ -24,7 +24,7 @@
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="MC Painting Maker" />
     <meta property="og:title" content="How to use - MC Painting Maker" />
-    <meta property="og:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game with the spawn egg or commands." />
+    <meta property="og:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game from the Creative inventory or with commands." />
     <meta property="og:url" content="https://mc-paintings.larosa.work/how-to.html" />
     <meta property="og:image" content="https://mc-paintings.larosa.work/brush.svg" />
     <meta property="og:image:alt" content="MC Painting Maker logo" />
@@ -64,7 +64,7 @@
       "@context": "https://schema.org",
       "@type": "HowTo",
       "name": "How to create and use custom Minecraft Bedrock paintings",
-      "description": "Turn any image into a custom Minecraft Bedrock painting with MC Painting Maker, install the .mcaddon, and place the painting in-game with the spawn egg or commands.",
+      "description": "Turn any image into a custom Minecraft Bedrock painting with MC Painting Maker, install the .mcaddon, and place the painting in-game from the Creative inventory or with commands.",
       "inLanguage": "en",
       "totalTime": "PT10M",
       "step": [
@@ -102,7 +102,7 @@
           "@type": "HowToStep",
           "position": 6,
           "name": "Place paintings in-game",
-          "text": "In Creative mode, open the inventory, find your custom Creative group, and use the spawn egg against a wall. Or use the /summon and /give commands listed in the guide."
+          "text": "In Creative mode, open the inventory, find your custom Creative group, pick the painting item, and use it against a wall. Or use the /give and /summon commands listed in the guide."
         }
       ]
     }
@@ -209,7 +209,7 @@
       <h1>How to use MC Painting Maker</h1>
       <p class="lede">
         Turn any image into a custom Minecraft Bedrock painting, install the generated <code>.mcaddon</code>,
-        and place your paintings in-game. Works on Bedrock Edition 1.21.30 and newer, including Minecraft Education Edition.
+        and place your paintings in-game. Works on Bedrock Edition 1.21.40 and newer, including Minecraft Education Edition.
       </p>
 
       <nav class="toc" aria-label="On this page">
@@ -223,7 +223,7 @@
           <li><a href="#step-5-install">5. Install it in Minecraft</a></li>
           <li><a href="#step-6-place">6. Place paintings in-game</a>
             <ul>
-              <li><a href="#place-spawn-egg">From the Creative inventory</a></li>
+              <li><a href="#place-inventory">From the Creative inventory</a></li>
               <li><a href="#place-give">With the <code>/give</code> command</a></li>
               <li><a href="#place-summon">With the <code>/summon</code> command</a></li>
               <li><a href="#place-remove">Removing a painting</a></li>
@@ -244,8 +244,8 @@
       </p>
       <p>
         MC Painting Maker is a creator tool. It produces a single <code>.mcaddon</code> file that contains both packs.
-        Each image you drop in becomes a custom painting entity, complete with its own spawn egg, so it can be placed
-        on a wall just like a vanilla painting.
+        Each image you drop in becomes a custom painting entity, plus a matching <em>placer item</em> in the Creative inventory.
+        Use the item against a wall and the painting appears, just like a vanilla painting.
       </p>
       <p>
         For a broader introduction to Add-Ons in a classroom setting, see Microsoft's official
@@ -278,7 +278,7 @@
           <code>Auto</code> picks a reasonable value based on the image.</li>
         <li>Choose <strong>smooth</strong> or <strong>pixelated</strong> resampling.</li>
         <li>Choose <strong>alphatest</strong> (sharp transparent edges) or <strong>alphablend</strong> (semi-transparent pixels) as the painting material.</li>
-        <li>Rename the painting. The name is what you and your players see in the Creative menu and on the spawn egg.</li>
+        <li>Rename the painting. The name is what you and your players see in the Creative menu and as the placer item's display name.</li>
       </ul>
       <p>
         Use <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> to undo and redo. On macOS use <kbd>Cmd</kbd>+<kbd>Z</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>.
@@ -294,7 +294,7 @@
         <li><strong>Pack icon</strong>. Optional PNG, ideally 256x256. Used as the tile in the pack list and as the world thumbnail.</li>
         <li><strong>Namespace</strong>. Lowercase identifier (letters, digits, underscore) used in entity and item IDs.
           Pick something unique like <code>school_art</code> or <code>my_paintings</code>. Avoid renaming this after sharing the pack.</li>
-        <li><strong>Creative menu group</strong>. The label of the group that holds all your spawn eggs inside the Creative inventory (default: <code>Custom Paintings</code>).</li>
+        <li><strong>Creative menu group</strong>. The label of the group that holds all your painting items inside the Creative inventory (default: <code>Custom Paintings</code>).</li>
         <li><strong>Version</strong>. Bump it when you re-publish so Minecraft picks up the update.</li>
       </ul>
 
@@ -315,7 +315,7 @@
         <li>Minecraft launches and confirms <em>Successfully imported</em> for both packs.</li>
         <li>From the main menu, edit a world (or create a new one).</li>
         <li>In <strong>Behavior Packs</strong>, activate your pack. Minecraft will offer to auto-enable the matching Resource Pack. Accept.</li>
-        <li>Make sure the world is in <strong>Creative</strong> mode if you want the spawn eggs to appear in the inventory. The <strong>Cheats</strong> toggle must be on if you plan to use commands.</li>
+        <li>Make sure the world is in <strong>Creative</strong> mode if you want the painting items to appear in the inventory. The <strong>Cheats</strong> toggle must be on if you plan to use commands.</li>
         <li>Open the world and start playing.</li>
       </ol>
       <div class="callout">
@@ -327,13 +327,13 @@
       <h2 id="step-6-place">6. Place paintings in-game</h2>
       <p>You have three ways to place a custom painting on a wall.</p>
 
-      <h3 id="place-spawn-egg">From the Creative inventory</h3>
+      <h3 id="place-inventory">From the Creative inventory</h3>
       <ol>
         <li>Open the inventory in Creative mode.</li>
         <li>Find your Creative group (default <strong>Custom Paintings</strong>) inside the <em>Items</em> category.
           If your build of Minecraft does not show category tabs, just use the inventory search bar and type the painting name.</li>
-        <li>Pick a spawn egg with the painting name.</li>
-        <li>Aim at a wall and use the egg (right-click on desktop, tap on touchscreen, left-trigger on controller).</li>
+        <li>Pick the painting item with the name you want.</li>
+        <li>Aim at a wall and use the item (right-click on desktop, tap on touchscreen, left-trigger on controller).</li>
       </ol>
       <p>
         The painting appears flush against the wall, snaps to the nearest cardinal direction, and is fully clickable across
@@ -342,18 +342,18 @@
 
       <h3 id="place-give">With the <code>/give</code> command</h3>
       <p>
-        If cheats are enabled, you can hand yourself a spawn egg from any game mode. Open chat with
+        If cheats are enabled, you can hand yourself a painting item from any game mode. Open chat with
         <kbd>T</kbd> (desktop) or the chat icon (touchscreen) and run:
       </p>
-      <pre><code>/give @s &lt;namespace&gt;:&lt;painting_id&gt;_spawn_egg</code></pre>
+      <pre><code>/give @s &lt;namespace&gt;:&lt;painting_id&gt;_painting</code></pre>
       <p>
         Replace <code>&lt;namespace&gt;</code> with the namespace you picked in Pack settings, and
         <code>&lt;painting_id&gt;</code> with the painting's in-game ID (the slug shown in the painting properties panel).
         Concrete example, for a pack with namespace <code>my_paintings</code> and a painting whose ID is <code>sunset</code>:
       </p>
-      <pre><code>/give @s my_paintings:sunset_spawn_egg</code></pre>
+      <pre><code>/give @s my_paintings:sunset_painting</code></pre>
       <p>
-        Then place the spawn egg against a wall like any other spawn egg.
+        Then use the item against a wall to place the painting.
       </p>
 
       <h3 id="place-summon">With the <code>/summon</code> command</h3>
