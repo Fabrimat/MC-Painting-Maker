@@ -22,11 +22,12 @@ self.addEventListener('message', (event) => {
 });
 
 // SPA navigation fallback: serve precached index.html for navigation requests.
-// Denylist matches what the previous generateSW config had: analytics path and
-// static asset extensions stay on the network.
+// .html is in the denylist so standalone static pages (how-to.html, privacy.html)
+// fall through to the precache route instead of being replaced with index.html.
+// The bare app root "/" has no extension and still matches.
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL('index.html'), {
-    denylist: [/\/sa\//, /\.(?:png|jpe?g|gif|svg|ico|woff2?)$/],
+    denylist: [/\/sa\//, /\.(?:html|png|jpe?g|gif|svg|ico|woff2?)$/],
   }),
 );
 
