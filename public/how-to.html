@@ -277,7 +277,7 @@
         <li>Pick a <strong>texture density</strong> (pixels per block). Higher density is sharper but heavier.
           <code>Auto</code> picks a reasonable value based on the image.</li>
         <li>Choose <strong>smooth</strong> or <strong>pixelated</strong> resampling.</li>
-        <li>Choose <strong>alphatest</strong> (sharp transparent edges) or <strong>alphablend</strong> (semi-transparent pixels) as the painting material.</li>
+        <li>Choose the painting material: <strong>Cutout</strong> (pixels are either fully visible or fully invisible - fits most images) or <strong>Blended</strong> (supports partial transparency throughout the texture, useful for glass, gradients, or smoky effects).</li>
         <li>Rename the painting. The name is what you and your players see in the Creative menu and as the placer item's display name.</li>
       </ul>
       <p>
@@ -389,7 +389,7 @@
         <li><strong>I do not see the Creative group.</strong> Check that both the Behavior Pack <em>and</em> the Resource Pack are enabled, that the world is in Creative mode, and that you scrolled through the <em>Items</em> category. If in doubt, type the painting name in the inventory search bar.</li>
         <li><strong>Commands return "no entity with that name".</strong> The entity ID is case-sensitive and is always <code>&lt;namespace&gt;:&lt;slug&gt;</code>. Open the painting in MC Painting Maker and copy the slug shown in the properties panel.</li>
         <li><strong>The painting looks blurry.</strong> Increase <em>Texture density</em> in the painting properties, or switch resampling to <strong>Pixelated</strong> if the source is pixel art.</li>
-        <li><strong>Halo or fringe at the edges.</strong> Switch the painting material to <strong>Alphablend</strong>, or clean up the alpha channel of the source image before importing.</li>
+        <li><strong>Halo or fringe at the edges.</strong> Switch the painting material to <strong>Blended</strong>, or clean up the alpha channel of the source image before importing.</li>
         <li><strong>I updated my pack and Minecraft did not pick up the change.</strong> Bump the version in Pack settings before each rebuild, then re-import the new <code>.mcaddon</code>.</li>
         <li><strong>Sharing with a class.</strong> The <code>.mcaddon</code> file is self-contained: send it through OneDrive, Google Drive, or any file-sharing channel. Each student just opens it on their device.</li>
       </ul>
