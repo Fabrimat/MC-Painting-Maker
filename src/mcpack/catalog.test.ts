@@ -4,7 +4,7 @@ import { buildCatalog } from './catalog';
 import { paintingFileBase } from './identifiers';
 
 describe('buildCatalog', () => {
-  it('places spawn eggs under the items category in a namespaced group', () => {
+  it('places painting placer items under the items category in a namespaced group', () => {
     const proj = createEmptyProject();
     const a = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
     const b = createPaintingFromImage('B', { pngBase64: '', naturalW: 64, naturalH: 64 });
@@ -16,10 +16,11 @@ describe('buildCatalog', () => {
     const group = cat['minecraft:crafting_items_catalog'].categories[0];
     expect(group.category_name).toBe('items');
     expect(group.groups[0].group_identifier.name).toBe('paintings:paintings');
-    const expectedIcon = `paintings:${paintingFileBase(a)}_spawn_egg`;
+    const expectedIcon = `paintings:${paintingFileBase(a)}_painting`;
     expect(group.groups[0].group_identifier.icon).toBe(expectedIcon);
     expect(group.groups[0].items).toHaveLength(2);
-    expect(group.groups[0].items[0]).toContain('_spawn_egg');
+    expect(group.groups[0].items[0]).toContain('_painting');
+    expect(group.groups[0].items[0]).not.toContain('_spawn_egg');
   });
 
   it('returns null when there are no paintings', () => {

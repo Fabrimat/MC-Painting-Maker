@@ -4,7 +4,7 @@ import { buildClientEntity } from './client_entity';
 import { paintingFileBase } from './identifiers';
 
 describe('buildClientEntity', () => {
-  it('maps geometry, textures, render controllers, spawn egg', () => {
+  it('maps geometry, textures, render controllers and omits spawn_egg', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
@@ -21,8 +21,8 @@ describe('buildClientEntity', () => {
       `controller.render.${fb}`,
       'controller.render.painting_back',
     ]);
-    expect(d.spawn_egg.texture).toBe(`${fb}_egg`);
-    expect(d.spawn_egg.texture_index).toBe(0);
+    // The custom placer item replaces the auto-generated spawn egg.
+    expect((d as { spawn_egg?: unknown }).spawn_egg).toBeUndefined();
   });
 
   it('uses entity_alphablend when material is alphablend', () => {

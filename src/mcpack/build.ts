@@ -9,15 +9,16 @@ import { buildClientEntity } from './client_entity';
 import { buildGeometry } from './geometry';
 import { buildRenderController } from './render_controller';
 import { buildItemTexture } from './item_texture';
+import { buildItem } from './item';
 import { buildCatalog } from './catalog';
 import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
-import { paintingFileBase } from './identifiers';
+import { paintingFileBase, paintingIconTextureKey } from './identifiers';
 import { base64ToUint8 } from '../util/base64';
 import { buildBackTexturePng, BACK_TEXTURE_FILENAME } from './back_texture';
 import { buildBackRenderController } from './back_render_controller';
 
-export type Textures = { texture: Uint8Array; eggTexture: Uint8Array };
+export type Textures = { texture: Uint8Array; iconTexture: Uint8Array };
 
 function json(obj: unknown): Uint8Array {
   return strToU8(JSON.stringify(obj, null, 2));
@@ -45,6 +46,7 @@ export async function assembleArchive(
   for (const p of state.paintings) {
     const fb = paintingFileBase(p);
     files[`${bp}entities/${fb}.behavior.json`] = json(buildEntityBehavior(state, p));
+    files[`${bp}items/${fb}.item.json`] = json(buildItem(state, p));
   }
 
   files[`${rp}manifest.json`] = json(buildRpManifest(state));
@@ -62,7 +64,7 @@ export async function assembleArchive(
     const tx = textures.get(p.id);
     if (tx) {
       files[`${rp}textures/entity/${fb}.png`] = tx.texture;
-      files[`${rp}textures/items/${fb}_egg.png`] = tx.eggTexture;
+      files[`${rp}textures/items/${paintingIconTextureKey(p)}.png`] = tx.iconTexture;
     }
   }
 
@@ -99,15 +101,15 @@ function fitContain(p: Painting, w16: number, h16: number) {
   };
 }
 
-async function rasterizeEgg(p: Painting): Promise<Uint8Array> {
-  const eggPainting: Painting = {
+async function rasterizeIcon(p: Painting): Promise<Uint8Array> {
+  const iconPainting: Painting = {
     ...p,
     canvasW16: 16,
     canvasH16: 16,
     textureDensity: 1,
     transform: fitContain(p, 16, 16),
   };
-  return await rasterize(eggPainting);
+  return await rasterize(iconPainting);
 }
 
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
@@ -119,8 +121,8 @@ export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
   const textures = new Map<string, Textures>();
   for (const p of ready.paintings) {
     const texture = await rasterize(p);
-    const eggTexture = await rasterizeEgg(p);
-    textures.set(p.id, { texture, eggTexture });
+    const iconTexture = await rasterizeIcon(p);
+    textures.set(p.id, { texture, iconTexture });
   }
   const backTexture = await buildBackTexturePng();
   const bytes = await assembleArchive(ready, textures, backTexture);

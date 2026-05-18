@@ -17,7 +17,11 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
     'minecraft:entity': {
       description: {
         identifier: entityId(p.pack.namespace, painting),
-        is_spawnable: true,
+        // No spawn egg: the painting is placed via the custom entity_placer item
+        // (see mcpack/item.ts). is_spawnable would auto-generate a spawn egg
+        // that pollutes the creative inventory next to our real placer items.
+        // /summon is still supported as an advanced placement command.
+        is_spawnable: false,
         is_summonable: true,
         is_experimental: false,
       },

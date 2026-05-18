@@ -1,6 +1,6 @@
 import type { ProjectState, Painting } from '../paintings/types';
 import {
-  entityId, paintingFileBase, geometryName, renderControllerName, spawnEggTextureKey,
+  entityId, paintingFileBase, geometryName, renderControllerName,
 } from './identifiers';
 import { BACK_RENDER_CONTROLLER_NAME, BACK_TEXTURE_FILENAME } from './back_texture';
 
@@ -22,7 +22,6 @@ export function buildClientEntity(p: ProjectState, painting: Painting) {
           renderControllerName(painting),
           BACK_RENDER_CONTROLLER_NAME,
         ],
-        spawn_egg: { texture: spawnEggTextureKey(painting), texture_index: 0 },
       },
     },
   };

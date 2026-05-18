@@ -1,10 +1,10 @@
 import type { ProjectState } from '../paintings/types';
-import { spawnEggTextureKey } from './identifiers';
+import { paintingIconTextureKey } from './identifiers';
 
 export function buildItemTexture(p: ProjectState) {
   const texture_data: Record<string, { textures: string }> = {};
   for (const pt of p.paintings) {
-    const k = spawnEggTextureKey(pt);
+    const k = paintingIconTextureKey(pt);
     texture_data[k] = { textures: `textures/items/${k}` };
   }
   return {

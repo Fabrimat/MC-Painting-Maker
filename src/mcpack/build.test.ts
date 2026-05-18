@@ -10,7 +10,7 @@ describe('assembleArchive', () => {
     proj.paintings.push(p);
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const zipped = await assembleArchive(proj, new Map([
-      [p.id, { texture: png, eggTexture: png }],
+      [p.id, { texture: png, iconTexture: png }],
     ]), png);
     const entries = unzipSync(zipped);
     const names = Object.keys(entries);
@@ -18,9 +18,10 @@ describe('assembleArchive', () => {
     expect(names.some((n) => n.startsWith('RP_paintings/manifest.json'))).toBe(true);
     expect(names.some((n) => n.endsWith('item_catalog/crafting_item_catalog.json'))).toBe(true);
     expect(names.some((n) => n.endsWith('scripts/main.js'))).toBe(true);
+    expect(names.some((n) => n.includes('BP_paintings/items/') && n.endsWith('.item.json'))).toBe(true);
     expect(names.some((n) => n.includes('models/entity/'))).toBe(true);
     expect(names.some((n) => n.includes('textures/entity/'))).toBe(true);
-    expect(names.some((n) => n.includes('textures/items/'))).toBe(true);
+    expect(names.some((n) => n.includes('textures/items/') && n.endsWith('_icon.png'))).toBe(true);
     expect(names.some((n) => n.endsWith('texts/en_US.lang'))).toBe(true);
     expect(names.some((n) => n.endsWith('textures/entity/painting_back.png'))).toBe(true);
     expect(names.some((n) => n.endsWith('render_controllers/painting_back.rc.json'))).toBe(true);

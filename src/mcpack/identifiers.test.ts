@@ -3,8 +3,9 @@ import {
   sanitizeId,
   entityId,
   paintingFileBase,
-  spawnEggItemId,
-  spawnEggTextureKey,
+  paintingItemId,
+  paintingIconTextureKey,
+  paintingNameSlug,
   geometryName,
   renderControllerName,
 } from './identifiers';
@@ -25,12 +26,18 @@ describe('identifiers', () => {
     expect(entityId('myart', P)).toBe('myart:sunset_a3f8b1c2');
   });
 
-  it('builds the spawn egg item id as <entityId>_spawn_egg', () => {
-    expect(spawnEggItemId('myart', P)).toBe('myart:sunset_a3f8b1c2_spawn_egg');
+  it('builds the painting item id as <entityId>_painting', () => {
+    expect(paintingItemId('myart', P)).toBe('myart:sunset_a3f8b1c2_painting');
   });
 
-  it('builds the spawn egg texture key as <slug>_egg', () => {
-    expect(spawnEggTextureKey(P)).toBe('sunset_a3f8b1c2_egg');
+  it('builds the icon texture key as <slug>_icon', () => {
+    expect(paintingIconTextureKey(P)).toBe('sunset_a3f8b1c2_icon');
+  });
+
+  it('strips the trailing UUID8 to expose a clean name slug for lang keys', () => {
+    expect(paintingNameSlug({ slug: 'sunset_a3f8b1c2' })).toBe('sunset');
+    expect(paintingNameSlug({ slug: 'p_2_b4f9c2d3' })).toBe('p_2');
+    expect(paintingNameSlug({ slug: 'p_a3f8b1c2' })).toBe('p');
   });
 
   it('builds the geometry name with the geometry. prefix', () => {

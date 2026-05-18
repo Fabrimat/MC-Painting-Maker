@@ -1,5 +1,5 @@
 import type { ProjectState } from '../paintings/types';
-import { spawnEggItemId } from './identifiers';
+import { paintingItemId } from './identifiers';
 
 export function buildCatalog(p: ProjectState) {
   if (p.paintings.length === 0) return null;
@@ -8,16 +8,16 @@ export function buildCatalog(p: ProjectState) {
     format_version: '1.21.60',
     'minecraft:crafting_items_catalog': {
       categories: [{
-        // Auto-generated spawn eggs land in the 'items' category by default in Bedrock.
-        // Using a different category here would trigger a "category changed" warning.
+        // Paintings are decoration items, so the 'items' category is the natural
+        // home. The group is namespaced so it cannot collide with vanilla groups.
         category_name: 'items',
         groups: [{
           group_identifier: {
             name: `${p.pack.namespace}:paintings`,
-            // Must reference a real item identifier - the spawn egg, not the entity.
-            icon: spawnEggItemId(p.pack.namespace, first),
+            // Icon must be a real item identifier - use the first painting's placer.
+            icon: paintingItemId(p.pack.namespace, first),
           },
-          items: p.paintings.map((pt) => spawnEggItemId(p.pack.namespace, pt)),
+          items: p.paintings.map((pt) => paintingItemId(p.pack.namespace, pt)),
         }],
       }],
     },

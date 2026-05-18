@@ -4,12 +4,12 @@ import { buildItemTexture } from './item_texture';
 import { paintingFileBase } from './identifiers';
 
 describe('buildItemTexture', () => {
-  it('maps spawn egg texture keys to file paths under textures/items/', () => {
+  it('maps painting icon keys to file paths under textures/items/', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const it = buildItemTexture(proj);
-    const key = `${paintingFileBase(p)}_egg`;
+    const key = `${paintingFileBase(p)}_icon`;
     expect(it.texture_data[key].textures).toBe(`textures/items/${key}`);
     expect(it.resource_pack_name).toBe(proj.pack.name);
     expect(it.texture_name).toBe('atlas.items');
