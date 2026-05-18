@@ -71,7 +71,10 @@ export const PaintingSchema = z.object({
 });
 
 export const ProjectSchema = z.object({
-  version: z.literal(2),
+  // 2 = legacy auto spawn-egg builds; 3 = custom entity_placer items.
+  // Old projects are kept at their stored version on purpose so the .mcaddon
+  // they produced before the placer migration keeps being reproducible.
+  version: z.union([z.literal(2), z.literal(3)]),
   pack: PackMetaSchema,
   uuids: PackUUIDsSchema,
   paintings: z.array(PaintingSchema),

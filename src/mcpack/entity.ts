@@ -1,5 +1,5 @@
 import type { ProjectState, Painting } from '../paintings/types';
-import { entityId } from './identifiers';
+import { entityId, usesPlacerItems } from './identifiers';
 
 // Matches X_ORIGIN_PX in geometry.ts (-8 pixels = -0.5 blocks) so the hit
 // area stays flush with the rendered painting after the model's X shift.
@@ -17,11 +17,11 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
     'minecraft:entity': {
       description: {
         identifier: entityId(p.pack.namespace, painting),
-        // No spawn egg: the painting is placed via the custom entity_placer item
-        // (see mcpack/item.ts). is_spawnable would auto-generate a spawn egg
-        // that pollutes the creative inventory next to our real placer items.
-        // /summon is still supported as an advanced placement command.
-        is_spawnable: false,
+        // v3 ships custom placer items, so the auto-egg pipeline is disabled to
+        // avoid duplicate inventory entries next to the real placer items.
+        // v2 keeps `is_spawnable: true` so legacy addons keep producing the
+        // spawn egg their users already have in their hotbars.
+        is_spawnable: !usesPlacerItems(p),
         is_summonable: true,
         is_experimental: false,
       },

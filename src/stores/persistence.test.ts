@@ -16,7 +16,7 @@ describe('loadFromStorage', () => {
   it('returns the parsed project when stored', () => {
     const s = createProjectStore();
     localStorage.setItem(KEY, JSON.stringify(get(s)));
-    expect(loadFromStorage()?.version).toBe(2);
+    expect(loadFromStorage()?.version).toBe(3);
   });
   it('returns null when the stored JSON fails validation', () => {
     localStorage.setItem(KEY, JSON.stringify({ bogus: true }));
@@ -43,7 +43,7 @@ describe('exportProjectJSON / importProjectJSON', () => {
     const s = createProjectStore();
     const text = exportProjectJSON(get(s));
     const back = importProjectJSON(text);
-    expect(back.version).toBe(2);
+    expect(back.version).toBe(3);
   });
   it('throws on malformed input', () => {
     expect(() => importProjectJSON('{ not json')).toThrow();

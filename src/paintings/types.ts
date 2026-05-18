@@ -63,7 +63,10 @@ export type Painting = {
 };
 
 export type ProjectState = {
-  version: 2;
+  // v2 = legacy auto spawn-egg pipeline; v3 = custom `minecraft:entity_placer`
+  // items. Existing projects stay at their stored version so already-built
+  // addons keep behaving identically after the editor upgrade.
+  version: 2 | 3;
   pack: PackMeta;
   uuids: PackUUIDs;
   paintings: Painting[];

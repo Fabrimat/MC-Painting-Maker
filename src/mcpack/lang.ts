@@ -1,5 +1,5 @@
 import type { ProjectState } from '../paintings/types';
-import { entityId } from './identifiers';
+import { entityId, spawnEggItemId, usesPlacerItems } from './identifiers';
 import { paintingItemNameLangKey } from './item';
 
 // .lang values cannot contain newlines or carriage returns; the manifest uses pack.name
@@ -22,12 +22,15 @@ function commonKeys(p: ProjectState): string[] {
   const lines: string[] = [
     `pack.name=${langSafe(p.pack.name)}`,
     `pack.description=${langSafe(p.pack.description)}`,
-    // Per Microsoft's crafting_item_catalog docs, the full group name doubles
-    // as the localization key. Older Bedrock versions also resolved a legacy
-    // `itemGroup.name.<group>` key, so emit both to stay compatible.
-    `${groupName}=${groupLabel}`,
-    `itemGroup.name.${groupName}=${groupLabel}`,
   ];
+  // v3: full group name doubles as the lang key per the Microsoft crafting
+  // catalog docs; also emit the legacy `itemGroup.name.<group>` form for older
+  // Bedrock versions. v2 builds only the legacy form, matching how the auto
+  // spawn-egg pipeline resolved the group label before the placer migration.
+  if (usesPlacerItems(p)) {
+    lines.push(`${groupName}=${groupLabel}`);
+  }
+  lines.push(`itemGroup.name.${groupName}=${groupLabel}`);
   const itemKeysWritten = new Set<string>();
   for (const pt of p.paintings) {
     const eid = entityId(p.pack.namespace, pt);
@@ -36,13 +39,24 @@ function commonKeys(p: ProjectState): string[] {
     // Has to carry the full slug (including UUID) because Bedrock looks up
     // entity names by the exact entity identifier, which we can't decouple.
     lines.push(`entity.${eid}.name=${safeName}`);
-    // Custom placer item display name. The item references this key from its
-    // `minecraft:display_name` component (see mcpack/item.ts). Dedup so two
-    // paintings whose names normalize identically don't produce duplicate keys.
-    const itemKey = paintingItemNameLangKey(p.pack.namespace, pt);
-    if (!itemKeysWritten.has(itemKey)) {
-      itemKeysWritten.add(itemKey);
-      lines.push(`${itemKey}=${safeName}`);
+    if (usesPlacerItems(p)) {
+      // Custom placer item display name. The item references this key from its
+      // `minecraft:display_name` component (see mcpack/item.ts). Dedup so two
+      // paintings whose names normalize identically don't produce duplicate keys.
+      const itemKey = paintingItemNameLangKey(p.pack.namespace, pt);
+      if (!itemKeysWritten.has(itemKey)) {
+        itemKeysWritten.add(itemKey);
+        lines.push(`${itemKey}=${safeName}`);
+      }
+    } else {
+      // Legacy spawn-egg display name. Bedrock has changed the lookup format
+      // across versions, so emit every documented form to guarantee one
+      // resolves:
+      //   item.spawn_egg.entity.<entity>.name   - modern form (1.19+)
+      //   item.<entity>_spawn_egg.name          - fallback form
+      const eggId = spawnEggItemId(p.pack.namespace, pt);
+      lines.push(`item.spawn_egg.entity.${eid}.name=${safeName}`);
+      lines.push(`item.${eggId}.name=${safeName}`);
     }
   }
   return lines;

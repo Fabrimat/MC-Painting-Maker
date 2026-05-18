@@ -1,9 +1,14 @@
 import type { ProjectState } from '../paintings/types';
-import { paintingItemId } from './identifiers';
+import { paintingItemId, spawnEggItemId, usesPlacerItems } from './identifiers';
 
 export function buildCatalog(p: ProjectState) {
   if (p.paintings.length === 0) return null;
   const first = p.paintings[0];
+  // Pick the real item id Bedrock will resolve: placer item in v3, the
+  // auto-generated spawn egg in legacy v2 builds.
+  const itemId = usesPlacerItems(p)
+    ? (pt: typeof first) => paintingItemId(p.pack.namespace, pt)
+    : (pt: typeof first) => spawnEggItemId(p.pack.namespace, pt);
   return {
     format_version: '1.21.60',
     'minecraft:crafting_items_catalog': {
@@ -14,10 +19,10 @@ export function buildCatalog(p: ProjectState) {
         groups: [{
           group_identifier: {
             name: `${p.pack.namespace}:paintings`,
-            // Icon must be a real item identifier - use the first painting's placer.
-            icon: paintingItemId(p.pack.namespace, first),
+            // Icon must be a real item identifier - first painting's actual item.
+            icon: itemId(first),
           },
-          items: p.paintings.map((pt) => paintingItemId(p.pack.namespace, pt)),
+          items: p.paintings.map(itemId),
         }],
       }],
     },

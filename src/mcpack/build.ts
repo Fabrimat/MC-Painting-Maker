@@ -13,7 +13,9 @@ import { buildItem } from './item';
 import { buildCatalog } from './catalog';
 import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
-import { paintingFileBase, paintingIconTextureKey } from './identifiers';
+import {
+  paintingFileBase, paintingIconTextureKey, spawnEggTextureKey, usesPlacerItems,
+} from './identifiers';
 import { base64ToUint8 } from '../util/base64';
 import { buildBackTexturePng, BACK_TEXTURE_FILENAME } from './back_texture';
 import { buildBackRenderController } from './back_render_controller';
@@ -43,10 +45,15 @@ export async function assembleArchive(
   if (state.pack.iconPngBase64) {
     files[`${bp}pack_icon.png`] = base64ToUint8(state.pack.iconPngBase64);
   }
+  const placerItems = usesPlacerItems(state);
   for (const p of state.paintings) {
     const fb = paintingFileBase(p);
     files[`${bp}entities/${fb}.behavior.json`] = json(buildEntityBehavior(state, p));
-    files[`${bp}items/${fb}.item.json`] = json(buildItem(state, p));
+    // v3 ships one .item.json per painting; v2 relies on the auto spawn-egg
+    // pipeline and has no behavior-pack item file at all.
+    if (placerItems) {
+      files[`${bp}items/${fb}.item.json`] = json(buildItem(state, p));
+    }
   }
 
   files[`${rp}manifest.json`] = json(buildRpManifest(state));
@@ -64,7 +71,10 @@ export async function assembleArchive(
     const tx = textures.get(p.id);
     if (tx) {
       files[`${rp}textures/entity/${fb}.png`] = tx.texture;
-      files[`${rp}textures/items/${paintingIconTextureKey(p)}.png`] = tx.iconTexture;
+      // The PNG path has to match the texture key registered in
+      // item_texture.json. v3 uses `<slug>_icon`, v2 uses `<slug>_egg`.
+      const iconKey = placerItems ? paintingIconTextureKey(p) : spawnEggTextureKey(p);
+      files[`${rp}textures/items/${iconKey}.png`] = tx.iconTexture;
     }
   }
 

@@ -86,4 +86,22 @@ describe('lang', () => {
     expect(lang).toContain('pack.name=Line one Line two');
     expect(lang).not.toContain('Line one\nLine two');
   });
+
+  it('v2 (legacy): emits only the legacy itemGroup.name form plus spawn-egg display names', () => {
+    const proj = { ...createEmptyProject(), version: 2 as const };
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const lang = buildBpLang(proj);
+    const eid = `paintings:${paintingFileBase(p)}`;
+    // Legacy form only - the modern raw-group form is reserved for v3 builds.
+    expect(lang).toContain('itemGroup.name.paintings:paintings=Custom Paintings');
+    expect(lang.split('\n')).not.toContain('paintings:paintings=Custom Paintings');
+    // Both documented spawn-egg display-name forms.
+    expect(lang).toContain(`item.spawn_egg.entity.${eid}.name=Sunset`);
+    expect(lang).toContain(`item.${eid}_spawn_egg.name=Sunset`);
+    // No placer-item lang key in legacy mode.
+    expect(lang).not.toContain('item.paintings:sunset_painting.name=');
+  });
 });

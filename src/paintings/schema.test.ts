@@ -27,6 +27,16 @@ describe('ProjectSchema', () => {
     expect(() => ProjectSchema.parse(minimalProject)).not.toThrow();
   });
 
+  it('accepts version 3 (placer-items pipeline)', () => {
+    const v3 = { ...minimalProject, version: 3 };
+    expect(() => ProjectSchema.parse(v3)).not.toThrow();
+  });
+
+  it('rejects an unknown future version (e.g. 99)', () => {
+    const future = { ...minimalProject, version: 99 };
+    expect(() => ProjectSchema.parse(future)).toThrow();
+  });
+
   it('fills autoBumpVersion with true when the field is missing (legacy migration)', () => {
     const parsed = ProjectSchema.parse(minimalProject);
     expect(parsed.pack.autoBumpVersion).toBe(true);

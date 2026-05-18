@@ -4,7 +4,7 @@ import { buildClientEntity } from './client_entity';
 import { paintingFileBase } from './identifiers';
 
 describe('buildClientEntity', () => {
-  it('maps geometry, textures, render controllers and omits spawn_egg', () => {
+  it('v3: maps geometry, textures, render controllers and omits spawn_egg', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
@@ -33,5 +33,14 @@ describe('buildClientEntity', () => {
     const j = buildClientEntity(proj, p);
     expect(j['minecraft:client_entity'].description.materials.default).toBe('entity_alphablend');
     expect(j['minecraft:client_entity'].description.materials.back).toBe('entity_alphablend');
+  });
+
+  it('v2 (legacy): adds spawn_egg block referencing the egg texture key', () => {
+    const proj = { ...createEmptyProject(), version: 2 as const };
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const j = buildClientEntity(proj, p);
+    const d = j['minecraft:client_entity'].description as { spawn_egg?: { texture: string; texture_index: number } };
+    expect(d.spawn_egg).toEqual({ texture: `${paintingFileBase(p)}_egg`, texture_index: 0 });
   });
 });

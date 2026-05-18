@@ -9,6 +9,10 @@ describe('createEmptyProject', () => {
     expect(() => ProjectSchema.parse(p)).not.toThrow();
   });
 
+  it('starts at version 3 so new projects build with the custom placer items', () => {
+    expect(createEmptyProject().version).toBe(3);
+  });
+
   it('leaves UUIDs empty until the first image is loaded', () => {
     const p = createEmptyProject();
     expect(p.uuids.bpHeader).toBe('');
@@ -118,7 +122,29 @@ describe('migrate', () => {
   });
 
   it('throws on unsupported version', () => {
-    expect(() => migrate({ version: 3 })).toThrow();
+    expect(() => migrate({ version: 99 })).toThrow();
+  });
+
+  it('does NOT auto-upgrade a version-2 project to version 3', () => {
+    // v2 -> v3 swaps spawn eggs for placer items, which would silently invalidate
+    // hotbar slots in worlds that already imported the v2 addon. Legacy projects
+    // must stay v2 until the user explicitly creates a new project.
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('Sunset', {
+      pngBase64: '', naturalW: 100, naturalH: 100,
+    });
+    proj.paintings.push(p);
+    const raw = JSON.parse(JSON.stringify(proj)) as { version: number };
+    raw.version = 2;
+    const migrated = migrate(raw);
+    expect(migrated.version).toBe(2);
+  });
+
+  it('accepts an existing version-3 project unchanged', () => {
+    const proj = createEmptyProject();
+    expect(proj.version).toBe(3);
+    const migrated = migrate(JSON.parse(JSON.stringify(proj)));
+    expect(migrated.version).toBe(3);
   });
 
   it('throws on structurally invalid version-1 object (e.g. missing pack)', () => {

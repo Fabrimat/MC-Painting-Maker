@@ -6,6 +6,9 @@ import {
   paintingItemId,
   paintingIconTextureKey,
   paintingNameSlug,
+  spawnEggItemId,
+  spawnEggTextureKey,
+  usesPlacerItems,
   geometryName,
   renderControllerName,
 } from './identifiers';
@@ -32,6 +35,19 @@ describe('identifiers', () => {
 
   it('builds the icon texture key as <slug>_icon', () => {
     expect(paintingIconTextureKey(P)).toBe('sunset_a3f8b1c2_icon');
+  });
+
+  it('builds the legacy spawn-egg item id as <entityId>_spawn_egg', () => {
+    expect(spawnEggItemId('myart', P)).toBe('myart:sunset_a3f8b1c2_spawn_egg');
+  });
+
+  it('builds the legacy spawn-egg texture key as <slug>_egg', () => {
+    expect(spawnEggTextureKey(P)).toBe('sunset_a3f8b1c2_egg');
+  });
+
+  it('usesPlacerItems returns true for v3 projects and false for v2', () => {
+    expect(usesPlacerItems({ version: 3 })).toBe(true);
+    expect(usesPlacerItems({ version: 2 })).toBe(false);
   });
 
   it('strips the trailing UUID8 to expose a clean name slug for lang keys', () => {

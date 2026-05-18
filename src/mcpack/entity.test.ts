@@ -4,16 +4,25 @@ import { buildEntityBehavior } from './entity';
 import { paintingFileBase } from './identifiers';
 
 describe('buildEntityBehavior', () => {
-  it('emits identifier with is_spawnable=false and is_summonable=true', () => {
+  it('v3 project: is_spawnable=false (custom placer item replaces auto egg)', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const j = buildEntityBehavior(proj, p);
     expect(j['minecraft:entity'].description.identifier).toBe(`paintings:${paintingFileBase(p)}`);
-    // Custom placer item replaces the auto spawn egg, so the entity must opt
-    // out of auto-egg generation to avoid duplicate inventory entries. /summon
-    // is still supported as an advanced placement command.
+    // Custom placer item replaces the auto spawn egg, so the entity opts out
+    // of auto-egg generation to avoid duplicate inventory entries. /summon is
+    // still supported as an advanced placement command.
     expect(j['minecraft:entity'].description.is_spawnable).toBe(false);
+    expect(j['minecraft:entity'].description.is_summonable).toBe(true);
+  });
+
+  it('v2 (legacy) project: is_spawnable=true so the auto spawn egg keeps being generated', () => {
+    const proj = { ...createEmptyProject(), version: 2 as const };
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    expect(j['minecraft:entity'].description.is_spawnable).toBe(true);
     expect(j['minecraft:entity'].description.is_summonable).toBe(true);
   });
 
