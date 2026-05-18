@@ -97,6 +97,23 @@ describe('PackDrawer', () => {
     expect(get(devMode)).toBe(false);
   });
 
+  it('toggling the Debug mode checkbox emits a debug_mode_changed analytics event', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const saEvent = vi.fn();
+    vi.stubGlobal('sa_event', saEvent);
+    try {
+      const { getByLabelText } = render(PackDrawer);
+      const checkbox = getByLabelText(/Debug mode/) as HTMLInputElement;
+      await fireEvent.click(checkbox);
+      expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: true });
+      await fireEvent.click(checkbox);
+      expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: false });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('renders the auto-bump checkbox checked by default', () => {
     project.set(createEmptyProject());
     packDrawerOpen.set(true);

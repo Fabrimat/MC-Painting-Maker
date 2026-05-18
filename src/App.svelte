@@ -14,6 +14,7 @@
     trackProjectExported,
     trackProjectImported,
     trackImportFailed,
+    trackDebugModeChanged,
     classifyBuildReason,
     classifyImportReason,
   } from './analytics/track';
@@ -188,7 +189,7 @@
       </svg>
       <strong>DEBUG MODE</strong>
       <span>Dedicated to website development and debugging.</span>
-      <button type="button" class="banner-off" on:click={() => devMode.set(false)}>Turn off</button>
+      <button type="button" class="banner-off" on:click={() => { trackDebugModeChanged(false); devMode.set(false); }}>Turn off</button>
     </div>
   {/if}
   <Topbar {building} {zipBuilding} onbuild={onBuild} ondownloadzip={onDownloadZip} />

@@ -5,6 +5,7 @@
   import { v4 as uuidv4 } from 'uuid';
   import { z } from 'zod';
   import type { PackUUIDs } from '../paintings/types';
+  import { trackDebugModeChanged } from '../analytics/track';
 
   export let onimport: () => void = () => {};
   export let onexport: () => void = () => {};
@@ -246,7 +247,11 @@
 
     <footer class="build-info">
       <label class="debug-toggle">
-        <input type="checkbox" checked={$devMode} on:change={(e) => devMode.set((e.currentTarget as HTMLInputElement).checked)} />
+        <input type="checkbox" checked={$devMode} on:change={(e) => {
+          const next = (e.currentTarget as HTMLInputElement).checked;
+          trackDebugModeChanged(next);
+          devMode.set(next);
+        }} />
         <span>Debug mode</span>
       </label>
       <span class="build-meta">Build <code>{buildSha}</code> · {buildDate}</span>

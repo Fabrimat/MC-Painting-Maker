@@ -43,6 +43,10 @@ export function trackPwaInstalled(): void {
   dispatch('pwa_installed');
 }
 
+export function trackDebugModeChanged(enabled: boolean): void {
+  dispatch('debug_mode_changed', { enabled });
+}
+
 export function classifyBuildReason(err: unknown): BuildReason {
   const msg = (err instanceof Error ? err.message : '').toLowerCase();
   if (msg.includes('zip') || msg.includes('archive') || msg.includes('deflate') || msg.includes('inflate')) return 'archive-error';
