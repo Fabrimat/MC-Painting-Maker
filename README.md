@@ -36,7 +36,7 @@ After exporting a `.mcaddon`:
 
 1. Open the file with Minecraft Bedrock - both packs install.
 2. Create a world with both packs enabled (Behaviour and Resources).
-3. Open the Creative inventory → the `equipment` category contains a
+3. Open the Creative inventory → the `items` category contains a
    "Custom Paintings" (or your configured name) group with one spawn egg per painting.
 4. Use a spawn egg against a wall. The painting should:
    - Appear flush with the wall.
