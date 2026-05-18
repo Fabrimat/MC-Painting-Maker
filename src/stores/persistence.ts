@@ -1,8 +1,9 @@
-import type { Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import { ProjectSchema } from '../paintings/schema';
 import { migrate } from '../paintings/defaults';
 import { debounce } from '../util/debounce';
 import { devLog } from '../util/devlog';
+import { devMode } from './devMode';
 import type { ProjectState } from '../paintings/types';
 
 const KEY = 'mc-painting-maker:project';
@@ -13,13 +14,26 @@ export function loadFromStorage(): ProjectState | null {
     devLog('persist', 'load: empty');
     return null;
   }
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(raw);
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    devLog('persist', 'load: json parse failed', err);
+    return null;
+  }
+  try {
     const migrated = migrate(parsed);
     const state = ProjectSchema.parse(migrated);
     devLog('persist', 'load: ok', { paintings: state.paintings.length, bytes: raw.length });
     return state;
   } catch (err) {
+    if (get(devMode)) {
+      // Debug mode: round-trip the saved bytes verbatim so deliberately invalid
+      // raw edits (schema version, UUIDs, slugVersion, etc.) persist across
+      // reloads instead of being silently reset to a fresh project.
+      devLog('persist', 'load: validation failed, debug raw passthrough', err);
+      return parsed as ProjectState;
+    }
     devLog('persist', 'load: parse failed', err);
     return null;
   }

@@ -1,12 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { createProjectStore } from './project';
+import { devMode } from './devMode';
 import { bindPersistence, loadFromStorage, exportProjectJSON, importProjectJSON } from './persistence';
 
 const KEY = 'mc-painting-maker:project';
 
 beforeEach(() => {
   localStorage.clear();
+});
+afterEach(() => {
+  devMode.set(false);
 });
 
 describe('loadFromStorage', () => {
@@ -20,6 +24,27 @@ describe('loadFromStorage', () => {
   });
   it('returns null when the stored JSON fails validation', () => {
     localStorage.setItem(KEY, JSON.stringify({ bogus: true }));
+    expect(loadFromStorage()).toBeNull();
+  });
+  it('returns null on schema-invalid input when debug mode is off', () => {
+    const s = createProjectStore();
+    const broken = { ...get(s), version: 99 };
+    localStorage.setItem(KEY, JSON.stringify(broken));
+    devMode.set(false);
+    expect(loadFromStorage()).toBeNull();
+  });
+  it('falls back to the raw parsed payload when debug mode is on', () => {
+    const s = createProjectStore();
+    const broken = { ...get(s), version: 99 };
+    localStorage.setItem(KEY, JSON.stringify(broken));
+    devMode.set(true);
+    const loaded = loadFromStorage();
+    expect(loaded).not.toBeNull();
+    expect((loaded as { version: number }).version).toBe(99);
+  });
+  it('still returns null when JSON itself is malformed, even in debug mode', () => {
+    localStorage.setItem(KEY, '{ not json');
+    devMode.set(true);
     expect(loadFromStorage()).toBeNull();
   });
 });
