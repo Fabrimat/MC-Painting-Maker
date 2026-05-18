@@ -1,5 +1,6 @@
 import type { ProjectState, Painting, Source } from './types';
 import { createPaintingFromImage, ensurePackUUIDs } from './defaults';
+import { devLog } from '../util/devlog';
 
 function stripExt(name: string): string {
   return name.replace(/\.[^.]+$/, '');
@@ -35,12 +36,20 @@ export async function addImagesToProject(
 ): Promise<AddImagesResult> {
   const arr = Array.from(files);
   if (arr.length === 0) return { state, addedIds: [] };
+  devLog('import', 'addImagesToProject start', {
+    count: arr.length,
+    files: arr.map((f) => ({ name: f.name, type: f.type, size: f.size })),
+  });
   const additions: Painting[] = [];
   for (const f of arr) {
     const src = await decodeOne(f);
     additions.push(createPaintingFromImage(stripExt(f.name), src));
   }
   const withUuids = ensurePackUUIDs(state);
+  devLog('import', 'addImagesToProject done', {
+    added: additions.length,
+    totalPaintings: withUuids.paintings.length + additions.length,
+  });
   return {
     state: { ...withUuids, paintings: [...withUuids.paintings, ...additions] },
     addedIds: additions.map((p) => p.id),
