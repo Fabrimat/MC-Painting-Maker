@@ -43,4 +43,12 @@ describe('Topbar', () => {
     await fireEvent.click(getByRole('button', { name: /Build/ }));
     expect(onbuild).toHaveBeenCalled();
   });
+
+  it('exposes a how-to link that points at how-to.html', () => {
+    project.set(createEmptyProject());
+    const { getByRole } = render(Topbar);
+    const link = getByRole('link', { name: /How to use/ }) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('./how-to.html');
+    expect(link.getAttribute('target')).toBeNull();
+  });
 });

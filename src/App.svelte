@@ -149,7 +149,7 @@
 </script>
 
 <div class="app">
-  <Topbar {building} onbuild={onBuild} onexport={onExport} onimport={onImport} />
+  <Topbar {building} onbuild={onBuild} />
   <input type="file" accept="application/json" hidden bind:this={importInput} on:change={onImportFile} />
 
   <div class="body">
@@ -181,7 +181,7 @@
   </div>
 
   <TabBar />
-  <PackDrawer />
+  <PackDrawer onimport={onImport} onexport={onExport} />
 
   {#if toast}
     <div class="toast" role="alert">{toast}</div>

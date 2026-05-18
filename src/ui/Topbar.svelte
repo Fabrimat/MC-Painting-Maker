@@ -3,8 +3,6 @@
   import { packDrawerOpen } from '../stores/ui';
   export let building = false;
   export let onbuild: () => void = () => {};
-  export let onimport: () => void = () => {};
-  export let onexport: () => void = () => {};
   $: canBuild = $project.paintings.length > 0 && !building;
   function togglePackDrawer() { packDrawerOpen.update((v) => !v); }
 </script>
@@ -24,8 +22,14 @@
     <span class="brand-name">Painting Maker</span>
   </span>
   <span class="spacer"></span>
-  <button type="button" class="ghost desktop-only" on:click={onimport}>Import</button>
-  <button type="button" class="ghost desktop-only" on:click={onexport}>Export</button>
+  <a class="howto" href="./how-to.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" x2="12.01" y1="17" y2="17"/>
+    </svg>
+    <span class="desktop-only">How to use</span>
+  </a>
   <button
     type="button" class="icon"
     class:active={$packDrawerOpen}
@@ -65,12 +69,14 @@
   .brand { display: flex; align-items: center; gap: var(--space-3); font-weight: 700; font-size: var(--fs-md); color: var(--text); }
   .brand-icon { width: 24px; height: 24px; display: block; }
   .spacer { flex: 1; }
-  .ghost {
-    padding: 6px 12px; border-radius: var(--radius);
-    background: #fff; border: 1px solid var(--border); color: var(--text);
-    font-weight: 600; font-size: var(--fs-sm);
+  .howto {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    padding: 6px 10px; border-radius: var(--radius);
+    color: var(--text-muted); text-decoration: none;
+    font-weight: 500; font-size: var(--fs-sm);
   }
-  .ghost:hover { background: var(--surface-2); }
+  .howto:hover { color: var(--text); background: var(--surface-2); }
+  .howto svg { display: block; }
   .icon {
     width: 32px; height: 32px; border-radius: var(--radius);
     background: #fff; border: 1px solid var(--border); color: var(--text-muted);

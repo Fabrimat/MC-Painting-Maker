@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>How to use - MC Painting Maker</title>
+    <meta name="description" content="Step-by-step guide for MC Painting Maker: create your custom paintings, export a .mcaddon, install it in Minecraft Bedrock or Education Edition, and place paintings in-game with the spawn egg or the /summon and /give commands." />
+    <meta name="author" content="Fabrizio La Rosa" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="color-scheme" content="light" />
+
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+
+    <link rel="canonical" href="https://mc-paintings.larosa.work/how-to.html" />
+    <link rel="alternate" hreflang="en" href="https://mc-paintings.larosa.work/how-to.html" />
+    <link rel="alternate" hreflang="x-default" href="https://mc-paintings.larosa.work/how-to.html" />
+
+    <link rel="icon" type="image/svg+xml" href="./brush.svg" />
+    <link rel="apple-touch-icon" href="./brush.svg" />
+    <link rel="mask-icon" href="./brush.svg" color="#f97316" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="MC Painting Maker" />
+    <meta property="og:title" content="How to use - MC Painting Maker" />
+    <meta property="og:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game with the spawn egg or commands." />
+    <meta property="og:url" content="https://mc-paintings.larosa.work/how-to.html" />
+    <meta property="og:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta property="og:image:alt" content="MC Painting Maker logo" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="How to use - MC Painting Maker" />
+    <meta name="twitter:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game." />
+    <meta name="twitter:image" content="https://mc-paintings.larosa.work/brush.svg" />
+
+    <!-- Structured data: Breadcrumb -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "MC Painting Maker",
+          "item": "https://mc-paintings.larosa.work/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "How to use",
+          "item": "https://mc-paintings.larosa.work/how-to.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured data: HowTo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to create and use custom Minecraft Bedrock paintings",
+      "description": "Turn any image into a custom Minecraft Bedrock painting with MC Painting Maker, install the .mcaddon, and place the painting in-game with the spawn egg or commands.",
+      "inLanguage": "en",
+      "totalTime": "PT10M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Add images and choose sizes",
+          "text": "Drop your images into the sidebar or use the Add images button. For each painting, set the size in Minecraft blocks (width and height)."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Fine-tune each painting",
+          "text": "Crop, resize and reposition the source image inside the painting canvas. Pick a texture density and a material per painting if needed."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Configure pack metadata",
+          "text": "Open Pack settings to set the pack name, namespace, Creative menu group, and version. Optional: upload a 256x256 PNG as the pack icon."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Build the .mcaddon",
+          "text": "Click Build .mcaddon. A single file is created locally in your browser and downloaded directly to your device."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Install in Minecraft Bedrock",
+          "text": "Open the downloaded .mcaddon file with Minecraft. Both packs (Behavior and Resource) install automatically. Enable them on a world."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Place paintings in-game",
+          "text": "In Creative mode, open the inventory, find your custom Creative group, and use the spawn egg against a wall. Or use the /summon and /give commands listed in the guide."
+        }
+      ]
+    }
+    </script>
+
+    <style>
+      :root {
+        --text: #1f2937;
+        --text-muted: #6b7280;
+        --text-faint: #9ca3af;
+        --border: #e5e7eb;
+        --primary: #f97316;
+        --primary-deep: #c2410c;
+        --bg: #ffffff;
+        --surface: #fafafa;
+        --surface-2: #f3f4f6;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+        line-height: 1.65;
+        font-size: 16px;
+      }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+      header.top { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+      header.top img { width: 32px; height: 32px; }
+      header.top a { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+      header.top a:hover { color: var(--primary); }
+      h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; }
+      .lede { color: var(--text-muted); font-size: 17px; margin-top: 0; }
+      h2 {
+        font-size: 22px; margin: 48px 0 12px; letter-spacing: -0.01em;
+        scroll-margin-top: 16px;
+      }
+      h3 { font-size: 17px; margin: 24px 0 8px; }
+      ul, ol { padding-left: 24px; }
+      li { margin: 6px 0; }
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; text-underline-offset: 2px; }
+      strong { font-weight: 600; }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em; background: var(--surface);
+        padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+      }
+      pre {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 6px; padding: 12px 14px; overflow: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 14px; line-height: 1.55; margin: 12px 0 4px;
+      }
+      pre code { background: transparent; border: 0; padding: 0; }
+      .callout {
+        margin: 16px 0 4px;
+        padding: 14px 16px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 3px solid var(--primary);
+        border-radius: 6px;
+        font-size: 15px;
+      }
+      .callout strong { color: var(--primary-deep); }
+      .toc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 16px 20px;
+        margin: 24px 0 0;
+        font-size: 15px;
+      }
+      .toc-title {
+        font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--text-muted); margin: 0 0 8px;
+      }
+      .toc ul { margin: 0; padding-left: 18px; }
+      .toc li { margin: 4px 0; }
+      .toc a { color: var(--text); }
+      .toc a:hover { color: var(--primary); }
+      hr { border: none; border-top: 1px solid var(--border); margin: 48px 0 24px; }
+      footer.foot { color: var(--text-faint); font-size: 14px; }
+      .back {
+        display: inline-block; margin-top: 32px;
+        font-size: 14px; color: var(--text-muted);
+      }
+      kbd {
+        display: inline-block; padding: 1px 6px; margin: 0 1px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.85em;
+        background: var(--surface-2); border: 1px solid var(--border);
+        border-bottom-width: 2px; border-radius: 4px;
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <img src="./brush.svg" alt="" />
+        <a href="./">&larr; Back to MC Painting Maker</a>
+      </header>
+
+      <h1>How to use MC Painting Maker</h1>
+      <p class="lede">
+        Turn any image into a custom Minecraft Bedrock painting, install the generated <code>.mcaddon</code>,
+        and place your paintings in-game. Works on Bedrock Edition 1.21.30 and newer, including Minecraft Education Edition.
+      </p>
+
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <ul>
+          <li><a href="#what-is-an-addon">What an Add-On is</a></li>
+          <li><a href="#step-1-images">1. Add your images</a></li>
+          <li><a href="#step-2-fine-tune">2. Fine-tune each painting</a></li>
+          <li><a href="#step-3-pack-settings">3. Set the pack identity</a></li>
+          <li><a href="#step-4-build">4. Build the <code>.mcaddon</code></a></li>
+          <li><a href="#step-5-install">5. Install it in Minecraft</a></li>
+          <li><a href="#step-6-place">6. Place paintings in-game</a>
+            <ul>
+              <li><a href="#place-spawn-egg">From the Creative inventory</a></li>
+              <li><a href="#place-give">With the <code>/give</code> command</a></li>
+              <li><a href="#place-summon">With the <code>/summon</code> command</a></li>
+              <li><a href="#place-remove">Removing a painting</a></li>
+            </ul>
+          </li>
+          <li><a href="#tips">Tips and troubleshooting</a></li>
+          <li><a href="#share-project">Sharing a project file</a></li>
+          <li><a href="#references">References</a></li>
+        </ul>
+      </nav>
+
+      <h2 id="what-is-an-addon">What an Add-On is</h2>
+      <p>
+        An <strong>Add-On</strong> is the official way to extend Minecraft Bedrock and Minecraft Education Edition.
+        It is a small bundle of two folders: a <em>Behavior Pack</em> (rules and logic) and a <em>Resource Pack</em>
+        (textures, sounds, models). Add-Ons run inside Minecraft itself, on any device that supports Bedrock,
+        and they are safe to share with classmates or friends.
+      </p>
+      <p>
+        MC Painting Maker is a creator tool. It produces a single <code>.mcaddon</code> file that contains both packs.
+        Each image you drop in becomes a custom painting entity, complete with its own spawn egg, so it can be placed
+        on a wall just like a vanilla painting.
+      </p>
+      <p>
+        For a broader introduction to Add-Ons in a classroom setting, see Microsoft's official
+        <a href="https://education.minecraft.net/content/dam/education-edition/learning-experiences/add-ons/Teachers%20Guide%20to%20Add-Ons.pdf"
+           target="_blank" rel="noopener noreferrer">Teacher's Guide to Add-Ons (PDF)</a>.
+        That guide is generic; this page focuses on the specific workflow for custom paintings.
+      </p>
+
+      <h2 id="step-1-images">1. Add your images</h2>
+      <ol>
+        <li>Open <a href="./">MC Painting Maker</a> in any modern browser. No account, no install required.</li>
+        <li>Drop one or more images into the left sidebar, or click the <strong>Add images</strong> button.
+          PNG, JPG and WEBP are supported.</li>
+        <li>For each image, pick the painting size in Minecraft blocks. Common sizes are <code>1x1</code>,
+          <code>2x1</code>, <code>2x2</code>, <code>4x2</code>, or anything up to <code>8x8</code>.</li>
+      </ol>
+      <div class="callout">
+        <strong>Privacy note.</strong> Images stay inside your browser. Nothing is uploaded to any server.
+        See the <a href="./privacy.html">privacy policy</a> for details.
+      </div>
+
+      <h2 id="step-2-fine-tune">2. Fine-tune each painting</h2>
+      <p>
+        Select a painting from the list to open the editor. From there you can:
+      </p>
+      <ul>
+        <li><strong>Crop, resize and reposition</strong> the source image inside its painting canvas.</li>
+        <li>Rotate or flip the image.</li>
+        <li>Pick a <strong>texture density</strong> (pixels per block). Higher density is sharper but heavier.
+          <code>Auto</code> picks a reasonable value based on the image.</li>
+        <li>Choose <strong>smooth</strong> or <strong>pixelated</strong> resampling.</li>
+        <li>Choose <strong>alphatest</strong> (sharp transparent edges) or <strong>alphablend</strong> (semi-transparent pixels) as the painting material.</li>
+        <li>Rename the painting. The name is what you and your players see in the Creative menu and on the spawn egg.</li>
+      </ul>
+      <p>
+        Use <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> to undo and redo. On macOS use <kbd>Cmd</kbd>+<kbd>Z</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>.
+      </p>
+
+      <h2 id="step-3-pack-settings">3. Set the pack identity</h2>
+      <p>
+        Open <strong>Pack settings</strong> (the gear icon in the top bar) and fill in:
+      </p>
+      <ul>
+        <li><strong>Pack name</strong>. Shown in Minecraft's in-game pack list.</li>
+        <li><strong>Description</strong>. A short subtitle for the pack list.</li>
+        <li><strong>Pack icon</strong>. Optional PNG, ideally 256x256. Used as the tile in the pack list and as the world thumbnail.</li>
+        <li><strong>Namespace</strong>. Lowercase identifier (letters, digits, underscore) used in entity and item IDs.
+          Pick something unique like <code>school_art</code> or <code>my_paintings</code>. Avoid renaming this after sharing the pack.</li>
+        <li><strong>Creative menu group</strong>. The label of the group that holds all your spawn eggs inside the Creative inventory (default: <code>Custom Paintings</code>).</li>
+        <li><strong>Version</strong>. Bump it when you re-publish so Minecraft picks up the update.</li>
+      </ul>
+
+      <h2 id="step-4-build">4. Build the <code>.mcaddon</code></h2>
+      <p>
+        Click <strong>Build .mcaddon</strong> in the top bar. A single file is generated in your browser and
+        downloaded directly to your device. The file is named after your pack, for example
+        <code>my-paintings.mcaddon</code>.
+      </p>
+      <p>
+        The archive contains a Behavior Pack and a Resource Pack. Minecraft installs both automatically when you open it.
+      </p>
+
+      <h2 id="step-5-install">5. Install it in Minecraft</h2>
+      <p>The instructions are the same on every platform that supports Bedrock and Education Edition:</p>
+      <ol>
+        <li>Open the downloaded <code>.mcaddon</code> file. On Windows, double-click it. On iPad or iPhone, tap and choose <em>Open in Minecraft</em>. On Android, use a file manager and select <em>Open with Minecraft</em>.</li>
+        <li>Minecraft launches and confirms <em>Successfully imported</em> for both packs.</li>
+        <li>From the main menu, edit a world (or create a new one).</li>
+        <li>In <strong>Behavior Packs</strong>, activate your pack. Minecraft will offer to auto-enable the matching Resource Pack. Accept.</li>
+        <li>Make sure the world is in <strong>Creative</strong> mode if you want the spawn eggs to appear in the inventory. The <strong>Cheats</strong> toggle must be on if you plan to use commands.</li>
+        <li>Open the world and start playing.</li>
+      </ol>
+      <div class="callout">
+        <strong>Education Edition.</strong> The same <code>.mcaddon</code> works in Education Edition. After importing,
+        enable the packs from <em>Behavior Packs</em> on the world settings screen. On managed school devices, an MDM
+        download policy may block the <code>.mcaddon</code> file before Minecraft even sees it; in that case your IT admin needs to allow the download.
+      </div>
+
+      <h2 id="step-6-place">6. Place paintings in-game</h2>
+      <p>You have three ways to place a custom painting on a wall.</p>
+
+      <h3 id="place-spawn-egg">From the Creative inventory</h3>
+      <ol>
+        <li>Open the inventory in Creative mode.</li>
+        <li>Find your Creative group (default <strong>Custom Paintings</strong>) inside the <em>Items</em> category.
+          If your build of Minecraft does not show category tabs, just use the inventory search bar and type the painting name.</li>
+        <li>Pick a spawn egg with the painting name.</li>
+        <li>Aim at a wall and use the egg (right-click on desktop, tap on touchscreen, left-trigger on controller).</li>
+      </ol>
+      <p>
+        The painting appears flush against the wall, snaps to the nearest cardinal direction, and is fully clickable across
+        its width and height.
+      </p>
+
+      <h3 id="place-give">With the <code>/give</code> command</h3>
+      <p>
+        If cheats are enabled, you can hand yourself a spawn egg from any game mode. Open chat with
+        <kbd>T</kbd> (desktop) or the chat icon (touchscreen) and run:
+      </p>
+      <pre><code>/give @s &lt;namespace&gt;:&lt;painting_id&gt;_spawn_egg</code></pre>
+      <p>
+        Replace <code>&lt;namespace&gt;</code> with the namespace you picked in Pack settings, and
+        <code>&lt;painting_id&gt;</code> with the painting's in-game ID (the slug shown in the painting properties panel).
+        Concrete example, for a pack with namespace <code>my_paintings</code> and a painting whose ID is <code>sunset</code>:
+      </p>
+      <pre><code>/give @s my_paintings:sunset_spawn_egg</code></pre>
+      <p>
+        Then place the spawn egg against a wall like any other spawn egg.
+      </p>
+
+      <h3 id="place-summon">With the <code>/summon</code> command</h3>
+      <p>
+        Custom paintings are summonable entities. If you want to spawn one at a specific spot, aim where you want it and run:
+      </p>
+      <pre><code>/summon &lt;namespace&gt;:&lt;painting_id&gt;</code></pre>
+      <p>Example:</p>
+      <pre><code>/summon my_paintings:sunset</code></pre>
+      <p>
+        You can also pass coordinates and rotation in the standard Bedrock syntax:
+      </p>
+      <pre><code>/summon my_paintings:sunset ~ ~ ~3 180 0</code></pre>
+      <p>
+        The painting will face the direction it was summoned with, then snap to the nearest cardinal facing on the next tick.
+        The rotation argument controls which wall the painting attaches to: <code>0</code> faces south, <code>90</code> west,
+        <code>180</code> north, <code>-90</code> east.
+      </p>
+
+      <h3 id="place-remove">Removing a painting</h3>
+      <p>
+        Punch a painting once (left-click on desktop, tap on touchscreen) and it despawns cleanly.
+        Or remove all of them at once with:
+      </p>
+      <pre><code>/kill @e[family=&lt;namespace&gt;_painting]</code></pre>
+      <p>
+        Every painting from a given pack belongs to the entity family <code>&lt;namespace&gt;_painting</code>,
+        so the command targets only paintings produced by that pack, not paintings from other Add-Ons.
+      </p>
+
+      <h2 id="tips">Tips and troubleshooting</h2>
+      <ul>
+        <li><strong>I do not see the Creative group.</strong> Check that both the Behavior Pack <em>and</em> the Resource Pack are enabled, that the world is in Creative mode, and that you scrolled through the <em>Items</em> category. If in doubt, type the painting name in the inventory search bar.</li>
+        <li><strong>Commands return "no entity with that name".</strong> The entity ID is case-sensitive and is always <code>&lt;namespace&gt;:&lt;slug&gt;</code>. Open the painting in MC Painting Maker and copy the slug shown in the properties panel.</li>
+        <li><strong>The painting looks blurry.</strong> Increase <em>Texture density</em> in the painting properties, or switch resampling to <strong>Pixelated</strong> if the source is pixel art.</li>
+        <li><strong>Halo or fringe at the edges.</strong> Switch the painting material to <strong>Alphablend</strong>, or clean up the alpha channel of the source image before importing.</li>
+        <li><strong>I updated my pack and Minecraft did not pick up the change.</strong> Bump the version in Pack settings before each rebuild, then re-import the new <code>.mcaddon</code>.</li>
+        <li><strong>Sharing with a class.</strong> The <code>.mcaddon</code> file is self-contained: send it through OneDrive, Google Drive, or any file-sharing channel. Each student just opens it on their device.</li>
+      </ul>
+
+      <h2 id="share-project">Sharing a project file</h2>
+      <p>
+        Inside <strong>Pack settings</strong> you will find <em>Export project</em> and <em>Import project</em>.
+        These move a snapshot of the editor state (paintings, transforms, pack metadata) as a JSON file.
+        It is the easiest way to back up a project, share work-in-progress with someone else, or move between devices.
+        The JSON file does not contain a built Add-On; it is a save file for the editor itself.
+      </p>
+
+      <h2 id="references">References</h2>
+      <ul>
+        <li>Microsoft Education,
+          <a href="https://education.minecraft.net/content/dam/education-edition/learning-experiences/add-ons/Teachers%20Guide%20to%20Add-Ons.pdf"
+             target="_blank" rel="noopener noreferrer">Teacher's Guide to Add-Ons (PDF)</a>.
+          The official primer on Add-Ons for classrooms, including pedagogical ideas.</li>
+        <li>Microsoft Learn,
+          <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/addonsreference/" target="_blank" rel="noopener noreferrer">Minecraft Add-Ons reference</a>.
+          The technical documentation for Bedrock creators.</li>
+        <li>Microsoft Learn,
+          <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/commandsintroduction" target="_blank" rel="noopener noreferrer">Introduction to commands</a>.
+          Background on <code>/summon</code>, <code>/give</code>, and other Bedrock commands.</li>
+        <li><a href="./privacy.html">MC Painting Maker privacy policy</a>.</li>
+        <li><a href="https://github.com/Fabrimat/MC-Painting-Maker" target="_blank" rel="noopener noreferrer">Source code on GitHub</a>.</li>
+      </ul>
+
+      <hr />
+      <footer class="foot">Last updated 2026-05-18.</footer>
+
+      <a class="back" href="./">&larr; Back to MC Painting Maker</a>
+    </div>
+
+    <!-- 100% privacy-first analytics -->
+    <script data-collect-dnt="true" async src="/sa/proxy.js"></script>
+    <noscript><img src="/sa/simple/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
+  </body>
+</html>

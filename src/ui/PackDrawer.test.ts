@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import PackDrawer from './PackDrawer.svelte';
@@ -38,5 +38,23 @@ describe('PackDrawer', () => {
     const { getByRole } = render(PackDrawer);
     await fireEvent.click(getByRole('button', { name: /Close pack settings/ }));
     expect(get(packDrawerOpen)).toBe(false);
+  });
+
+  it('clicking Import project calls onimport', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const onimport = vi.fn();
+    const { getByRole } = render(PackDrawer, { props: { onimport } });
+    await fireEvent.click(getByRole('button', { name: /Import project/ }));
+    expect(onimport).toHaveBeenCalled();
+  });
+
+  it('clicking Export project calls onexport', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const onexport = vi.fn();
+    const { getByRole } = render(PackDrawer, { props: { onexport } });
+    await fireEvent.click(getByRole('button', { name: /Export project/ }));
+    expect(onexport).toHaveBeenCalled();
   });
 });

@@ -3,6 +3,9 @@
   import { packDrawerOpen } from '../stores/ui';
   import { z } from 'zod';
 
+  export let onimport: () => void = () => {};
+  export let onexport: () => void = () => {};
+
   const NamespaceTest = z.string()
     .regex(/^[a-z][a-z0-9_]{0,15}$/)
     .refine((v) => v !== 'minecraft');
@@ -122,6 +125,32 @@
       </div>
     </section>
 
+    <section>
+      <h4 class="section-title">Project file</h4>
+      <p class="section-hint">
+        Save the current editor state as a JSON file, or restore one previously exported.
+        This is the editor's own save format, not the <code>.mcaddon</code> for Minecraft.
+      </p>
+      <div class="project-row">
+        <button type="button" class="ghost" on:click={onimport}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+          Import project
+        </button>
+        <button type="button" class="ghost" on:click={onexport}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" x2="12" y1="3" y2="15"/>
+          </svg>
+          Export project
+        </button>
+      </div>
+    </section>
+
     <footer class="build-info">
       <span>Build <code>{buildSha}</code></span>
       <span>{buildDate}</span>
@@ -165,6 +194,25 @@
   .pick { font-size: var(--fs-xs); font-weight: 600; color: var(--primary); cursor: pointer; }
   .link { font-size: var(--fs-xs); color: var(--text-muted); text-decoration: underline; }
   .err { font-size: var(--fs-xs); color: var(--danger); }
+  .section-hint {
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5;
+  }
+  .section-hint code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    background: var(--surface-2);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-sm);
+  }
+  .project-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .ghost {
+    flex: 1 1 0; min-width: 0;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    padding: 8px 12px; border-radius: var(--radius);
+    background: #fff; border: 1px solid var(--border); color: var(--text);
+    font-weight: 600; font-size: var(--fs-sm);
+  }
+  .ghost:hover { background: var(--surface-2); }
   .build-info {
     margin-top: auto;
     display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
