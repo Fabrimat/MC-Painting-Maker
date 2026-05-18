@@ -1,8 +1,8 @@
 # MC Painting Maker
 
-> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.30+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
+> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.40+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
 
-The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own spawn egg in a configurable Creative category.
+The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own custom item (using the `minecraft:entity_placer` component) in a configurable Creative category.
 
 ## Core features
 
@@ -18,12 +18,13 @@ The site is a single-page web application. All work happens client-side: images,
 
 1. Open the exported `.mcaddon` with Minecraft Bedrock; both packs install.
 2. Create a world with the Behavior pack and the Resource pack enabled.
-3. In the Creative inventory, open the `equipment` category and find the "Custom Paintings" group (name configurable).
-4. Use a spawn egg against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
+3. In the Creative inventory, open the `items` category and find the "Custom Paintings" group (name configurable).
+4. Use a painting item against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
 
 ## Useful links
 
 - [Application](https://mc-paintings.larosa.work/): the painting maker itself.
+- [How to use](https://mc-paintings.larosa.work/how-to.html): step-by-step guide for creating paintings, installing the .mcaddon, and placing paintings in-game from the Creative inventory or via /give and /summon.
 - [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
 - [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
 - [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.

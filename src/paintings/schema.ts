@@ -18,6 +18,9 @@ export const PackMetaSchema = z.object({
   minEngineVersion: SemVerSchema,
   iconPngBase64: z.string().nullable(),
   creativeGroupName: z.string().min(1),
+  // Defaults to true so projects created before this field was introduced
+  // adopt the new behavior on load. Users can opt out via the Pack drawer.
+  autoBumpVersion: z.boolean().default(true),
 });
 
 // Each UUID slot is either an empty string (project has no identity yet - no images loaded)
@@ -68,7 +71,10 @@ export const PaintingSchema = z.object({
 });
 
 export const ProjectSchema = z.object({
-  version: z.literal(2),
+  // 2 = legacy auto spawn-egg builds; 3 = custom entity_placer items.
+  // Old projects are kept at their stored version on purpose so the .mcaddon
+  // they produced before the placer migration keeps being reproducible.
+  version: z.union([z.literal(2), z.literal(3)]),
   pack: PackMetaSchema,
   uuids: PackUUIDsSchema,
   paintings: z.array(PaintingSchema),

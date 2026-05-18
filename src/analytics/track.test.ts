@@ -61,6 +61,14 @@ describe('analytics/track', () => {
     expect(saEvent).toHaveBeenCalledWith('pwa_installed', undefined);
   });
 
+  it('trackDebugModeChanged dispatches debug_mode_changed with enabled flag', () => {
+    track.trackDebugModeChanged(true);
+    expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: true });
+    track.trackDebugModeChanged(false);
+    expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: false });
+    expect(saEvent).toHaveBeenCalledTimes(2);
+  });
+
   it('is a silent no-op when window.sa_event is undefined', () => {
     vi.unstubAllGlobals();
     expect(() => track.trackPaintingsAdded('drop', 1)).not.toThrow();
@@ -71,6 +79,7 @@ describe('analytics/track', () => {
     expect(() => track.trackImportFailed('json', 'other')).not.toThrow();
     expect(() => track.trackPwaInstallAvailable()).not.toThrow();
     expect(() => track.trackPwaInstalled()).not.toThrow();
+    expect(() => track.trackDebugModeChanged(true)).not.toThrow();
     expect(saEvent).not.toHaveBeenCalled();
   });
 

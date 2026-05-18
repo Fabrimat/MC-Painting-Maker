@@ -1,13 +1,17 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import PackDrawer from './PackDrawer.svelte';
 import { project } from '../stores/project';
 import { packDrawerOpen } from '../stores/ui';
+import { devMode } from '../stores/devMode';
 import { createEmptyProject } from '../paintings/defaults';
 
 describe('PackDrawer', () => {
-  beforeEach(() => { document.body.innerHTML = ''; });
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    devMode.set(false);
+  });
 
   it('is hidden when packDrawerOpen is false', () => {
     project.set(createEmptyProject());
@@ -38,5 +42,94 @@ describe('PackDrawer', () => {
     const { getByRole } = render(PackDrawer);
     await fireEvent.click(getByRole('button', { name: /Close pack settings/ }));
     expect(get(packDrawerOpen)).toBe(false);
+  });
+
+  it('clicking Import project calls onimport', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const onimport = vi.fn();
+    const { getByRole } = render(PackDrawer, { props: { onimport } });
+    await fireEvent.click(getByRole('button', { name: /Import project/ }));
+    expect(onimport).toHaveBeenCalled();
+  });
+
+  it('clicking Export project calls onexport', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const onexport = vi.fn();
+    const { getByRole } = render(PackDrawer, { props: { onexport } });
+    await fireEvent.click(getByRole('button', { name: /Export project/ }));
+    expect(onexport).toHaveBeenCalled();
+  });
+
+  it('hides the Debug mode description when debug mode is off', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { queryByText } = render(PackDrawer);
+    expect(queryByText(/intended for website development and debugging/i)).toBeNull();
+  });
+
+  it('shows the Debug mode description when debug mode is on', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    devMode.set(true);
+    const { getByText } = render(PackDrawer);
+    expect(getByText(/intended for website development and debugging/i)).toBeTruthy();
+  });
+
+  it('does not show a .zip download button inside the drawer', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    devMode.set(true);
+    const { queryByRole } = render(PackDrawer);
+    expect(queryByRole('button', { name: /Download as \.zip|Download \.zip/ })).toBeNull();
+  });
+
+  it('toggling the Debug mode checkbox in the footer flips the store', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { getByLabelText } = render(PackDrawer);
+    const checkbox = getByLabelText(/Debug mode/) as HTMLInputElement;
+    expect(checkbox.checked).toBe(false);
+    await fireEvent.click(checkbox);
+    expect(get(devMode)).toBe(true);
+    await fireEvent.click(checkbox);
+    expect(get(devMode)).toBe(false);
+  });
+
+  it('toggling the Debug mode checkbox emits a debug_mode_changed analytics event', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const saEvent = vi.fn();
+    vi.stubGlobal('sa_event', saEvent);
+    try {
+      const { getByLabelText } = render(PackDrawer);
+      const checkbox = getByLabelText(/Debug mode/) as HTMLInputElement;
+      await fireEvent.click(checkbox);
+      expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: true });
+      await fireEvent.click(checkbox);
+      expect(saEvent).toHaveBeenLastCalledWith('debug_mode_changed', { enabled: false });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('renders the auto-bump checkbox checked by default', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { getByLabelText } = render(PackDrawer);
+    const checkbox = getByLabelText(/Auto-bump patch/) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+  });
+
+  it('toggling the auto-bump checkbox writes to project.pack.autoBumpVersion', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { getByLabelText } = render(PackDrawer);
+    const checkbox = getByLabelText(/Auto-bump patch/) as HTMLInputElement;
+    await fireEvent.click(checkbox);
+    expect(get(project).pack.autoBumpVersion).toBe(false);
+    await fireEvent.click(checkbox);
+    expect(get(project).pack.autoBumpVersion).toBe(true);
   });
 });

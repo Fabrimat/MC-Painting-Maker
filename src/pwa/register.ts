@@ -1,5 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import { registerSW } from 'virtual:pwa-register';
+import { devLog } from '../util/devlog';
 
 export const needRefresh: Writable<boolean> = writable(false);
 export const offlineReady: Writable<boolean> = writable(false);
@@ -32,14 +33,20 @@ registerSW({
     // onNeedRefresh on the fresh page (workbox seems to race the freshly
     // installed SW against the about-to-be-removed one). The flag set in
     // applyUpdate() suppresses these for a short window.
-    if (shouldSuppressNeedRefresh()) return;
+    if (shouldSuppressNeedRefresh()) {
+      devLog('pwa', 'onNeedRefresh suppressed (within update window)');
+      return;
+    }
+    devLog('pwa', 'onNeedRefresh');
     needRefresh.set(true);
   },
   onOfflineReady() {
+    devLog('pwa', 'onOfflineReady');
     offlineReady.set(true);
   },
   onRegisterError(error) {
     console.warn('Service worker registration failed', error);
+    devLog('pwa', 'onRegisterError', error);
   },
 });
 
@@ -50,6 +57,7 @@ registerSW({
 // the SW state guarantees the next navigation comes through fresh from the
 // network and installs the latest SW from scratch.
 export async function applyUpdate(): Promise<void> {
+  devLog('pwa', 'applyUpdate start');
   needRefresh.set(false);
 
   try {
@@ -61,20 +69,25 @@ export async function applyUpdate(): Promise<void> {
   if ('serviceWorker' in navigator) {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
+      devLog('pwa', 'unregistering service workers', { count: registrations.length });
       await Promise.all(registrations.map((r) => r.unregister()));
     } catch (err) {
       console.warn('Failed to unregister service workers', err);
+      devLog('pwa', 'unregister failed', err);
     }
   }
 
   if (typeof caches !== 'undefined') {
     try {
       const names = await caches.keys();
+      devLog('pwa', 'clearing caches', { names });
       await Promise.all(names.map((n) => caches.delete(n)));
     } catch (err) {
       console.warn('Failed to clear caches', err);
+      devLog('pwa', 'cache clear failed', err);
     }
   }
 
+  devLog('pwa', 'applyUpdate reloading');
   window.location.reload();
 }

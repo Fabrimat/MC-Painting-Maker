@@ -3,9 +3,9 @@
 A browser-based tool that turns your images into Minecraft Bedrock custom paintings.
 Drop images, choose dimensions in blocks, optionally crop / resize / move the image
 inside the canvas, and export a `.mcaddon` that adds each painting as an independent
-custom entity placeable with its own vanilla spawn egg.
+custom entity placeable with its own custom item.
 
-Compatible with Bedrock 1.21.30+ and Minecraft Education Edition.
+Compatible with Bedrock 1.21.40+ and Minecraft Education Edition.
 
 ## Run locally
 
@@ -36,9 +36,9 @@ After exporting a `.mcaddon`:
 
 1. Open the file with Minecraft Bedrock - both packs install.
 2. Create a world with both packs enabled (Behaviour and Resources).
-3. Open the Creative inventory → the `equipment` category contains a
-   "Custom Paintings" (or your configured name) group with one spawn egg per painting.
-4. Use a spawn egg against a wall. The painting should:
+3. Open the Creative inventory → the `items` category contains a
+   "Custom Paintings" (or your configured name) group with one placer item per painting.
+4. Use a placer item against a wall. The painting should:
    - Appear flush with the wall.
    - Snap to the nearest cardinal direction.
    - Be hittable across its full width and height.

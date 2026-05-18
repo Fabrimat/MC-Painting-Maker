@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { v4 as uuidv4 } from 'uuid';
   import { project } from '../stores/project';
+  import { devMode } from '../stores/devMode';
   import { resolveDensity } from '../paintings/density';
   import { applyPaintingPatch } from '../paintings/painting';
   import type { Painting, Density } from '../paintings/types';
@@ -13,6 +15,25 @@
       ...v,
       paintings: v.paintings.map((p) => p.id === id ? applyPaintingPatch(p, update) : p),
     }));
+  }
+  // Bypasses applyPaintingPatch (and its slug-regeneration logic) so debug
+  // edits to id / slugVersion land verbatim.
+  function rawPatch(update: Partial<Painting>) {
+    project.update((v) => ({
+      ...v,
+      paintings: v.paintings.map((p) => p.id === id ? { ...p, ...update } : p),
+    }));
+  }
+  function setRawId(e: Event) {
+    rawPatch({ id: (e.currentTarget as HTMLInputElement).value });
+  }
+  function regenRawId() {
+    rawPatch({ id: uuidv4() });
+  }
+  function setSlugVersion(e: Event) {
+    const n = (e.currentTarget as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(n)) return;
+    rawPatch({ slugVersion: n });
   }
   function toggleLock() {
     if (!painting) return;
@@ -200,6 +221,41 @@
         {/if}
       </p>
     </section>
+
+    {#if $devMode}
+      <section class="debug-section">
+        <h4 class="section-title">Debug · Painting state</h4>
+        <p class="field-hint">
+          Raw values from the saved painting. Edits skip the usual safeguards.
+        </p>
+        <label class="stack">
+          <span class="field-label">Internal id</span>
+          <span class="uuid-row">
+            <input class="field uuid-input"
+              value={painting.id}
+              on:input={setRawId}
+              aria-label="Internal painting id" />
+            <button type="button" class="uuid-regen"
+              on:click={regenRawId}
+              aria-label="Regenerate internal id">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                <path d="M3 21v-5h5"/>
+              </svg>
+            </button>
+          </span>
+        </label>
+        <label class="stack">
+          <span class="field-label">Slug algorithm version</span>
+          <input class="field" type="number" min="0" step="1"
+            value={painting.slugVersion}
+            on:input={setSlugVersion}
+            aria-label="Slug algorithm version" />
+        </label>
+      </section>
+    {/if}
   </aside>
 {/if}
 
@@ -248,4 +304,27 @@
     display: block; margin-top: var(--space-1);
     font-size: var(--fs-xs); color: var(--danger, #c00);
   }
+  .debug-section {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--cta);
+    border-radius: var(--radius);
+    background: #fff7ed;
+  }
+  .debug-section .section-title { color: var(--cta); }
+  .debug-section .section-title::before { background: var(--cta); }
+  .uuid-row {
+    display: flex; align-items: stretch; gap: var(--space-2);
+  }
+  .uuid-input {
+    flex: 1; min-width: 0;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--fs-xs);
+  }
+  .uuid-regen {
+    width: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    color: var(--text-muted);
+  }
+  .uuid-regen:hover { background: var(--surface-2); color: var(--cta-hover); }
 </style>

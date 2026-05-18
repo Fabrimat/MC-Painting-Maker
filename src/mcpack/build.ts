@@ -1,6 +1,7 @@
 import { zipSync, strToU8 } from 'fflate';
 import type { ProjectState, Painting } from '../paintings/types';
 import { ensurePackUUIDs } from '../paintings/defaults';
+import { devLog } from '../util/devlog';
 import { rasterize } from '../paintings/rasterize';
 import { buildBpManifest, buildRpManifest } from './manifest';
 import { buildEntityBehavior } from './entity';
@@ -8,15 +9,18 @@ import { buildClientEntity } from './client_entity';
 import { buildGeometry } from './geometry';
 import { buildRenderController } from './render_controller';
 import { buildItemTexture } from './item_texture';
+import { buildItem } from './item';
 import { buildCatalog } from './catalog';
 import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
-import { paintingFileBase } from './identifiers';
+import {
+  paintingFileBase, paintingIconTextureKey, spawnEggTextureKey, usesPlacerItems,
+} from './identifiers';
 import { base64ToUint8 } from '../util/base64';
 import { buildBackTexturePng, BACK_TEXTURE_FILENAME } from './back_texture';
 import { buildBackRenderController } from './back_render_controller';
 
-export type Textures = { texture: Uint8Array; eggTexture: Uint8Array };
+export type Textures = { texture: Uint8Array; iconTexture: Uint8Array };
 
 function json(obj: unknown): Uint8Array {
   return strToU8(JSON.stringify(obj, null, 2));
@@ -41,9 +45,15 @@ export async function assembleArchive(
   if (state.pack.iconPngBase64) {
     files[`${bp}pack_icon.png`] = base64ToUint8(state.pack.iconPngBase64);
   }
+  const placerItems = usesPlacerItems(state);
   for (const p of state.paintings) {
     const fb = paintingFileBase(p);
     files[`${bp}entities/${fb}.behavior.json`] = json(buildEntityBehavior(state, p));
+    // v3 ships one .item.json per painting; v2 relies on the auto spawn-egg
+    // pipeline and has no behavior-pack item file at all.
+    if (placerItems) {
+      files[`${bp}items/${fb}.item.json`] = json(buildItem(state, p));
+    }
   }
 
   files[`${rp}manifest.json`] = json(buildRpManifest(state));
@@ -61,7 +71,10 @@ export async function assembleArchive(
     const tx = textures.get(p.id);
     if (tx) {
       files[`${rp}textures/entity/${fb}.png`] = tx.texture;
-      files[`${rp}textures/items/${fb}_egg.png`] = tx.eggTexture;
+      // The PNG path has to match the texture key registered in
+      // item_texture.json. v3 uses `<slug>_icon`, v2 uses `<slug>_egg`.
+      const iconKey = placerItems ? paintingIconTextureKey(p) : spawnEggTextureKey(p);
+      files[`${rp}textures/items/${iconKey}.png`] = tx.iconTexture;
     }
   }
 
@@ -98,28 +111,35 @@ function fitContain(p: Painting, w16: number, h16: number) {
   };
 }
 
-async function rasterizeEgg(p: Painting): Promise<Uint8Array> {
-  const eggPainting: Painting = {
+async function rasterizeIcon(p: Painting): Promise<Uint8Array> {
+  const iconPainting: Painting = {
     ...p,
     canvasW16: 16,
     canvasH16: 16,
     textureDensity: 1,
     transform: fitContain(p, 16, 16),
   };
-  return await rasterize(eggPainting);
+  return await rasterize(iconPainting);
 }
 
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
+  const t0 = performance.now();
+  devLog('build', 'start', { paintings: state.paintings.length, namespace: state.pack.namespace });
   // Defensive: if the caller somehow gets here with empty UUIDs (e.g. a project loaded
   // from an external JSON that predates ensurePackUUIDs), populate them now.
   const ready = ensurePackUUIDs(state);
   const textures = new Map<string, Textures>();
   for (const p of ready.paintings) {
     const texture = await rasterize(p);
-    const eggTexture = await rasterizeEgg(p);
-    textures.set(p.id, { texture, eggTexture });
+    const iconTexture = await rasterizeIcon(p);
+    textures.set(p.id, { texture, iconTexture });
   }
   const backTexture = await buildBackTexturePng();
   const bytes = await assembleArchive(ready, textures, backTexture);
+  devLog('build', 'done', {
+    paintings: ready.paintings.length,
+    bytes: bytes.byteLength,
+    ms: Math.round(performance.now() - t0),
+  });
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }
