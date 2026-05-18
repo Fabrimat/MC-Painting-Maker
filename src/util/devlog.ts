@@ -12,5 +12,5 @@ function timestamp(): string {
 
 export function devLog(category: string, ...args: unknown[]): void {
   if (!get(devMode)) return;
-  console.log(`[dev ${timestamp()}] [${category}]`, ...args);
+  console.log(`[debug ${timestamp()}] [${category}]`, ...args);
 }

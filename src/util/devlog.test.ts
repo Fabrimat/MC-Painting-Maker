@@ -25,7 +25,7 @@ describe('devLog', () => {
     devLog('build', 'start', { paintings: 3 });
     expect(spy).toHaveBeenCalledTimes(1);
     const [prefix, ...rest] = spy.mock.calls[0];
-    expect(String(prefix)).toMatch(/^\[dev \d{2}:\d{2}:\d{2}\.\d{3}\] \[build\]/);
+    expect(String(prefix)).toMatch(/^\[debug \d{2}:\d{2}:\d{2}\.\d{3}\] \[build\]/);
     expect(rest).toEqual(['start', { paintings: 3 }]);
   });
 

@@ -62,27 +62,34 @@ describe('PackDrawer', () => {
     expect(onexport).toHaveBeenCalled();
   });
 
-  it('hides the Developer section when dev mode is off', () => {
+  it('hides the Debug mode description when debug mode is off', () => {
     project.set(createEmptyProject());
     packDrawerOpen.set(true);
     const { queryByText } = render(PackDrawer);
-    expect(queryByText('Developer')).toBeNull();
+    expect(queryByText(/intended for website development and debugging/i)).toBeNull();
   });
 
-  it('reveals the Developer section when dev mode is on', () => {
+  it('shows the Debug mode description when debug mode is on', () => {
     project.set(createEmptyProject());
     packDrawerOpen.set(true);
     devMode.set(true);
-    const { getByText, getByRole } = render(PackDrawer);
-    expect(getByText('Developer')).toBeTruthy();
-    expect(getByRole('button', { name: /Download as \.zip/ })).toBeTruthy();
+    const { getByText } = render(PackDrawer);
+    expect(getByText(/intended for website development and debugging/i)).toBeTruthy();
   });
 
-  it('toggling the Dev mode checkbox flips the store', async () => {
+  it('does not show a .zip download button inside the drawer', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    devMode.set(true);
+    const { queryByRole } = render(PackDrawer);
+    expect(queryByRole('button', { name: /Download as \.zip|Download \.zip/ })).toBeNull();
+  });
+
+  it('toggling the Debug mode checkbox in the footer flips the store', async () => {
     project.set(createEmptyProject());
     packDrawerOpen.set(true);
     const { getByLabelText } = render(PackDrawer);
-    const checkbox = getByLabelText(/Dev mode/) as HTMLInputElement;
+    const checkbox = getByLabelText(/Debug mode/) as HTMLInputElement;
     expect(checkbox.checked).toBe(false);
     await fireEvent.click(checkbox);
     expect(get(devMode)).toBe(true);

@@ -2,33 +2,10 @@
   import { project } from '../stores/project';
   import { packDrawerOpen } from '../stores/ui';
   import { devMode } from '../stores/devMode';
-  import { buildMcaddonBlob, archiveFilename } from '../mcpack/build';
   import { z } from 'zod';
 
   export let onimport: () => void = () => {};
   export let onexport: () => void = () => {};
-
-  let zipBuilding = false;
-  let zipError: string | null = null;
-
-  async function onDownloadZip() {
-    if (zipBuilding || $project.paintings.length === 0) return;
-    zipBuilding = true;
-    zipError = null;
-    try {
-      const blob = await buildMcaddonBlob($project);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = archiveFilename($project).replace(/\.mcaddon$/, '.zip');
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      zipError = (err as Error).message;
-    } finally {
-      zipBuilding = false;
-    }
-  }
 
   const NamespaceTest = z.string()
     .regex(/^[a-z][a-z0-9_]{0,15}$/)
@@ -176,31 +153,18 @@
     </section>
 
     {#if $devMode}
-      <section class="dev-section">
-        <h4 class="section-title">Developer</h4>
+      <section class="debug-section">
+        <h4 class="section-title">Debug mode</h4>
         <p class="section-hint">
-          The <code>.mcaddon</code> is just a renamed ZIP. Download the same bytes with the <code>.zip</code> extension to inspect with any archive tool.
+          A mode intended for website development and debugging.
         </p>
-        <button
-          type="button" class="ghost"
-          disabled={zipBuilding || $project.paintings.length === 0}
-          on:click={onDownloadZip}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" x2="12" y1="15" y2="3"/>
-          </svg>
-          {zipBuilding ? 'Building .zip…' : 'Download as .zip'}
-        </button>
-        {#if zipError}<span class="err">{zipError}</span>{/if}
       </section>
     {/if}
 
     <footer class="build-info">
-      <label class="dev-toggle">
+      <label class="debug-toggle">
         <input type="checkbox" checked={$devMode} on:change={(e) => devMode.set((e.currentTarget as HTMLInputElement).checked)} />
-        <span>Dev mode</span>
+        <span>Debug mode</span>
       </label>
       <span class="build-meta">Build <code>{buildSha}</code> · {buildDate}</span>
     </footer>
@@ -262,9 +226,21 @@
     font-weight: 600; font-size: var(--fs-sm);
   }
   .ghost:hover { background: var(--surface-2); }
-  .dev-section .section-title { color: var(--cta); }
-  .dev-section .section-title::before { background: var(--cta); }
   .ghost:disabled { opacity: .5; cursor: not-allowed; }
+  .debug-section {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--cta);
+    border-radius: var(--radius);
+    background: #fff7ed;
+  }
+  .debug-section .section-title { color: var(--cta); margin: 0 0 var(--space-2); }
+  .debug-section .section-title::before { background: var(--cta); }
+  .debug-section .section-hint { margin: 0; color: var(--text); }
+  .debug-toggle {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    cursor: pointer; user-select: none;
+  }
+  .debug-toggle input { accent-color: var(--cta); }
   .build-info {
     margin-top: auto;
     display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
@@ -278,11 +254,6 @@
     padding: 0 var(--space-1);
     border-radius: var(--radius-sm);
   }
-  .dev-toggle {
-    display: inline-flex; align-items: center; gap: var(--space-2);
-    cursor: pointer; user-select: none;
-  }
-  .dev-toggle input { accent-color: var(--cta); }
   .build-meta { text-align: right; }
 
   @media (max-width: 899px) {
