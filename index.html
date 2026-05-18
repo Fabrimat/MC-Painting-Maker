@@ -6,7 +6,7 @@
 
     <!-- Primary metadata -->
     <title>MC Painting Maker - Custom Minecraft Bedrock Paintings (.mcaddon)</title>
-    <meta name="description" content="Free browser-based tool that turns any image into a custom Minecraft Bedrock painting. No upload, no account, no tracking. Exports a ready-to-install .mcaddon add-on for Bedrock 1.21.30+ and Minecraft Education Edition." />
+    <meta name="description" content="Free browser-based tool that turns any image into a custom Minecraft Bedrock painting. No upload, no account, no tracking. Exports a ready-to-install .mcaddon add-on for Bedrock 1.21.40+ and Minecraft Education Edition." />
     <meta name="keywords" content="Minecraft Bedrock, custom paintings, mcaddon, painting maker, Minecraft Education Edition, behavior pack, resource pack, painting add-on, Minecraft mod, Bedrock 1.21" />
     <meta name="author" content="Fabrizio La Rosa" />
     <meta name="application-name" content="MC Painting Maker" />
@@ -37,9 +37,12 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="MC Painting Maker" />
     <meta property="og:title" content="MC Painting Maker - Custom Minecraft Bedrock Paintings" />
-    <meta property="og:description" content="Turn any image into a custom Minecraft Bedrock painting. Free, browser-based, no upload. Exports a ready-to-install .mcaddon for Bedrock 1.21.30+ and Education Edition." />
+    <meta property="og:description" content="Turn any image into a custom Minecraft Bedrock painting. Free, browser-based, no upload. Exports a ready-to-install .mcaddon for Bedrock 1.21.40+ and Education Edition." />
     <meta property="og:url" content="https://mc-paintings.larosa.work/" />
-    <meta property="og:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta property="og:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
     <meta property="og:image:alt" content="MC Painting Maker logo - an orange-tipped paintbrush" />
     <meta property="og:locale" content="en_US" />
 
@@ -47,7 +50,7 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="MC Painting Maker - Custom Minecraft Bedrock Paintings" />
     <meta name="twitter:description" content="Turn any image into a custom Minecraft Bedrock painting. Free, browser-based, no upload. Exports a ready-to-install .mcaddon." />
-    <meta name="twitter:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta name="twitter:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
     <meta name="twitter:image:alt" content="MC Painting Maker logo" />
 
     <!-- Resource hints -->
@@ -90,16 +93,31 @@
       "author": {
         "@type": "Person",
         "name": "Fabrizio La Rosa",
-        "url": "https://github.com/Fabrimat"
+        "url": "https://github.com/Fabrimat",
+        "sameAs": [
+          "https://github.com/Fabrimat",
+          "https://ko-fi.com/fabriziolarosa"
+        ]
       },
       "publisher": {
         "@type": "Person",
         "name": "Fabrizio La Rosa",
-        "url": "https://github.com/Fabrimat"
+        "url": "https://github.com/Fabrimat",
+        "sameAs": [
+          "https://github.com/Fabrimat",
+          "https://ko-fi.com/fabriziolarosa"
+        ]
       },
+      "softwareHelp": {
+        "@type": "CreativeWork",
+        "url": "https://mc-paintings.larosa.work/how-to.html"
+      },
+      "datePublished": "2026-05-11",
+      "dateModified": "2026-05-18",
+      "availableOnDevice": ["Desktop", "Mobile", "Tablet"],
       "codeRepository": "https://github.com/Fabrimat/MC-Painting-Maker",
       "programmingLanguage": ["TypeScript", "Svelte"],
-      "screenshot": "https://mc-paintings.larosa.work/brush.svg"
+      "screenshot": "https://mc-paintings.larosa.work/pwa-512x512.png"
     }
     </script>
 
@@ -117,6 +135,124 @@
       }
     }
     </script>
+
+    <!-- Structured data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is MC Painting Maker free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. MC Painting Maker is completely free, with no account, no signup, no upload, and no payment required. The source code is MIT-licensed and available on GitHub."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which versions of Minecraft does it support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "MC Painting Maker generates .mcaddon files compatible with Minecraft Bedrock Edition 1.21.40 and newer, including Minecraft Education Edition. Bedrock itself runs on Windows 10 and 11, iOS, iPadOS, Android, Xbox, PlayStation, and Nintendo Switch."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work for Minecraft Java Edition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. MC Painting Maker currently targets Minecraft Bedrock and Education Edition only. The output .mcaddon format is specific to Bedrock; Java Edition uses a different painting and resource pack format."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you upload my images anywhere?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. All processing happens locally in your browser. Images, transforms, namespaces, pack metadata, and the generated .mcaddon archive never leave your device. See the privacy policy for details."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What painting sizes can I create?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Any rectangular size from 1x1 up to 8x8 Minecraft blocks. Common sizes include 1x1, 2x1, 2x2, 4x2, and 4x4."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install the .mcaddon in Minecraft?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Open the downloaded .mcaddon file with Minecraft. Both the behavior pack and the resource pack install automatically. Then enable them on the world you want to use them in. See the step-by-step how-to guide for full details."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use this on a phone or tablet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. MC Painting Maker runs in any modern mobile browser and can be installed as a Progressive Web App. The generated .mcaddon file opens directly in Minecraft on iOS, iPadOS, and Android."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work in Minecraft Education Edition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The same .mcaddon installs in Minecraft Education Edition the same way it does in standard Bedrock. On school-managed devices, an MDM policy may block .mcaddon downloads; in that case the IT admin needs to allow it."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- llms.txt embed: project context for AI crawlers, hidden from users.
+         Keep in sync with public/llms.txt. -->
+    <script type="text/markdown" id="llms-txt">
+# MC Painting Maker
+
+> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.40+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
+
+The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own custom item (using the `minecraft:entity_placer` component) in a configurable Creative category.
+
+## Core features
+
+- Drop one or more images (PNG, JPG, WEBP) and choose a target size in Minecraft blocks (width x height).
+- Crop, resize, and reposition the source image inside the painting canvas with a Konva-based editor.
+- Per-painting in-game ID (slug) with namespace prefix; auto-derived from the name, lockable, and user-editable.
+- Configurable pack metadata: pack name, namespace, version, icon, Creative inventory group.
+- One-click export of a single `.mcaddon` containing both the behavior pack and the resource pack.
+- Deterministic UUIDs that survive renames so re-imports update existing entities instead of duplicating them.
+- Project state persisted in `localStorage`; nothing is uploaded.
+
+## How a Bedrock player uses the output
+
+1. Open the exported `.mcaddon` with Minecraft Bedrock; both packs install.
+2. Create a world with the Behavior pack and the Resource pack enabled.
+3. In the Creative inventory, open the `items` category and find the "Custom Paintings" group (name configurable).
+4. Use a painting item against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
+
+## Useful links
+
+- [Application](https://mc-paintings.larosa.work/): the painting maker itself.
+- [How to use](https://mc-paintings.larosa.work/how-to.html): step-by-step guide for creating paintings, installing the .mcaddon, and placing paintings in-game from the Creative inventory or via /give and /summon.
+- [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
+- [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
+- [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.
+- [Support on Ko-fi](https://ko-fi.com/fabriziolarosa): tip jar for the author.
+
+## Tech stack
+
+Svelte 5, TypeScript, Vite, Konva for the canvas editor, fflate for in-browser ZIP creation, Zod for schema validation, Vitest for tests. Deployed as a static site to GitHub Pages behind Cloudflare.
+
+## Author
+
+Fabrizio La Rosa (Belgian VAT BE1031214819, Ghent, Belgium). Contact via the GitHub repository.
+    </script>
   </head>
   <body>
     <div id="app"></div>
@@ -124,21 +260,23 @@
       <header style="max-width:720px;margin:0 auto;padding:64px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1f2937;">
         <h1 style="font-size:32px;margin:0 0 8px;letter-spacing:-0.02em;">MC Painting Maker</h1>
         <p style="color:#6b7280;font-size:17px;margin-top:0;">
-          Browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install <code>.mcaddon</code> add-on. Compatible with Bedrock Edition 1.21.30+ and Minecraft Education Edition.
+          Free, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install <code>.mcaddon</code> add-on. Compatible with Bedrock Edition 1.21.40+ and Minecraft Education Edition. Runs on Windows, macOS, Linux, iOS, iPadOS, Android, and any modern browser.
         </p>
         <h2 style="font-size:20px;margin:32px 0 12px;">JavaScript is required</h2>
         <p>This application runs entirely in your browser. Please enable JavaScript to use it.</p>
         <h2 style="font-size:20px;margin:32px 0 12px;">What you can do</h2>
         <ul>
-          <li>Drop images, choose painting dimensions in Minecraft blocks.</li>
+          <li>Drop images, choose painting dimensions in Minecraft blocks (from 1x1 up to 8x8).</li>
           <li>Crop, resize and reposition each image inside its canvas.</li>
-          <li>Configure pack metadata: name, namespace, version, icon, creative group.</li>
-          <li>Export one <code>.mcaddon</code> file with both behavior and resource packs.</li>
+          <li>Configure pack metadata: name, namespace, version, icon, Creative inventory group.</li>
+          <li>Export one <code>.mcaddon</code> file containing both Behavior and Resource packs.</li>
           <li>Use the generated placer item in-game to place each custom painting on any wall.</li>
         </ul>
+        <h2 style="font-size:20px;margin:32px 0 12px;">Documentation</h2>
+        <p>Read the <a href="./how-to.html" style="color:#f97316;">step-by-step how-to guide</a> for instructions on creating paintings, installing the .mcaddon in Minecraft Bedrock or Education Edition, and placing paintings from the Creative inventory or with the <code>/give</code> and <code>/summon</code> commands.</p>
         <h2 style="font-size:20px;margin:32px 0 12px;">Privacy-first</h2>
         <p>No upload, no account, no tracking. Everything stays in your browser. See the <a href="./privacy.html" style="color:#f97316;">privacy policy</a>.</p>
-        <p>Source code on <a href="https://github.com/Fabrimat/MC-Painting-Maker" rel="noopener noreferrer" style="color:#f97316;">GitHub</a>.</p>
+        <p>Source code is MIT-licensed and available on <a href="https://github.com/Fabrimat/MC-Painting-Maker" rel="noopener noreferrer" style="color:#f97316;">GitHub</a>.</p>
       </header>
     </noscript>
     <script type="module" src="/src/main.ts"></script>

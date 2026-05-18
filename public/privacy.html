@@ -6,11 +6,14 @@
 
     <title>Privacy Policy - MC Painting Maker</title>
     <meta name="description" content="Plain-words privacy policy for MC Painting Maker. No tracking cookies, no image uploads, no profiling. Everything you do stays in your browser." />
+    <meta name="keywords" content="MC Painting Maker privacy, no tracking Minecraft tool, GDPR Minecraft painting, no upload Minecraft tool, privacy policy mcaddon generator, Simple Analytics, Cloudflare privacy" />
     <meta name="author" content="Fabrizio La Rosa" />
     <meta name="theme-color" content="#f97316" />
     <meta name="color-scheme" content="light" />
 
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="bingbot" content="index, follow" />
 
     <link rel="canonical" href="https://mc-paintings.larosa.work/privacy.html" />
     <link rel="alternate" hreflang="en" href="https://mc-paintings.larosa.work/privacy.html" />
@@ -26,15 +29,23 @@
     <meta property="og:title" content="Privacy Policy - MC Painting Maker" />
     <meta property="og:description" content="No tracking cookies, no image uploads, no profiling. Everything stays in your browser." />
     <meta property="og:url" content="https://mc-paintings.larosa.work/privacy.html" />
-    <meta property="og:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta property="og:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
     <meta property="og:image:alt" content="MC Painting Maker logo" />
     <meta property="og:locale" content="en_US" />
+    <meta property="article:published_time" content="2026-05-11T00:00:00+00:00" />
+    <meta property="article:modified_time" content="2026-05-12T00:00:00+00:00" />
+    <meta property="article:author" content="Fabrizio La Rosa" />
+    <meta property="article:section" content="Legal" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Privacy Policy - MC Painting Maker" />
     <meta name="twitter:description" content="No tracking cookies, no image uploads, no profiling. Everything stays in your browser." />
-    <meta name="twitter:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta name="twitter:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
+    <meta name="twitter:image:alt" content="MC Painting Maker logo" />
 
     <!-- Structured data: Breadcrumb -->
     <script type="application/ld+json">
@@ -74,6 +85,50 @@
       },
       "dateModified": "2026-05-12"
     }
+    </script>
+
+    <!-- llms.txt embed: project context for AI crawlers, hidden from users.
+         Keep in sync with public/llms.txt. -->
+    <script type="text/markdown" id="llms-txt">
+# MC Painting Maker
+
+> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.40+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
+
+The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own custom item (using the `minecraft:entity_placer` component) in a configurable Creative category.
+
+## Core features
+
+- Drop one or more images (PNG, JPG, WEBP) and choose a target size in Minecraft blocks (width x height).
+- Crop, resize, and reposition the source image inside the painting canvas with a Konva-based editor.
+- Per-painting in-game ID (slug) with namespace prefix; auto-derived from the name, lockable, and user-editable.
+- Configurable pack metadata: pack name, namespace, version, icon, Creative inventory group.
+- One-click export of a single `.mcaddon` containing both the behavior pack and the resource pack.
+- Deterministic UUIDs that survive renames so re-imports update existing entities instead of duplicating them.
+- Project state persisted in `localStorage`; nothing is uploaded.
+
+## How a Bedrock player uses the output
+
+1. Open the exported `.mcaddon` with Minecraft Bedrock; both packs install.
+2. Create a world with the Behavior pack and the Resource pack enabled.
+3. In the Creative inventory, open the `items` category and find the "Custom Paintings" group (name configurable).
+4. Use a painting item against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
+
+## Useful links
+
+- [Application](https://mc-paintings.larosa.work/): the painting maker itself.
+- [How to use](https://mc-paintings.larosa.work/how-to.html): step-by-step guide for creating paintings, installing the .mcaddon, and placing paintings in-game from the Creative inventory or via /give and /summon.
+- [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
+- [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
+- [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.
+- [Support on Ko-fi](https://ko-fi.com/fabriziolarosa): tip jar for the author.
+
+## Tech stack
+
+Svelte 5, TypeScript, Vite, Konva for the canvas editor, fflate for in-browser ZIP creation, Zod for schema validation, Vitest for tests. Deployed as a static site to GitHub Pages behind Cloudflare.
+
+## Author
+
+Fabrizio La Rosa (Belgian VAT BE1031214819, Ghent, Belgium). Contact via the GitHub repository.
     </script>
 
     <style>

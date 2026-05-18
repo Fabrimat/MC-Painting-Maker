@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://mc-paintings.larosa.work/</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://mc-paintings.larosa.work/pwa-512x512.png</image:loc>
+      <image:title>MC Painting Maker logo</image:title>
+      <image:caption>MC Painting Maker - free browser-based Minecraft Bedrock painting generator</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://mc-paintings.larosa.work/brush.svg</image:loc>
+      <image:title>MC Painting Maker brush icon</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://mc-paintings.larosa.work/how-to.html</loc>
     <lastmod>2026-05-18</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mc-paintings.larosa.work/pwa-512x512.png</image:loc>
+      <image:title>MC Painting Maker logo</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://mc-paintings.larosa.work/privacy.html</loc>

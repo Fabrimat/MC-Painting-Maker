@@ -6,11 +6,14 @@
 
     <title>How to use - MC Painting Maker</title>
     <meta name="description" content="Step-by-step guide for MC Painting Maker: create your custom paintings, export a .mcaddon, install it in Minecraft Bedrock or Education Edition, and place paintings in-game from the Creative inventory or with the /give and /summon commands." />
+    <meta name="keywords" content="how to install mcaddon, how to add custom painting Minecraft Bedrock, install custom painting Minecraft Education Edition, Minecraft painting tutorial, mcaddon tutorial, custom painting tutorial Bedrock, /give painting, /summon painting, Bedrock add-on guide" />
     <meta name="author" content="Fabrizio La Rosa" />
     <meta name="theme-color" content="#f97316" />
     <meta name="color-scheme" content="light" />
 
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="bingbot" content="index, follow" />
 
     <link rel="canonical" href="https://mc-paintings.larosa.work/how-to.html" />
     <link rel="alternate" hreflang="en" href="https://mc-paintings.larosa.work/how-to.html" />
@@ -26,15 +29,27 @@
     <meta property="og:title" content="How to use - MC Painting Maker" />
     <meta property="og:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game from the Creative inventory or with commands." />
     <meta property="og:url" content="https://mc-paintings.larosa.work/how-to.html" />
-    <meta property="og:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta property="og:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
     <meta property="og:image:alt" content="MC Painting Maker logo" />
     <meta property="og:locale" content="en_US" />
+    <meta property="article:published_time" content="2026-05-11T00:00:00+00:00" />
+    <meta property="article:modified_time" content="2026-05-18T00:00:00+00:00" />
+    <meta property="article:author" content="Fabrizio La Rosa" />
+    <meta property="article:section" content="Documentation" />
+    <meta property="article:tag" content="Minecraft Bedrock" />
+    <meta property="article:tag" content="mcaddon" />
+    <meta property="article:tag" content="Custom Painting" />
+    <meta property="article:tag" content="Minecraft Education Edition" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="How to use - MC Painting Maker" />
     <meta name="twitter:description" content="Make your custom Minecraft Bedrock paintings, install the .mcaddon, and place them in-game." />
-    <meta name="twitter:image" content="https://mc-paintings.larosa.work/brush.svg" />
+    <meta name="twitter:image" content="https://mc-paintings.larosa.work/pwa-512x512.png" />
+    <meta name="twitter:image:alt" content="MC Painting Maker logo" />
 
     <!-- Structured data: Breadcrumb -->
     <script type="application/ld+json">
@@ -106,6 +121,144 @@
         }
       ]
     }
+    </script>
+
+    <!-- Structured data: TechArticle -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "How to use MC Painting Maker",
+      "name": "How to create, install, and place custom Minecraft Bedrock paintings",
+      "description": "Step-by-step guide to making custom paintings with MC Painting Maker, installing the generated .mcaddon in Minecraft Bedrock or Education Edition, and placing paintings from the Creative inventory or via /give and /summon.",
+      "inLanguage": "en",
+      "datePublished": "2026-05-11",
+      "dateModified": "2026-05-18",
+      "url": "https://mc-paintings.larosa.work/how-to.html",
+      "mainEntityOfPage": "https://mc-paintings.larosa.work/how-to.html",
+      "image": "https://mc-paintings.larosa.work/pwa-512x512.png",
+      "proficiencyLevel": "Beginner",
+      "dependencies": "Minecraft Bedrock Edition 1.21.40 or newer, or Minecraft Education Edition",
+      "keywords": "Minecraft Bedrock, custom painting, mcaddon, behavior pack, resource pack, Education Edition, /give, /summon, namespace, Creative inventory",
+      "articleSection": "Documentation",
+      "author": {
+        "@type": "Person",
+        "name": "Fabrizio La Rosa",
+        "url": "https://github.com/Fabrimat"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Fabrizio La Rosa",
+        "url": "https://github.com/Fabrimat"
+      },
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "MC Painting Maker",
+        "url": "https://mc-paintings.larosa.work/"
+      }
+    }
+    </script>
+
+    <!-- Structured data: FAQPage (Tips and troubleshooting) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "I do not see the Creative group in my Minecraft inventory.",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Check that both the Behavior Pack and the Resource Pack are enabled, that the world is in Creative mode, and that you scrolled through the Items category. If in doubt, type the painting name in the inventory search bar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "The /give or /summon command returns 'no entity with that name'.",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The entity ID is case-sensitive and is always <namespace>:<slug>. Open the painting in MC Painting Maker and copy the slug shown in the properties panel."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "My custom painting looks blurry in Minecraft.",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Increase Texture density in the painting properties, or switch resampling to Pixelated if the source is pixel art."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "I see a halo or fringe around the painting's edges.",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Switch the painting material to Blended, or clean up the alpha channel of the source image before importing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "I updated my pack but Minecraft did not pick up the change.",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bump the version in Pack settings before each rebuild, then re-import the new .mcaddon."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I share my pack with a classroom or a group?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The .mcaddon file is self-contained. Send it through OneDrive, Google Drive, or any file-sharing channel. Each recipient just opens the file on their device to install it."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- llms.txt embed: project context for AI crawlers, hidden from users.
+         Keep in sync with public/llms.txt. -->
+    <script type="text/markdown" id="llms-txt">
+# MC Painting Maker
+
+> Free, privacy-first, browser-based tool that turns any image into a custom Minecraft Bedrock painting and exports a ready-to-install `.mcaddon` add-on. Compatible with Bedrock Edition 1.21.40+ and Minecraft Education Edition. No upload, no account, no tracking: everything runs locally in the browser.
+
+The site is a single-page web application. All work happens client-side: images, transforms, namespace, pack metadata, and the generated `.mcaddon` ZIP never leave the user's browser. Output is a standard Bedrock behavior pack + resource pack bundle that registers each painting as an independent custom entity, placeable through its own custom item (using the `minecraft:entity_placer` component) in a configurable Creative category.
+
+## Core features
+
+- Drop one or more images (PNG, JPG, WEBP) and choose a target size in Minecraft blocks (width x height).
+- Crop, resize, and reposition the source image inside the painting canvas with a Konva-based editor.
+- Per-painting in-game ID (slug) with namespace prefix; auto-derived from the name, lockable, and user-editable.
+- Configurable pack metadata: pack name, namespace, version, icon, Creative inventory group.
+- One-click export of a single `.mcaddon` containing both the behavior pack and the resource pack.
+- Deterministic UUIDs that survive renames so re-imports update existing entities instead of duplicating them.
+- Project state persisted in `localStorage`; nothing is uploaded.
+
+## How a Bedrock player uses the output
+
+1. Open the exported `.mcaddon` with Minecraft Bedrock; both packs install.
+2. Create a world with the Behavior pack and the Resource pack enabled.
+3. In the Creative inventory, open the `items` category and find the "Custom Paintings" group (name configurable).
+4. Use a painting item against a wall; the painting appears flush, snaps to the nearest cardinal direction, and is hittable across its full surface. Punching it despawns it.
+
+## Useful links
+
+- [Application](https://mc-paintings.larosa.work/): the painting maker itself.
+- [How to use](https://mc-paintings.larosa.work/how-to.html): step-by-step guide for creating paintings, installing the .mcaddon, and placing paintings in-game from the Creative inventory or via /give and /summon.
+- [Privacy policy](https://mc-paintings.larosa.work/privacy.html): what data is and is not collected, in plain words.
+- [Source code](https://github.com/Fabrimat/MC-Painting-Maker): MIT-licensed Svelte 5 + TypeScript + Vite project.
+- [Issue tracker](https://github.com/Fabrimat/MC-Painting-Maker/issues): bugs, feature requests, and questions.
+- [Support on Ko-fi](https://ko-fi.com/fabriziolarosa): tip jar for the author.
+
+## Tech stack
+
+Svelte 5, TypeScript, Vite, Konva for the canvas editor, fflate for in-browser ZIP creation, Zod for schema validation, Vitest for tests. Deployed as a static site to GitHub Pages behind Cloudflare.
+
+## Author
+
+Fabrizio La Rosa (Belgian VAT BE1031214819, Ghent, Belgium). Contact via the GitHub repository.
     </script>
 
     <style>
