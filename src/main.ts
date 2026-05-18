@@ -1,10 +1,11 @@
 import './app.css';
-import './pwa/register';
+import { recoverIfStaleSWNavigation } from './pwa/register';
 import { initIncomingFiles } from './pwa/incomingFiles';
 import { initInstallTracking } from './pwa/installTracking';
 import { mount } from 'svelte';
 import App from './App.svelte';
 
+void recoverIfStaleSWNavigation();
 initIncomingFiles();
 initInstallTracking();
 
