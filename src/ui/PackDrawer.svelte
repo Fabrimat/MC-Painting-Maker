@@ -2,10 +2,38 @@
   import { project } from '../stores/project';
   import { packDrawerOpen } from '../stores/ui';
   import { devMode } from '../stores/devMode';
+  import { v4 as uuidv4 } from 'uuid';
   import { z } from 'zod';
+  import type { PackUUIDs } from '../paintings/types';
 
   export let onimport: () => void = () => {};
   export let onexport: () => void = () => {};
+
+  const UUID_LABELS: Record<keyof PackUUIDs, string> = {
+    bpHeader: 'BP header',
+    bpModule: 'BP module',
+    bpScriptModule: 'BP script module',
+    rpHeader: 'RP header',
+    rpModule: 'RP module',
+  };
+  const UUID_KEYS = Object.keys(UUID_LABELS) as (keyof PackUUIDs)[];
+  function regenUuid(key: keyof PackUUIDs) {
+    project.update((s) => ({ ...s, uuids: { ...s.uuids, [key]: uuidv4() } }));
+  }
+  function regenAllUuids() {
+    project.update((s) => ({
+      ...s,
+      uuids: {
+        bpHeader: uuidv4(), bpModule: uuidv4(), bpScriptModule: uuidv4(),
+        rpHeader: uuidv4(), rpModule: uuidv4(),
+      },
+    }));
+  }
+  function setProjectVersion(e: Event) {
+    const n = (e.currentTarget as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(n)) return;
+    project.update((s) => ({ ...s, version: n as 2 }));
+  }
 
   const NamespaceTest = z.string()
     .regex(/^[a-z][a-z0-9_]{0,15}$/)
@@ -166,6 +194,54 @@
           A mode intended for website development and debugging.
         </p>
       </section>
+
+      <section class="debug-section">
+        <h4 class="section-title">Debug · Project state</h4>
+        <p class="section-hint">
+          Raw values from the saved project. Edits skip the usual safeguards
+          and may break the build until corrected.
+        </p>
+
+        <label class="stack">
+          <span class="field-label">Schema version</span>
+          <input class="field" type="number" min="0" step="1"
+            value={$project.version}
+            on:input={setProjectVersion}
+            aria-label="Project schema version" />
+        </label>
+
+        <span class="field-label">Min engine version</span>
+        <div class="row3">
+          <input class="field" type="number" min="0" bind:value={$project.pack.minEngineVersion[0]} aria-label="Min engine major" />
+          <input class="field" type="number" min="0" bind:value={$project.pack.minEngineVersion[1]} aria-label="Min engine minor" />
+          <input class="field" type="number" min="0" bind:value={$project.pack.minEngineVersion[2]} aria-label="Min engine patch" />
+        </div>
+
+        <div class="uuid-head">
+          <span class="field-label">Pack UUIDs</span>
+          <button type="button" class="link" on:click={regenAllUuids}>Regenerate all</button>
+        </div>
+        {#each UUID_KEYS as key (key)}
+          <label class="stack uuid-stack">
+            <span class="field-hint">{UUID_LABELS[key]}</span>
+            <span class="uuid-row">
+              <input class="field uuid-input"
+                bind:value={$project.uuids[key]}
+                aria-label={`${UUID_LABELS[key]} UUID`} />
+              <button type="button" class="uuid-regen"
+                on:click={() => regenUuid(key)}
+                aria-label={`Regenerate ${UUID_LABELS[key]} UUID`}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                  <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                  <path d="M3 21v-5h5"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+        {/each}
+      </section>
     {/if}
 
     <footer class="build-info">
@@ -249,7 +325,27 @@
   }
   .debug-section .section-title { color: var(--cta); margin: 0 0 var(--space-2); }
   .debug-section .section-title::before { background: var(--cta); }
-  .debug-section .section-hint { margin: 0; color: var(--text); }
+  .debug-section .section-hint { color: var(--text); }
+  .uuid-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .uuid-stack { gap: 2px; }
+  .uuid-row {
+    display: flex; align-items: stretch; gap: var(--space-2);
+  }
+  .uuid-input {
+    flex: 1; min-width: 0;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--fs-xs);
+  }
+  .uuid-regen {
+    width: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    color: var(--text-muted);
+  }
+  .uuid-regen:hover { background: var(--surface-2); color: var(--cta-hover); }
   .debug-toggle {
     display: inline-flex; align-items: center; gap: var(--space-2);
     cursor: pointer; user-select: none;

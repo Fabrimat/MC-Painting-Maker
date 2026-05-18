@@ -187,7 +187,7 @@
         <path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
       </svg>
       <strong>DEBUG MODE</strong>
-      <span>Dedicated to website development and debugging. Extra logs in the console, raw <code>.zip</code> export in the topbar.</span>
+      <span>Dedicated to website development and debugging.</span>
       <button type="button" class="banner-off" on:click={() => devMode.set(false)}>Turn off</button>
     </div>
   {/if}
@@ -247,11 +247,6 @@
   }
   .debug-banner span {
     flex: 1; font-weight: 500; opacity: .95;
-  }
-  .debug-banner code {
-    font-family: var(--font-mono, ui-monospace, monospace);
-    background: rgba(255,255,255,.18);
-    padding: 0 4px; border-radius: var(--radius-sm);
   }
   .banner-off {
     padding: 4px 10px; border-radius: var(--radius);
