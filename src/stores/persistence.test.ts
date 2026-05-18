@@ -33,7 +33,7 @@ describe('loadFromStorage', () => {
     devMode.set(false);
     expect(loadFromStorage()).toBeNull();
   });
-  it('falls back to the raw parsed payload when debug mode is on', () => {
+  it('returns the raw parsed payload verbatim when debug mode is on', () => {
     const s = createProjectStore();
     const broken = { ...get(s), version: 99 };
     localStorage.setItem(KEY, JSON.stringify(broken));
@@ -41,6 +41,14 @@ describe('loadFromStorage', () => {
     const loaded = loadFromStorage();
     expect(loaded).not.toBeNull();
     expect((loaded as { version: number }).version).toBe(99);
+  });
+  it('does not auto-migrate v1 to v2 when debug mode is on', () => {
+    const s = createProjectStore();
+    const downgraded = { ...get(s), version: 1 };
+    localStorage.setItem(KEY, JSON.stringify(downgraded));
+    devMode.set(true);
+    const loaded = loadFromStorage();
+    expect((loaded as { version: number }).version).toBe(1);
   });
   it('still returns null when JSON itself is malformed, even in debug mode', () => {
     localStorage.setItem(KEY, '{ not json');

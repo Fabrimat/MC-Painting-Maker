@@ -21,19 +21,19 @@ export function loadFromStorage(): ProjectState | null {
     devLog('persist', 'load: json parse failed', err);
     return null;
   }
+  if (get(devMode)) {
+    // Debug mode: skip migrate() + ProjectSchema.parse() so deliberately
+    // raw-edited values (e.g. schema version downgraded to 1) round trip
+    // verbatim instead of being auto-upgraded or rejected.
+    devLog('persist', 'load: debug raw passthrough', { bytes: raw.length });
+    return parsed as ProjectState;
+  }
   try {
     const migrated = migrate(parsed);
     const state = ProjectSchema.parse(migrated);
     devLog('persist', 'load: ok', { paintings: state.paintings.length, bytes: raw.length });
     return state;
   } catch (err) {
-    if (get(devMode)) {
-      // Debug mode: round-trip the saved bytes verbatim so deliberately invalid
-      // raw edits (schema version, UUIDs, slugVersion, etc.) persist across
-      // reloads instead of being silently reset to a fresh project.
-      devLog('persist', 'load: validation failed, debug raw passthrough', err);
-      return parsed as ProjectState;
-    }
     devLog('persist', 'load: parse failed', err);
     return null;
   }
