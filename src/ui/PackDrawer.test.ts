@@ -96,4 +96,23 @@ describe('PackDrawer', () => {
     await fireEvent.click(checkbox);
     expect(get(devMode)).toBe(false);
   });
+
+  it('renders the auto-bump checkbox checked by default', () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { getByLabelText } = render(PackDrawer);
+    const checkbox = getByLabelText(/Auto-bump patch/) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+  });
+
+  it('toggling the auto-bump checkbox writes to project.pack.autoBumpVersion', async () => {
+    project.set(createEmptyProject());
+    packDrawerOpen.set(true);
+    const { getByLabelText } = render(PackDrawer);
+    const checkbox = getByLabelText(/Auto-bump patch/) as HTMLInputElement;
+    await fireEvent.click(checkbox);
+    expect(get(project).pack.autoBumpVersion).toBe(false);
+    await fireEvent.click(checkbox);
+    expect(get(project).pack.autoBumpVersion).toBe(true);
+  });
 });

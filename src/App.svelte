@@ -110,6 +110,17 @@
       const blob = await buildMcaddonBlob($project);
       downloadBlob(blob, archiveFilename($project));
       trackMcaddonBuilt($project.paintings.length);
+      // Bump the patch number AFTER the file is on disk so a failed build does
+      // not waste a version. Skipped when the user has opted out via Pack settings.
+      if ($project.pack.autoBumpVersion) {
+        project.update((s) => ({
+          ...s,
+          pack: {
+            ...s.pack,
+            semver: [s.pack.semver[0], s.pack.semver[1], s.pack.semver[2] + 1],
+          },
+        }));
+      }
     } catch (err) {
       trackBuildFailed(classifyBuildReason(err));
       showToast(`Build failed: ${(err as Error).message}`);

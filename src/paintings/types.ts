@@ -8,6 +8,9 @@ export type PackMeta = {
   minEngineVersion: SemVer;
   iconPngBase64: string | null;
   creativeGroupName: string;
+  // When true, the patch component of `semver` is incremented after every
+  // successful .mcaddon build so Minecraft sees a fresh version on import.
+  autoBumpVersion: boolean;
 };
 
 export type PackUUIDs = {

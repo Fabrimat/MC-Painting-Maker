@@ -18,6 +18,9 @@ export const PackMetaSchema = z.object({
   minEngineVersion: SemVerSchema,
   iconPngBase64: z.string().nullable(),
   creativeGroupName: z.string().min(1),
+  // Defaults to true so projects created before this field was introduced
+  // adopt the new behavior on load. Users can opt out via the Pack drawer.
+  autoBumpVersion: z.boolean().default(true),
 });
 
 // Each UUID slot is either an empty string (project has no identity yet - no images loaded)

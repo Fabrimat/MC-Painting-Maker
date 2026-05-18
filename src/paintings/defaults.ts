@@ -14,6 +14,7 @@ export function createEmptyProject(): ProjectState {
       minEngineVersion: [1, 21, 30],
       iconPngBase64: null,
       creativeGroupName: 'Custom Paintings',
+      autoBumpVersion: true,
     },
     // Identity is assigned lazily on the first image load via ensurePackUUIDs.
     uuids: {

@@ -124,6 +124,13 @@
         <input class="field" type="number" min="0" bind:value={$project.pack.semver[1]} aria-label="Minor version" />
         <input class="field" type="number" min="0" bind:value={$project.pack.semver[2]} aria-label="Patch version" />
       </div>
+      <label class="auto-bump">
+        <input type="checkbox" bind:checked={$project.pack.autoBumpVersion} />
+        <span>
+          Auto-bump patch after each successful build
+          <span class="field-hint">Increments the third number so Minecraft re-imports the pack.</span>
+        </span>
+      </label>
     </section>
 
     <section>
@@ -217,6 +224,13 @@
     padding: 0 var(--space-1);
     border-radius: var(--radius-sm);
   }
+  .auto-bump {
+    display: flex; align-items: flex-start; gap: var(--space-2);
+    cursor: pointer; user-select: none; margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+  }
+  .auto-bump input { margin-top: 3px; accent-color: var(--primary); }
+  .auto-bump .field-hint { display: block; margin-top: 2px; }
   .project-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
   .ghost {
     flex: 1 1 0; min-width: 0;

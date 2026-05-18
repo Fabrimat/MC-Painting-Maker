@@ -27,6 +27,19 @@ describe('ProjectSchema', () => {
     expect(() => ProjectSchema.parse(minimalProject)).not.toThrow();
   });
 
+  it('fills autoBumpVersion with true when the field is missing (legacy migration)', () => {
+    const parsed = ProjectSchema.parse(minimalProject);
+    expect(parsed.pack.autoBumpVersion).toBe(true);
+  });
+
+  it('preserves an explicit autoBumpVersion=false', () => {
+    const withFlag = {
+      ...minimalProject,
+      pack: { ...minimalProject.pack, autoBumpVersion: false },
+    };
+    expect(ProjectSchema.parse(withFlag).pack.autoBumpVersion).toBe(false);
+  });
+
   it('rejects an invalid namespace', () => {
     const bad = { ...minimalProject, pack: { ...minimalProject.pack, namespace: 'Invalid-Name' } };
     expect(() => ProjectSchema.parse(bad)).toThrow();
