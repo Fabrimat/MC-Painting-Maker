@@ -84,4 +84,47 @@ describe('buildEntityBehavior', () => {
     expect(trigger.event).toBeUndefined();
     expect(trigger.target).toBeUndefined();
   });
+
+  it('exposes a flat_orient component group with a flat custom_hit_test for floor/ceiling', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('G', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    p.canvasW16 = 32; p.canvasH16 = 16;
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const ent = j['minecraft:entity'] as any;
+    const flat = ent.component_groups.flat_orient;
+    expect(flat).toBeDefined();
+    const hb = flat['minecraft:custom_hit_test'].hitboxes;
+    expect(hb).toHaveLength(1);
+    // Square footprint that covers the longer canvas side (W=2, H=1 -> 2).
+    expect(hb[0].width).toBeCloseTo(2);
+    // Thin in world Y after rotation (1 pixel).
+    expect(hb[0].height).toBeCloseTo(1 / 16);
+    // Same pivot as the wall hitbox: rotates with the entity, so X=+/-90 lands above/below.
+    expect(hb[0].pivot[0]).toBeCloseTo(1 - 0.5);
+    expect(hb[0].pivot[1]).toBeCloseTo(0.5);
+    expect(hb[0].pivot[2]).toBeCloseTo(-7 / 16);
+  });
+
+  it('flat_orient hitbox clamps width to 1/16 minimum for zero-canvas paintings', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('H', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    p.canvasW16 = 0; p.canvasH16 = 0;
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const flat = (j['minecraft:entity'] as any).component_groups.flat_orient;
+    const hb = flat['minecraft:custom_hit_test'].hitboxes[0];
+    expect(hb.width).toBeCloseTo(1 / 16);
+    expect(hb.height).toBeCloseTo(1 / 16);
+  });
+
+  it('emits a set_flat_orient event that adds the flat_orient component group', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('I', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const ev = (j['minecraft:entity'] as any).events.set_flat_orient;
+    expect(ev).toBeDefined();
+    expect(ev.add.component_groups).toContain('flat_orient');
+  });
 });

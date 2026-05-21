@@ -10,6 +10,11 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
   const H = painting.canvasH16 / 16;
   const width = Math.max(W, 1 / 16);
   const height = Math.max(H, 1 / 16);
+  // For floor/ceiling orientations the painting plane is horizontal in world,
+  // so the AABB hitbox is a thin slab. custom_hit_test only exposes width and
+  // height (square footprint), so we pick max(W,H) to cover the long side and
+  // accept a small overhang on the short side.
+  const flatFootprint = Math.max(W, H, 1 / 16);
   const family = `${p.pack.namespace}_painting`;
 
   return {
@@ -49,9 +54,24 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
       },
       events: {
         despawn_self: { add: { component_groups: ['instant_despawn'] } },
+        set_flat_orient: { add: { component_groups: ['flat_orient'] } },
       },
       component_groups: {
         instant_despawn: { 'minecraft:instant_despawn': {} },
+        // Activated by the script when the painting is placed on a floor or
+        // ceiling (entity rotation X=+/-90). The pivot is identical to the
+        // wall hitbox in entity-local space so it rotates with the entity;
+        // dimensions are flat: a square footprint covering the long side of
+        // the canvas, 1 pixel thin in world Y.
+        flat_orient: {
+          'minecraft:custom_hit_test': {
+            hitboxes: [{
+              pivot: [width / 2 + X_PIVOT_OFFSET_BLOCKS, height / 2, -7 / 16],
+              width: flatFootprint,
+              height: 1 / 16,
+            }],
+          },
+        },
       },
     },
   };
