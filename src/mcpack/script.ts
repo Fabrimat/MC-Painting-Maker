@@ -13,8 +13,15 @@ world.afterEvents.entitySpawn.subscribe((event) => {
   if (!e.isValid) return;
   const r = e.getRotation();
   const snappedY = Math.round(r.y / 90) * 90;
+  // Pitch snap: -90 (ceiling), 0 (wall), +90 (floor). The placer propagates
+  // the player's pitch to the entity at spawn, so we just round and clamp.
+  const snappedX = Math.max(-90, Math.min(90, Math.round(r.x / 90) * 90));
   if (!e.isValid) return;
-  e.setRotation({ x: 0, y: snappedY });
+  e.setRotation({ x: snappedX, y: snappedY });
+  if (Math.abs(snappedX) === 90) {
+    if (!e.isValid) return;
+    e.triggerEvent("set_flat_orient");
+  }
 });
 `;
 }
