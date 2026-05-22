@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { addImagesToProject } from './import';
-import { createEmptyProject } from './defaults';
+import { createEmptyProject, MAX_PROJECT_VERSION } from './defaults';
 
 // happy-dom does not implement createImageBitmap. Provide a stub that returns
 // a zero-dimension ImageBitmap object, which is what the happy-dom docs imply
@@ -54,5 +54,34 @@ describe('addImagesToProject', () => {
     const result = await addImagesToProject(state, []);
     expect(result.state).toBe(state);
     expect(result.addedIds).toEqual([]);
+  });
+
+  it('bumps an empty legacy v2 project to the latest schema on first image load', async () => {
+    // Simulate a legacy v2 project still empty: no items in any inventory,
+    // so the version bump cannot invalidate anything yet.
+    const legacy = { ...createEmptyProject(), version: 2 as const, paintings: [] };
+    const result = await addImagesToProject(legacy, [makeFile('a.png')]);
+    expect(result.state.version).toBe(MAX_PROJECT_VERSION);
+  });
+
+  it('does not change the version when adding to a project that already has paintings', async () => {
+    // Existing v2 project with paintings already in it: keep v2 so addons
+    // already imported into worlds stay byte-identical (matches migrate()).
+    const first = await addImagesToProject(
+      { ...createEmptyProject(), version: 2 as const, paintings: [] },
+      [makeFile('a.png')],
+    );
+    expect(first.state.version).toBe(MAX_PROJECT_VERSION);
+    // Pretend the user re-loaded the project at v2 with the painting in place.
+    const stillLegacy = { ...first.state, version: 2 as const };
+    const second = await addImagesToProject(stillLegacy, [makeFile('b.png')]);
+    expect(second.state.version).toBe(2);
+  });
+
+  it('leaves the version alone when the empty project is already at MAX_PROJECT_VERSION', async () => {
+    const state = createEmptyProject();
+    expect(state.version).toBe(MAX_PROJECT_VERSION);
+    const result = await addImagesToProject(state, [makeFile('a.png')]);
+    expect(result.state.version).toBe(MAX_PROJECT_VERSION);
   });
 });

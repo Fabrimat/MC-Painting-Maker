@@ -1,5 +1,5 @@
 import type { ProjectState, Painting, Source } from './types';
-import { createPaintingFromImage, ensurePackUUIDs } from './defaults';
+import { createPaintingFromImage, ensurePackUUIDs, MAX_PROJECT_VERSION } from './defaults';
 import { devLog } from '../util/devlog';
 
 function stripExt(name: string): string {
@@ -46,12 +46,22 @@ export async function addImagesToProject(
     additions.push(createPaintingFromImage(stripExt(f.name), src));
   }
   const withUuids = ensurePackUUIDs(state);
+  // Empty legacy projects (v2 from a localStorage carryover) can safely
+  // adopt the latest schema at this point: there is no painting yet, so
+  // no item identifier exists to invalidate in already-imported worlds.
+  // Once the first painting is loaded we lock the version, mirroring the
+  // policy in migrate(): keep existing addons reproducible.
+  const versionBumped = withUuids.paintings.length === 0 && withUuids.version !== MAX_PROJECT_VERSION
+    ? { ...withUuids, version: MAX_PROJECT_VERSION }
+    : withUuids;
   devLog('import', 'addImagesToProject done', {
     added: additions.length,
-    totalPaintings: withUuids.paintings.length + additions.length,
+    totalPaintings: versionBumped.paintings.length + additions.length,
+    version: versionBumped.version,
+    bumped: versionBumped !== withUuids,
   });
   return {
-    state: { ...withUuids, paintings: [...withUuids.paintings, ...additions] },
+    state: { ...versionBumped, paintings: [...versionBumped.paintings, ...additions] },
     addedIds: additions.map((p) => p.id),
   };
 }
