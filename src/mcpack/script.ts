@@ -69,9 +69,9 @@ function isPlacerItem(typeId) {
     && typeId.endsWith(ITEM_SUFFIX);
 }
 
-function storeIntent(playerId, blockFace, via) {
-  intents.set(playerId, { face: blockFace, t: Date.now() });
-  dbg("intent stored", { playerId, face: String(blockFace), via, size: intents.size });
+function storeIntent(playerId, blockFace, faceLocation, via) {
+  intents.set(playerId, { face: blockFace, faceLocation, t: Date.now() });
+  dbg("intent stored", { playerId, face: String(blockFace), via, hasFaceLoc: !!faceLocation, size: intents.size });
 }
 
 // Intent capture must happen on a BEFORE event: in this Bedrock runtime
@@ -84,18 +84,18 @@ safeSubscribe("beforePlayerInteractWithBlock", world.beforeEvents && world.befor
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
-  dbg("beforePlayerInteractWithBlock", { item: stack.typeId, matched, face: String(event.blockFace), player: event.player.name });
+  dbg("beforePlayerInteractWithBlock", { item: stack.typeId, matched, face: String(event.blockFace), player: event.player.name, faceLocation: event.faceLocation });
   if (!matched) return;
-  storeIntent(event.player.id, event.blockFace, "beforeInteract");
+  storeIntent(event.player.id, event.blockFace, event.faceLocation, "beforeInteract");
 });
 
 safeSubscribe("beforeItemUseOn", world.beforeEvents && world.beforeEvents.itemUseOn, (event) => {
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
-  dbg("beforeItemUseOn", { item: stack.typeId, matched, face: String(event.blockFace), player: event.source && event.source.name });
+  dbg("beforeItemUseOn", { item: stack.typeId, matched, face: String(event.blockFace), player: event.source && event.source.name, faceLocation: event.faceLocation });
   if (!matched || !event.source) return;
-  storeIntent(event.source.id, event.blockFace, "beforeItemUseOn");
+  storeIntent(event.source.id, event.blockFace, event.faceLocation, "beforeItemUseOn");
 });
 
 // After-event subscriptions are kept for diagnostics only - they fire too
@@ -176,6 +176,19 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
     if (!e.isValid) return;
     e.triggerEvent("set_flat_orient_ceiling");
     dbg("triggered set_flat_orient_ceiling");
+    // entity_placer falls back to a ground-level position when the click
+    // face points downward (its original use case was boats/armor stands,
+    // not ceiling-mounted entities). Snap the painting back onto the
+    // clicked face so it actually hangs from the ceiling instead of
+    // dropping a couple of blocks below it.
+    if (intent.faceLocation && e.isValid) {
+      try {
+        e.teleport(intent.faceLocation);
+        dbg("teleported to ceiling face", intent.faceLocation);
+      } catch (err) {
+        dbg("teleport failed", { error: String(err) });
+      }
+    }
   }
 });
 `;

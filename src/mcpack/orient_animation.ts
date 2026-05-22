@@ -23,6 +23,12 @@ export const ORIENT_CEILING_SHORTNAME = 'orient_ceiling';
 export const ORIENT_CONTROLLER_SHORTNAME = 'orient';
 
 export function buildOrientAnimations() {
+  // Rotation signs in Bedrock pitch the model so that the painting's front
+  // (north face of the geometry, the -Z direction in entity-local space)
+  // ends up facing the correct world direction:
+  //   floor   -> front faces +Y (up)    -> rotation [-90, 0, 0]
+  //   ceiling -> front faces -Y (down)  -> rotation [+90, 0, 0]
+  // Using the opposite signs flips the painting upside down on each surface.
   return {
     format_version: '1.10.0',
     animations: {
@@ -30,14 +36,14 @@ export function buildOrientAnimations() {
         loop: 'hold_on_last_frame' as const,
         animation_length: 0.05,
         bones: {
-          root: { rotation: [90, 0, 0] },
+          root: { rotation: [-90, 0, 0] },
         },
       },
       [ORIENT_ANIMATION_CEILING_ID]: {
         loop: 'hold_on_last_frame' as const,
         animation_length: 0.05,
         bones: {
-          root: { rotation: [-90, 0, 0] },
+          root: { rotation: [90, 0, 0] },
         },
       },
     },

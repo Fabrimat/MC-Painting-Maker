@@ -10,18 +10,18 @@ import {
 } from './orient_animation';
 
 describe('buildOrientAnimations', () => {
-  it('exposes a floor animation that rotates root +90 on X', () => {
+  it('rotates root -90 on X for floor so the painting front ends up facing up', () => {
     const j = buildOrientAnimations();
     const a = (j.animations as Record<string, { bones: { root: { rotation: number[] } } }>)[ORIENT_ANIMATION_FLOOR_ID];
     expect(a).toBeDefined();
-    expect(a.bones.root.rotation).toEqual([90, 0, 0]);
+    expect(a.bones.root.rotation).toEqual([-90, 0, 0]);
   });
 
-  it('exposes a ceiling animation that rotates root -90 on X', () => {
+  it('rotates root +90 on X for ceiling so the painting front ends up facing down', () => {
     const j = buildOrientAnimations();
     const a = (j.animations as Record<string, { bones: { root: { rotation: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
     expect(a).toBeDefined();
-    expect(a.bones.root.rotation).toEqual([-90, 0, 0]);
+    expect(a.bones.root.rotation).toEqual([90, 0, 0]);
   });
 
   it('uses hold_on_last_frame so the rotation persists once the (tiny) animation ends', () => {

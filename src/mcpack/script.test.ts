@@ -105,6 +105,31 @@ describe('buildMainJs', () => {
     expect(code).not.toContain('triggerEvent("set_flat_orient")');
   });
 
+  it('captures faceLocation on the intent so ceiling placements can snap back to the click point', () => {
+    const code = buildMainJs('a');
+    // entity_placer drops the entity to a lower position when the click
+    // face points downward, so we keep the exact click coordinate and use
+    // it to teleport the painting up to the ceiling after spawn.
+    expect(code).toContain('event.faceLocation');
+    expect(code).toMatch(/storeIntent\([^)]*event\.faceLocation/);
+  });
+
+  it('teleports the entity to faceLocation only on ceiling placements (floor position is already correct)', () => {
+    const code = buildMainJs('a');
+    const ceilingBranch = code.slice(
+      code.indexOf('intent.face === "Down"'),
+      code.indexOf('});', code.indexOf('intent.face === "Down"')),
+    );
+    expect(ceilingBranch).toMatch(/e\.teleport\(intent\.faceLocation\)/);
+    // Floor branch must not teleport - user reported floor position was
+    // correct, only the model orientation was upside down.
+    const floorBranch = code.slice(
+      code.indexOf('intent.face === "Up"'),
+      code.indexOf('intent.face === "Down"'),
+    );
+    expect(floorBranch).not.toContain('teleport');
+  });
+
   it('consumes the intent on matching entitySpawn so it is not reused', () => {
     const code = buildMainJs('a');
     // takeIntentFor must remove the picked intent from the map; otherwise
