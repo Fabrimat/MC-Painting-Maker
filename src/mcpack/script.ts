@@ -169,21 +169,30 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
   e.setRotation({ x: 0, y: snappedY });
   dbg("setRotation", { x: 0, y: snappedY });
   // The entity has NO hitbox until one of the orientation component groups
-  // is added (see entity.ts). Pick the one matching the clicked face so the
-  // painting becomes clickable in the right shape and position. Without an
-  // intent (e.g. /summon) we default to the wall orientation - that is the
-  // shape that overlaps the geometry's default pose.
-  if (!e.isValid) return;
+  // is added (see entity.ts). 4 cardinal directions x 3 surface verses = 12
+  // groups total. The wall direction comes straight from the clicked block
+  // face; for floor/ceiling we derive it from the entity's yaw (snapped to
+  // a cardinal). Without an intent (e.g. /summon) we default to wall_north.
+  const DIRS = ["north", "east", "south", "west"];
+  const FACE_TO_INDEX = { North: 0, East: 1, South: 2, West: 3 };
+  let surface = "wall";
+  let dirIndex = 0;
   if (intent && intent.face === "Up") {
-    e.triggerEvent("set_oriented_floor");
-    dbg("triggered set_oriented_floor");
+    surface = "floor";
+    dirIndex = ((Math.round(snappedY / 90) % 4) + 4) % 4;
   } else if (intent && intent.face === "Down") {
-    e.triggerEvent("set_oriented_ceiling");
-    dbg("triggered set_oriented_ceiling");
-  } else {
-    e.triggerEvent("set_oriented_wall");
-    dbg("triggered set_oriented_wall", { face: intent ? String(intent.face) : null });
+    surface = "ceiling";
+    dirIndex = ((Math.round(snappedY / 90) % 4) + 4) % 4;
+  } else if (intent) {
+    surface = "wall";
+    const fromFace = FACE_TO_INDEX[String(intent.face)];
+    dirIndex = typeof fromFace === "number" ? fromFace : 0;
   }
+  const dir = DIRS[dirIndex];
+  const eventName = "set_oriented_" + surface + "_" + dir;
+  if (!e.isValid) return;
+  e.triggerEvent(eventName);
+  dbg("triggered " + eventName, { surface, dir, face: intent ? String(intent.face) : null });
 });
 `;
 }

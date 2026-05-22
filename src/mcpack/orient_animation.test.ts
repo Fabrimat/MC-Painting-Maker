@@ -36,24 +36,26 @@ describe('buildOrientAnimations', () => {
 });
 
 describe('buildOrientAnimationController', () => {
-  it('routes mark_variant 1 to the floor state and 2 to the ceiling state', () => {
+  it('routes mark_variant 21..24 to the floor state and 31..34 to the ceiling state', () => {
     const j = buildOrientAnimationController();
     const states = (j.animation_controllers as any)[ORIENT_CONTROLLER_ID].states as Record<string, {
       transitions?: Array<Record<string, string>>;
       animations?: string[];
     }>;
-    expect(states.default.transitions).toContainEqual({ floor: 'q.mark_variant == 1' });
-    expect(states.default.transitions).toContainEqual({ ceiling: 'q.mark_variant == 2' });
+    // Per-surface contiguous integer ranges (tens digit = surface) so the
+    // 4 per-cardinal mark_variant values all land in the same state.
+    expect(states.default.transitions).toContainEqual({ floor: 'q.mark_variant >= 21 && q.mark_variant <= 24' });
+    expect(states.default.transitions).toContainEqual({ ceiling: 'q.mark_variant >= 31 && q.mark_variant <= 34' });
     expect(states.floor.animations).toContain(ORIENT_FLOOR_SHORTNAME);
     expect(states.ceiling.animations).toContain(ORIENT_CEILING_SHORTNAME);
   });
 
-  it('transitions back to default when mark_variant changes (so removing the component group reverts the rotation)', () => {
+  it('transitions back to default when mark_variant leaves the active range', () => {
     const j = buildOrientAnimationController();
     const states = (j.animation_controllers as any)[ORIENT_CONTROLLER_ID].states as Record<string, {
       transitions?: Array<Record<string, string>>;
     }>;
-    expect(states.floor.transitions).toContainEqual({ default: 'q.mark_variant != 1' });
-    expect(states.ceiling.transitions).toContainEqual({ default: 'q.mark_variant != 2' });
+    expect(states.floor.transitions).toContainEqual({ default: 'q.mark_variant < 21 || q.mark_variant > 24' });
+    expect(states.ceiling.transitions).toContainEqual({ default: 'q.mark_variant < 31 || q.mark_variant > 34' });
   });
 });

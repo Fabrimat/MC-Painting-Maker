@@ -81,13 +81,18 @@ describe('buildMainJs', () => {
     expect(code).toMatch(/typeId\.endsWith\(ITEM_SUFFIX\)/);
   });
 
-  it('maps blockFace Up to the floor event, Down to the ceiling event, and anything else (or null intent) to the wall event', () => {
+  it('picks one of 12 oriented event names from face + yaw (4 cardinals x 3 surfaces)', () => {
     const code = buildMainJs('a');
-    expect(code).toMatch(/intent\.face === "Up"[\s\S]*triggerEvent\("set_oriented_floor"\)/);
-    expect(code).toMatch(/intent\.face === "Down"[\s\S]*triggerEvent\("set_oriented_ceiling"\)/);
-    // Wall is the fallback branch (covers N/S/E/W blockFaces and intent-less
-    // spawns such as /summon), so the entity always ends up with a hitbox.
-    expect(code).toMatch(/else\s*\{[\s\S]*triggerEvent\("set_oriented_wall"\)/);
+    // Direction lookup tables in the generated script.
+    expect(code).toContain('const DIRS = ["north", "east", "south", "west"]');
+    expect(code).toContain('const FACE_TO_INDEX = { North: 0, East: 1, South: 2, West: 3 }');
+    // Floor/ceiling branches derive direction from the entity yaw.
+    expect(code).toMatch(/intent\.face === "Up"[\s\S]*surface = "floor"[\s\S]*dirIndex = \(\(Math\.round\(snappedY \/ 90\)/);
+    expect(code).toMatch(/intent\.face === "Down"[\s\S]*surface = "ceiling"/);
+    // Wall branch picks direction from the block face that was clicked.
+    expect(code).toContain('FACE_TO_INDEX[String(intent.face)]');
+    // Single trigger site builds the event name from surface + direction.
+    expect(code).toContain('"set_oriented_" + surface + "_" + dir');
   });
 
   it('keeps the entity pitch at 0 - rotation is driven by the client-side animation, not setRotation', () => {
@@ -99,14 +104,14 @@ describe('buildMainJs', () => {
     expect(code).not.toMatch(/setRotation\s*\(\s*\{[^}]*x:\s*snappedX/);
   });
 
-  it('triggers a separate oriented event per surface that maps 1:1 to the entity component groups', () => {
+  it('drops the legacy surface-only event names in favour of directional ones', () => {
     const code = buildMainJs('a');
-    expect(code).toContain('triggerEvent("set_oriented_wall")');
-    expect(code).toContain('triggerEvent("set_oriented_floor")');
-    expect(code).toContain('triggerEvent("set_oriented_ceiling")');
-    // No leftover legacy event names - those would route to nothing and
-    // the painting would silently end up without a hitbox.
+    // Legacy generic events from before the per-direction split would route
+    // to nothing and the painting would silently end up without a hitbox.
     expect(code).not.toContain('set_flat_orient');
+    expect(code).not.toContain('"set_oriented_wall"');
+    expect(code).not.toContain('"set_oriented_floor"');
+    expect(code).not.toContain('"set_oriented_ceiling"');
   });
 
   it('does not teleport the entity after spawn (position offsets are handled in the orient animation)', () => {
@@ -165,6 +170,6 @@ describe('buildMainJs', () => {
     expect(code).toContain('dbg("intent stored"');
     expect(code).toContain('dbg("painting spawned"');
     expect(code).toContain('dbg("setRotation"');
-    expect(code).toMatch(/dbg\("triggered set_oriented_(wall|floor|ceiling)"/);
+    expect(code).toMatch(/dbg\("triggered " \+ eventName/);
   });
 });

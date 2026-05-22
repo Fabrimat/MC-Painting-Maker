@@ -61,6 +61,14 @@ export function buildOrientAnimations() {
 }
 
 export function buildOrientAnimationController() {
+  // mark_variant ranges (set server-side in entity.ts):
+  //   11..14 = wall  (north / east / south / west) - default state, no
+  //            root-bone rotation; the entity yaw rotates the model.
+  //   21..24 = floor (north / east / south / west) - run floor animation.
+  //   31..34 = ceiling (north / east / south / west) - run ceiling animation.
+  // The animations themselves are not per-direction: yaw rotation of the
+  // model is handled by entity.setRotation() in the runtime script, so all
+  // four floor variants reuse the same root-pitch animation, ditto ceiling.
   return {
     format_version: '1.10.0',
     animation_controllers: {
@@ -69,20 +77,20 @@ export function buildOrientAnimationController() {
         states: {
           default: {
             transitions: [
-              { floor: 'q.mark_variant == 1' },
-              { ceiling: 'q.mark_variant == 2' },
+              { floor: 'q.mark_variant >= 21 && q.mark_variant <= 24' },
+              { ceiling: 'q.mark_variant >= 31 && q.mark_variant <= 34' },
             ],
           },
           floor: {
             animations: [ORIENT_FLOOR_SHORTNAME],
             transitions: [
-              { default: 'q.mark_variant != 1' },
+              { default: 'q.mark_variant < 21 || q.mark_variant > 24' },
             ],
           },
           ceiling: {
             animations: [ORIENT_CEILING_SHORTNAME],
             transitions: [
-              { default: 'q.mark_variant != 2' },
+              { default: 'q.mark_variant < 31 || q.mark_variant > 34' },
             ],
           },
         },
