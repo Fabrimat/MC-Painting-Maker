@@ -52,7 +52,7 @@ export function buildOrientAnimations() {
         bones: {
           root: {
             rotation: [90, 0, 0],
-            position: [0, 10, 8],
+            position: [0, 8, 8],
           },
         },
       },

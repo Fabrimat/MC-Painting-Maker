@@ -25,7 +25,7 @@ describe('buildOrientAnimations', () => {
     const a = (j.animations as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
     expect(a).toBeDefined();
     expect(a.bones.root.rotation).toEqual([90, 0, 0]);
-    expect(a.bones.root.position).toEqual([0, 10, 8]);
+    expect(a.bones.root.position).toEqual([0, 8, 8]);
   });
 
   it('uses hold_on_last_frame so the rotation persists once the (tiny) animation ends', () => {
