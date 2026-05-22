@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ProjectState, Painting, PackUUIDs, Source } from './types';
 import { ProjectSchema } from './schema';
 import { generatePaintingSlug, CURRENT_SLUG_VERSION } from './slug';
+import { DEFAULT_PACK_ICON_BASE64 } from './defaultPackIcon';
 
 export function createEmptyProject(): ProjectState {
   return {
@@ -14,7 +15,7 @@ export function createEmptyProject(): ProjectState {
       namespace: 'paintings',
       semver: [1, 0, 0],
       minEngineVersion: [1, 21, 30],
-      iconPngBase64: null,
+      iconPngBase64: DEFAULT_PACK_ICON_BASE64,
       creativeGroupName: 'Custom Paintings',
       autoBumpVersion: true,
     },

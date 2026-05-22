@@ -32,6 +32,33 @@ describe('assembleArchive', () => {
     }
   });
 
+  it('includes the default pack_icon.png in both BP and RP for a fresh project', async () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
+    proj.paintings.push(p);
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const zipped = await assembleArchive(proj, new Map([
+      [p.id, { texture: png, iconTexture: png }],
+    ]), png);
+    const names = Object.keys(unzipSync(zipped));
+    expect(names).toContain('BP_paintings/pack_icon.png');
+    expect(names).toContain('RP_paintings/pack_icon.png');
+  });
+
+  it('omits pack_icon.png when the user has explicitly cleared it', async () => {
+    const proj = createEmptyProject();
+    proj.pack.iconPngBase64 = null;
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
+    proj.paintings.push(p);
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const zipped = await assembleArchive(proj, new Map([
+      [p.id, { texture: png, iconTexture: png }],
+    ]), png);
+    const names = Object.keys(unzipSync(zipped));
+    expect(names).not.toContain('BP_paintings/pack_icon.png');
+    expect(names).not.toContain('RP_paintings/pack_icon.png');
+  });
+
   it('v2 (legacy): omits BP items/.item.json and writes _egg.png instead of _icon.png', async () => {
     const proj = { ...createEmptyProject(), version: 2 as const };
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
@@ -42,7 +69,7 @@ describe('assembleArchive', () => {
     ]), png);
     const names = Object.keys(unzipSync(zipped));
     expect(names.some((n) => n.includes('BP_paintings/items/'))).toBe(false);
-    expect(names.some((n) => n.endsWith('_icon.png'))).toBe(false);
+    expect(names.some((n) => n.includes('textures/items/') && n.endsWith('_icon.png'))).toBe(false);
     expect(names.some((n) => n.includes('textures/items/') && n.endsWith('_egg.png'))).toBe(true);
   });
 });
