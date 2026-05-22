@@ -86,34 +86,55 @@ describe('buildEntityBehavior', () => {
     expect(trigger.target).toBeUndefined();
   });
 
-  it('exposes flat_orient_floor and flat_orient_ceiling with a flat custom_hit_test and distinct mark_variants', () => {
+  it('tiles flat_orient_floor with one 1x1 hitbox per canvas block, extending north (-Z) from the entity', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('G', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 16;
+    p.canvasW16 = 32; p.canvasH16 = 16; // 2x1 painting
     proj.paintings.push(p);
     const j = buildEntityBehavior(proj, p);
-    const ent = j['minecraft:entity'] as any;
-    for (const [group, variant] of [
-      ['flat_orient_floor', 1],
-      ['flat_orient_ceiling', 2],
-    ] as const) {
-      const flat = ent.component_groups[group];
-      expect(flat, group).toBeDefined();
-      expect(flat['minecraft:mark_variant'].value, group).toBe(variant);
-      const hb = flat['minecraft:custom_hit_test'].hitboxes;
-      expect(hb).toHaveLength(1);
-      // Square footprint that covers the longer canvas side (W=2, H=1 -> 2).
-      expect(hb[0].width).toBeCloseTo(2);
-      // Thin in world Y after rotation (1 pixel).
-      expect(hb[0].height).toBeCloseTo(1 / 16);
-      // Same pivot as the wall hitbox: rotates with the entity.
-      expect(hb[0].pivot[0]).toBeCloseTo(1 - 0.5);
-      expect(hb[0].pivot[1]).toBeCloseTo(0.5);
-      expect(hb[0].pivot[2]).toBeCloseTo(-7 / 16);
+    const flat = (j['minecraft:entity'] as any).component_groups.flat_orient_floor;
+    expect(flat['minecraft:mark_variant'].value).toBe(1);
+    const hb = flat['minecraft:custom_hit_test'].hitboxes;
+    // 2 columns x 1 row = 2 unit hitboxes covering X=[-0.5, 1.5], Z=[-1.5, -0.5].
+    expect(hb).toHaveLength(2);
+    for (const h of hb) {
+      expect(h.width).toBeCloseTo(1);
+      expect(h.height).toBeCloseTo(1 / 16);
+      // Slab at the painting face Y after the floor animation lands.
+      expect(h.pivot[1]).toBeCloseTo(14.5 / 16);
+      // Single row in Z, centered at -1 block (north of the entity).
+      expect(h.pivot[2]).toBeCloseTo(-1);
     }
+    const xs = hb.map((h: any) => h.pivot[0]).sort();
+    expect(xs[0]).toBeCloseTo(0);
+    expect(xs[1]).toBeCloseTo(1);
   });
 
-  it('flat_orient hitboxes clamp width to 1/16 minimum for zero-canvas paintings', () => {
+  it('tiles flat_orient_ceiling with one 1x1 hitbox per canvas block, extending south (+Z) from the entity', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('G', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    p.canvasW16 = 16; p.canvasH16 = 32; // 1x2 painting
+    proj.paintings.push(p);
+    const j = buildEntityBehavior(proj, p);
+    const flat = (j['minecraft:entity'] as any).component_groups.flat_orient_ceiling;
+    expect(flat['minecraft:mark_variant'].value).toBe(2);
+    const hb = flat['minecraft:custom_hit_test'].hitboxes;
+    // 1 column x 2 rows = 2 unit hitboxes covering X=[-0.5, 0.5], Z=[0.5, 2.5].
+    expect(hb).toHaveLength(2);
+    for (const h of hb) {
+      expect(h.width).toBeCloseTo(1);
+      expect(h.height).toBeCloseTo(1 / 16);
+      // Slab at the painting face Y after the ceiling animation lands.
+      expect(h.pivot[1]).toBeCloseTo(1.5 / 16);
+      // Single column in X, centered at 0 blocks.
+      expect(h.pivot[0]).toBeCloseTo(0);
+    }
+    const zs = hb.map((h: any) => h.pivot[2]).sort();
+    expect(zs[0]).toBeCloseTo(1);
+    expect(zs[1]).toBeCloseTo(2);
+  });
+
+  it('uses a single right-sized hitbox for sub-block paintings instead of an oversized 1x1', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('H', { pngBase64: '', naturalW: 32, naturalH: 32 });
     p.canvasW16 = 0; p.canvasH16 = 0;
@@ -121,9 +142,11 @@ describe('buildEntityBehavior', () => {
     const j = buildEntityBehavior(proj, p);
     const ent = j['minecraft:entity'] as any;
     for (const group of ['flat_orient_floor', 'flat_orient_ceiling']) {
-      const hb = ent.component_groups[group]['minecraft:custom_hit_test'].hitboxes[0];
-      expect(hb.width).toBeCloseTo(1 / 16);
-      expect(hb.height).toBeCloseTo(1 / 16);
+      const hb = ent.component_groups[group]['minecraft:custom_hit_test'].hitboxes;
+      expect(hb).toHaveLength(1);
+      // Clamp keeps a clickable area even for a zero-canvas painting.
+      expect(hb[0].width).toBeCloseTo(1 / 16);
+      expect(hb[0].height).toBeCloseTo(1 / 16);
     }
   });
 
