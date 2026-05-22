@@ -168,14 +168,21 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
   if (!e.isValid) return;
   e.setRotation({ x: 0, y: snappedY });
   dbg("setRotation", { x: 0, y: snappedY });
+  // The entity has NO hitbox until one of the orientation component groups
+  // is added (see entity.ts). Pick the one matching the clicked face so the
+  // painting becomes clickable in the right shape and position. Without an
+  // intent (e.g. /summon) we default to the wall orientation - that is the
+  // shape that overlaps the geometry's default pose.
+  if (!e.isValid) return;
   if (intent && intent.face === "Up") {
-    if (!e.isValid) return;
-    e.triggerEvent("set_flat_orient_floor");
-    dbg("triggered set_flat_orient_floor");
+    e.triggerEvent("set_oriented_floor");
+    dbg("triggered set_oriented_floor");
   } else if (intent && intent.face === "Down") {
-    if (!e.isValid) return;
-    e.triggerEvent("set_flat_orient_ceiling");
-    dbg("triggered set_flat_orient_ceiling");
+    e.triggerEvent("set_oriented_ceiling");
+    dbg("triggered set_oriented_ceiling");
+  } else {
+    e.triggerEvent("set_oriented_wall");
+    dbg("triggered set_oriented_wall", { face: intent ? String(intent.face) : null });
   }
 });
 `;

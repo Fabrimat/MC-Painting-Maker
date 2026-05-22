@@ -5,13 +5,14 @@ import { entityId, usesPlacerItems } from './identifiers';
 // area stays flush with the rendered painting after the model's X shift.
 const X_PIVOT_OFFSET_BLOCKS = -8 / 16;
 
-// Tile a rectangular ground plane with unit (1x1) hitboxes so each painting
-// block of canvas gets its own clickable cell. custom_hit_test forces a
-// square footprint per hitbox, so a single hitbox cannot cover a non-square
-// painting without overhang; tiling is the only way to get accurate coverage.
-// For paintings smaller than one block on both axes a single right-sized
-// hitbox is returned, avoiding an oversized 1x1 hit area on tiny canvases.
 type Hitbox = { pivot: [number, number, number]; width: number; height: number };
+
+// Tile a rectangular ground plane (Y-thin slab) with unit (1x1) hitboxes so
+// each painting block of canvas gets its own clickable cell. custom_hit_test
+// forces a square footprint per hitbox, so a single hitbox cannot cover a
+// non-square painting without overhang; tiling is the only way to get
+// accurate coverage. Sub-block paintings collapse to a single right-sized
+// hitbox to avoid an oversized 1x1 hit area on tiny canvases.
 function tileFlatHitboxes(
   xRange: [number, number],
   yCenter: number,
@@ -42,6 +43,36 @@ function tileFlatHitboxes(
   return out;
 }
 
+// Tile a vertical wall plane with column-shaped hitboxes (1 wide x H tall x 1
+// deep). One column per canvas block of width. Z extent overshoots the
+// painting's 1/16 thickness but custom_hit_test forces a square XZ footprint,
+// so this is the closest we can get without exploding the hitbox count.
+function tileColumnHitboxes(
+  xRange: [number, number],
+  yCenter: number,
+  yHeight: number,
+  zCenter: number,
+): Hitbox[] {
+  const w = xRange[1] - xRange[0];
+  if (w <= 1) {
+    return [{
+      pivot: [(xRange[0] + xRange[1]) / 2, yCenter, zCenter],
+      width: Math.max(w, 1 / 16),
+      height: yHeight,
+    }];
+  }
+  const tilesX = Math.ceil(w);
+  const out: Hitbox[] = [];
+  for (let i = 0; i < tilesX; i++) {
+    out.push({
+      pivot: [xRange[0] + i + 0.5, yCenter, zCenter],
+      width: 1,
+      height: yHeight,
+    });
+  }
+  return out;
+}
+
 export function buildEntityBehavior(p: ProjectState, painting: Painting) {
   const W = painting.canvasW16 / 16;
   const H = painting.canvasH16 / 16;
@@ -57,6 +88,7 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
   //   ceiling (rot [+90,0,0], pos [0, 8,  8]):  Y -> [ 1, 2] px, Z -> [   8, H+8] px
   //   X is unchanged in both cases: [-0.5, W-0.5] blocks.
   // Hitbox Y is centered on the painting face slab (14.5 / 1.5 px in blocks).
+  const WALL_X: [number, number] = [-0.5, width - 0.5];
   const FLOOR_X: [number, number] = [-0.5, width - 0.5];
   const FLOOR_Z: [number, number] = [-(height + 0.5), -0.5];
   const FLOOR_Y_CENTER = 14.5 / 16;
@@ -80,9 +112,9 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
       components: {
         'minecraft:type_family': { family: [family, 'inanimate'] },
         'minecraft:collision_box': { width: 0, height: 0 },
-        'minecraft:custom_hit_test': {
-          hitboxes: [{ pivot: [width / 2 + X_PIVOT_OFFSET_BLOCKS, height / 2, -7 / 16], width, height }],
-        },
+        // No default custom_hit_test: hitboxes are added only via the
+        // direction-specific component groups below, so the player can only
+        // click the entity after the script has assigned it an orientation.
         'minecraft:physics': { has_collision: false, has_gravity: false },
         'minecraft:pushable': { is_pushable: false, is_pushable_by_piston: false },
         'minecraft:knockback_resistance': { value: 1000, max: 1000 },
@@ -102,26 +134,40 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
       },
       events: {
         despawn_self: { add: { component_groups: ['instant_despawn'] } },
-        set_flat_orient_floor: { add: { component_groups: ['flat_orient_floor'] } },
-        set_flat_orient_ceiling: { add: { component_groups: ['flat_orient_ceiling'] } },
+        set_oriented_wall: { add: { component_groups: ['oriented_wall'] } },
+        set_oriented_floor: { add: { component_groups: ['oriented_floor'] } },
+        set_oriented_ceiling: { add: { component_groups: ['oriented_ceiling'] } },
       },
       component_groups: {
         instant_despawn: { 'minecraft:instant_despawn': {} },
-        // Floor / ceiling component groups carry both the rotated hitbox set
-        // AND a mark_variant value that the client-side animation controller
-        // reads via Molang to play the matching root-bone rotation animation.
+        // One component group per placement surface. The script picks which
+        // event to trigger based on intent.face. Each group carries:
+        //   - minecraft:mark_variant so the client animation controller can
+        //     read q.mark_variant via Molang and pick the matching pose;
+        //   - minecraft:custom_hit_test sized to the visible painting plane
+        //     for that surface, with no general (default) hitbox to fall back
+        //     on - clickability requires an orientation to be set.
         //
-        // Hitboxes are tiled with 1x1 unit cells covering the painting's
-        // visual footprint after the orient animation rotates and translates
-        // the geometry. One cell per canvas block so the player can click any
-        // part of the painting to interact with it.
-        flat_orient_floor: {
+        // Wall variant: one column-shaped hitbox per canvas block of width,
+        // each 1 wide x H tall x 1 deep. mark_variant 3 leaves the model in
+        // the controller's default state (no root rotation).
+        oriented_wall: {
+          'minecraft:mark_variant': { value: 3 },
+          'minecraft:custom_hit_test': {
+            hitboxes: tileColumnHitboxes(WALL_X, height / 2, height, -7 / 16),
+          },
+        },
+        // Floor variant: one square hitbox (1x1x(1/16)) per canvas block,
+        // tiled across the painting's post-rotation footprint.
+        oriented_floor: {
           'minecraft:mark_variant': { value: 1 },
           'minecraft:custom_hit_test': {
             hitboxes: tileFlatHitboxes(FLOOR_X, FLOOR_Y_CENTER, FLOOR_Z, 1 / 16),
           },
         },
-        flat_orient_ceiling: {
+        // Ceiling variant: same shape as floor, positioned for the painting's
+        // post-rotation footprint hanging from above.
+        oriented_ceiling: {
           'minecraft:mark_variant': { value: 2 },
           'minecraft:custom_hit_test': {
             hitboxes: tileFlatHitboxes(CEILING_X, CEILING_Y_CENTER, CEILING_Z, 1 / 16),
