@@ -74,26 +74,43 @@ function storeIntent(playerId, blockFace, via) {
   dbg("intent stored", { playerId, face: String(blockFace), via, size: intents.size });
 }
 
-// Two parallel sources of intent for diagnostics: itemUseOn is the direct
-// hook for entity_placer activation, playerInteractWithBlock is the generic
-// interaction event. We accept whichever fires first; in practice they fire
-// on the same tick, so the second storeIntent is a harmless overwrite.
-safeSubscribe("itemUseOn", world.afterEvents && world.afterEvents.itemUseOn, (event) => {
+// Intent capture must happen on a BEFORE event: in this Bedrock runtime
+// world.afterEvents.entitySpawn fires *before* afterEvents.playerInteractWithBlock
+// for an entity_placer activation, which means an after-event handler
+// stores the intent too late - the spawn handler already ran with an empty
+// map. beforeEvents fire synchronously before the engine commits the
+// interaction, so the intent is in place when entitySpawn arrives.
+safeSubscribe("beforePlayerInteractWithBlock", world.beforeEvents && world.beforeEvents.playerInteractWithBlock, (event) => {
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
-  dbg("itemUseOn", { item: stack.typeId, matched, face: String(event.blockFace), player: event.source && event.source.name });
-  if (!matched || !event.source) return;
-  storeIntent(event.source.id, event.blockFace, "itemUseOn");
+  dbg("beforePlayerInteractWithBlock", { item: stack.typeId, matched, face: String(event.blockFace), player: event.player.name });
+  if (!matched) return;
+  storeIntent(event.player.id, event.blockFace, "beforeInteract");
 });
 
-safeSubscribe("playerInteractWithBlock", world.afterEvents && world.afterEvents.playerInteractWithBlock, (event) => {
+safeSubscribe("beforeItemUseOn", world.beforeEvents && world.beforeEvents.itemUseOn, (event) => {
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
-  dbg("playerInteractWithBlock", { item: stack.typeId, matched, face: String(event.blockFace), player: event.player.name });
-  if (!matched) return;
-  storeIntent(event.player.id, event.blockFace, "interactWithBlock");
+  dbg("beforeItemUseOn", { item: stack.typeId, matched, face: String(event.blockFace), player: event.source && event.source.name });
+  if (!matched || !event.source) return;
+  storeIntent(event.source.id, event.blockFace, "beforeItemUseOn");
+});
+
+// After-event subscriptions are kept for diagnostics only - they fire too
+// late to influence the spawn but confirm the engine actually routed the
+// click through these events at all.
+safeSubscribe("afterPlayerInteractWithBlock", world.afterEvents && world.afterEvents.playerInteractWithBlock, (event) => {
+  const stack = event.itemStack;
+  if (!stack || !isPlacerItem(stack.typeId)) return;
+  dbg("afterPlayerInteractWithBlock (post-spawn, diagnostic only)", { face: String(event.blockFace) });
+});
+
+safeSubscribe("afterItemUseOn", world.afterEvents && world.afterEvents.itemUseOn, (event) => {
+  const stack = event.itemStack;
+  if (!stack || !isPlacerItem(stack.typeId)) return;
+  dbg("afterItemUseOn (post-spawn, diagnostic only)", { face: String(event.blockFace) });
 });
 
 function takeIntentFor(entity) {

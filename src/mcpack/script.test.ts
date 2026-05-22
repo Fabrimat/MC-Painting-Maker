@@ -26,17 +26,30 @@ describe('buildMainJs', () => {
     expect(code.match(/isValid/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 
-  it('subscribes to both itemUseOn and playerInteractWithBlock through the safe wrapper', () => {
+  it('captures intent on BEFORE events so it lands before entity_placer fires entitySpawn', () => {
     const code = buildMainJs('a');
     // entity_placer does not propagate the player's pitch to the spawned
-    // entity, so block face is captured from the interaction event instead.
-    // We listen on both events because some Bedrock versions route
-    // entity_placer activations through one and not the other. The wrapper
-    // tolerates either being absent (older or experimental SDK builds)
-    // without crashing the rest of the script at module load.
-    expect(code).toContain('safeSubscribe("itemUseOn"');
-    expect(code).toContain('safeSubscribe("playerInteractWithBlock"');
+    // entity, so block face is captured from the interaction event. In this
+    // Bedrock runtime entitySpawn fires before afterEvents.playerInteractWithBlock,
+    // so we must hook the BEFORE variants - those fire synchronously
+    // before the engine commits the interaction.
+    expect(code).toContain('safeSubscribe("beforePlayerInteractWithBlock"');
+    expect(code).toContain('world.beforeEvents.playerInteractWithBlock');
+    expect(code).toContain('safeSubscribe("beforeItemUseOn"');
     expect(code).toContain('event.blockFace');
+  });
+
+  it('keeps after-event subscriptions for diagnostics only (no intent storage)', () => {
+    const code = buildMainJs('a', { debug: true });
+    // The after-event handlers must NOT call storeIntent - their job is
+    // purely to log that the engine routed the click through that event at
+    // all, so a missing log surfaces a runtime that skips the event entirely.
+    const afterPlayerSection = code.slice(
+      code.indexOf('safeSubscribe("afterPlayerInteractWithBlock"'),
+      code.indexOf('safeSubscribe("afterItemUseOn"'),
+    );
+    expect(afterPlayerSection).not.toContain('storeIntent');
+    expect(afterPlayerSection).toContain('diagnostic only');
   });
 
   it('wraps event subscriptions with feature-detection so a missing API never crashes the script', () => {
@@ -131,8 +144,8 @@ describe('buildMainJs', () => {
     // The exact strings here are the labels surfaced to the dev in chat, so
     // they should be greppable and stable across small refactors.
     expect(code).toContain('dbg("script loaded"');
-    expect(code).toContain('dbg("itemUseOn"');
-    expect(code).toContain('dbg("playerInteractWithBlock"');
+    expect(code).toContain('dbg("beforePlayerInteractWithBlock"');
+    expect(code).toContain('dbg("beforeItemUseOn"');
     expect(code).toContain('dbg("intent stored"');
     expect(code).toContain('dbg("painting spawned"');
     expect(code).toContain('dbg("setRotation"');
