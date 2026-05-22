@@ -48,6 +48,7 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
               target: 'self',
             },
             deals_damage: 'no',
+            cause: 'all',
           }],
         },
         'minecraft:nameable': { allow_name_tag_renaming: false },
