@@ -38,6 +38,25 @@ ${dbgImpl}
 
 dbg("script loaded", { family: FAMILY, debug: ${debug} });
 
+// Bedrock SDK shape varies across module versions: itemUseOn was added,
+// renamed and re-homed several times. Subscribing to a missing event
+// crashes the whole script at module load, so feature-detect first and
+// only register handlers for APIs that actually exist in this runtime.
+function safeSubscribe(name, source, handler) {
+  if (!source || typeof source.subscribe !== "function") {
+    dbg("event api missing", { event: name });
+    return false;
+  }
+  try {
+    source.subscribe(handler);
+    dbg("subscribed", { event: name });
+    return true;
+  } catch (e) {
+    dbg("subscribe failed", { event: name, error: String(e) });
+    return false;
+  }
+}
+
 // minecraft:entity_placer spawns the entity with pitch=0 regardless of which
 // face was clicked, so the placement orientation cannot be recovered from
 // the spawned entity. Track the block face per player at interaction time
@@ -58,8 +77,8 @@ function storeIntent(playerId, blockFace, via) {
 // Two parallel sources of intent for diagnostics: itemUseOn is the direct
 // hook for entity_placer activation, playerInteractWithBlock is the generic
 // interaction event. We accept whichever fires first; in practice they fire
-// on the same tick, so the second store_intent is a harmless overwrite.
-world.afterEvents.itemUseOn.subscribe((event) => {
+// on the same tick, so the second storeIntent is a harmless overwrite.
+safeSubscribe("itemUseOn", world.afterEvents && world.afterEvents.itemUseOn, (event) => {
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
@@ -68,7 +87,7 @@ world.afterEvents.itemUseOn.subscribe((event) => {
   storeIntent(event.source.id, event.blockFace, "itemUseOn");
 });
 
-world.afterEvents.playerInteractWithBlock.subscribe((event) => {
+safeSubscribe("playerInteractWithBlock", world.afterEvents && world.afterEvents.playerInteractWithBlock, (event) => {
   const stack = event.itemStack;
   if (!stack) return;
   const matched = isPlacerItem(stack.typeId);
@@ -106,7 +125,7 @@ function takeIntentFor(entity) {
   return bestVal;
 }
 
-world.afterEvents.entitySpawn.subscribe((event) => {
+safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn, (event) => {
   const e = event.entity;
   // The entity may already have been removed by the time this handler runs
   // (unloaded chunk, immediate /kill, race with other scripts). Calling any

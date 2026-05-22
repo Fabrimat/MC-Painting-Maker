@@ -11,9 +11,10 @@ describe('buildMainJs', () => {
     expect(buildMainJs('a')).toContain('from "@minecraft/server"');
   });
 
-  it('subscribes to entitySpawn and snaps rotation by 90°', () => {
+  it('subscribes to entitySpawn (via the safe wrapper) and snaps rotation by 90°', () => {
     const code = buildMainJs('a');
-    expect(code).toContain('afterEvents.entitySpawn.subscribe');
+    expect(code).toContain('safeSubscribe("entitySpawn"');
+    expect(code).toContain('world.afterEvents.entitySpawn');
     expect(code).toContain('Math.round(');
   });
 
@@ -25,22 +26,34 @@ describe('buildMainJs', () => {
     expect(code.match(/isValid/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 
-  it('subscribes to both itemUseOn and playerInteractWithBlock to capture the placement block face', () => {
+  it('subscribes to both itemUseOn and playerInteractWithBlock through the safe wrapper', () => {
     const code = buildMainJs('a');
     // entity_placer does not propagate the player's pitch to the spawned
     // entity, so block face is captured from the interaction event instead.
     // We listen on both events because some Bedrock versions route
-    // entity_placer activations through one and not the other.
-    expect(code).toContain('afterEvents.itemUseOn.subscribe');
-    expect(code).toContain('afterEvents.playerInteractWithBlock.subscribe');
+    // entity_placer activations through one and not the other. The wrapper
+    // tolerates either being absent (older or experimental SDK builds)
+    // without crashing the rest of the script at module load.
+    expect(code).toContain('safeSubscribe("itemUseOn"');
+    expect(code).toContain('safeSubscribe("playerInteractWithBlock"');
     expect(code).toContain('event.blockFace');
+  });
+
+  it('wraps event subscriptions with feature-detection so a missing API never crashes the script', () => {
+    const code = buildMainJs('a', { debug: true });
+    // safeSubscribe must short-circuit when source is undefined or its
+    // .subscribe is missing - otherwise one bad event handle takes down
+    // every other listener registered later in the file.
+    expect(code).toContain('function safeSubscribe(name, source, handler)');
+    expect(code).toMatch(/typeof source\.subscribe !== "function"/);
+    expect(code).toContain('dbg("event api missing"');
   });
 
   it('filters non-painting entitySpawn events early so debug builds do not spam the world', () => {
     const code = buildMainJs('a', { debug: true });
     // The family check must precede any dbg() in the entitySpawn handler.
     // Otherwise every animal, projectile and dropped item spawn would log.
-    const spawnHandler = code.slice(code.indexOf('afterEvents.entitySpawn.subscribe'));
+    const spawnHandler = code.slice(code.indexOf('safeSubscribe("entitySpawn"'));
     const familyCheckIdx = spawnHandler.indexOf('e.matches({ families: [FAMILY] })');
     const firstDbgIdx = spawnHandler.indexOf('dbg(');
     expect(familyCheckIdx).toBeGreaterThan(0);
