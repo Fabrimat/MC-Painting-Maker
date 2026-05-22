@@ -1,7 +1,9 @@
 import { zipSync, strToU8 } from 'fflate';
+import { get } from 'svelte/store';
 import type { ProjectState, Painting } from '../paintings/types';
 import { ensurePackUUIDs } from '../paintings/defaults';
 import { devLog } from '../util/devlog';
+import { devMode } from '../stores/devMode';
 import { rasterize } from '../paintings/rasterize';
 import { buildBpManifest, buildRpManifest } from './manifest';
 import { buildEntityBehavior } from './entity';
@@ -30,6 +32,7 @@ export async function assembleArchive(
   state: ProjectState,
   textures: Map<string, Textures>,
   backTexture: Uint8Array,
+  opts: { debug?: boolean } = {},
 ): Promise<Uint8Array> {
   const ns = state.pack.namespace;
   const bp = `BP_${ns}/`;
@@ -37,7 +40,7 @@ export async function assembleArchive(
   const files: Record<string, Uint8Array> = {};
 
   files[`${bp}manifest.json`] = json(buildBpManifest(state));
-  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns));
+  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns, { debug: opts.debug }));
   files[`${bp}texts/en_US.lang`] = strToU8(buildBpLang(state));
   files[`${bp}texts/languages.json`] = strToU8(LANGUAGES_JSON);
   const cat = buildCatalog(state);
@@ -124,7 +127,8 @@ async function rasterizeIcon(p: Painting): Promise<Uint8Array> {
 
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
   const t0 = performance.now();
-  devLog('build', 'start', { paintings: state.paintings.length, namespace: state.pack.namespace });
+  const debug = get(devMode);
+  devLog('build', 'start', { paintings: state.paintings.length, namespace: state.pack.namespace, debug });
   // Defensive: if the caller somehow gets here with empty UUIDs (e.g. a project loaded
   // from an external JSON that predates ensurePackUUIDs), populate them now.
   const ready = ensurePackUUIDs(state);
@@ -135,11 +139,12 @@ export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
     textures.set(p.id, { texture, iconTexture });
   }
   const backTexture = await buildBackTexturePng();
-  const bytes = await assembleArchive(ready, textures, backTexture);
+  const bytes = await assembleArchive(ready, textures, backTexture, { debug });
   devLog('build', 'done', {
     paintings: ready.paintings.length,
     bytes: bytes.byteLength,
     ms: Math.round(performance.now() - t0),
+    debug,
   });
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }

@@ -68,4 +68,35 @@ describe('buildMainJs', () => {
     // a stale block face would leak into a later unrelated painting spawn.
     expect(code).toMatch(/intents\.delete\(/);
   });
+
+  it('defaults to a no-op dbg helper when debug is off (release build is silent)', () => {
+    const code = buildMainJs('a');
+    expect(code).toContain('function dbg() {}');
+    // No chat or content-log broadcast in release mode.
+    expect(code).not.toContain('world.sendMessage');
+    expect(code).not.toContain('console.warn');
+  });
+
+  it('emits an in-game debug helper when opts.debug is true', () => {
+    const code = buildMainJs('a', { debug: true });
+    // The helper is a real function (not the no-op) that broadcasts to chat
+    // AND to the content log so devs can correlate events.
+    expect(code).toMatch(/function dbg\(label, data\)\s*\{/);
+    expect(code).toContain('world.sendMessage');
+    expect(code).toContain('console.warn');
+    expect(code).toContain('[paintings-dbg]');
+  });
+
+  it('instruments key paths in debug builds (interact, spawn, intent, setRotation, trigger)', () => {
+    const code = buildMainJs('a', { debug: true });
+    // The exact strings here are the labels surfaced to the dev in chat, so
+    // they should be greppable and stable across small refactors.
+    expect(code).toContain('dbg("script loaded"');
+    expect(code).toContain('dbg("interact"');
+    expect(code).toContain('dbg("intent stored"');
+    expect(code).toContain('dbg("entitySpawn"');
+    expect(code).toContain('dbg("intent lookup"');
+    expect(code).toContain('dbg("setRotation"');
+    expect(code).toContain('dbg("triggered set_flat_orient")');
+  });
 });
