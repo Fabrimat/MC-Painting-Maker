@@ -25,18 +25,32 @@ describe('buildMainJs', () => {
     expect(code.match(/isValid/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 
-  it('snaps pitch (r.x) to multiples of 90 and clamps to [-90, 90]', () => {
+  it('subscribes to playerInteractWithBlock to capture the placement block face', () => {
     const code = buildMainJs('a');
-    // The script reads r.x and applies the same round-to-90 logic as yaw.
-    expect(code).toMatch(/Math\.round\s*\(\s*r\.x\s*\/\s*90\s*\)\s*\*\s*90/);
-    // Pitch is clamped to the valid Bedrock range.
-    expect(code).toContain('Math.max(-90');
-    expect(code).toContain('Math.min(90');
+    // entity_placer does not propagate the player's pitch to the spawned
+    // entity, so block face is captured from the interaction event instead.
+    expect(code).toContain('afterEvents.playerInteractWithBlock.subscribe');
+    expect(code).toContain('event.blockFace');
   });
 
-  it('passes the snapped pitch to setRotation (no longer hardcoded to 0)', () => {
+  it('filters interactions to painting placer items by namespace prefix and _painting suffix', () => {
+    const code = buildMainJs('myart');
+    expect(code).toContain('const ITEM_NS = "myart:"');
+    expect(code).toContain('const ITEM_SUFFIX = "_painting"');
+    expect(code).toMatch(/typeId\.startsWith\(ITEM_NS\)/);
+    expect(code).toMatch(/typeId\.endsWith\(ITEM_SUFFIX\)/);
+  });
+
+  it('maps blockFace Up to +90 and Down to -90, other faces stay at 0', () => {
     const code = buildMainJs('a');
-    // setRotation receives a snapped x, not the literal 0 used previously.
+    expect(code).toMatch(/intent\.face === "Up"[\s\S]*snappedX = 90/);
+    expect(code).toMatch(/intent\.face === "Down"[\s\S]*snappedX = -90/);
+    // Default (wall placement) is an explicit pitch of 0.
+    expect(code).toMatch(/let\s+snappedX\s*=\s*0/);
+  });
+
+  it('passes the resolved pitch to setRotation (no longer hardcoded to 0)', () => {
+    const code = buildMainJs('a');
     expect(code).toMatch(/setRotation\s*\(\s*\{[^}]*x:\s*snappedX/);
     expect(code).toMatch(/setRotation\s*\(\s*\{[^}]*y:\s*snappedY/);
   });
@@ -46,5 +60,12 @@ describe('buildMainJs', () => {
     expect(code).toContain('triggerEvent("set_flat_orient")');
     // The trigger is gated by |snappedX| === 90 so wall placements are not affected.
     expect(code).toMatch(/Math\.abs\s*\(\s*snappedX\s*\)\s*===\s*90/);
+  });
+
+  it('consumes the intent on matching entitySpawn so it is not reused', () => {
+    const code = buildMainJs('a');
+    // takeIntentFor must remove the picked intent from the map; otherwise
+    // a stale block face would leak into a later unrelated painting spawn.
+    expect(code).toMatch(/intents\.delete\(/);
   });
 });
