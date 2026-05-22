@@ -10,18 +10,22 @@ import {
 } from './orient_animation';
 
 describe('buildOrientAnimations', () => {
-  it('rotates root -90 on X for floor so the painting front ends up facing up', () => {
+  it('rotates root -90 on X for floor and translates it onto the floor surface', () => {
     const j = buildOrientAnimations();
-    const a = (j.animations as Record<string, { bones: { root: { rotation: number[] } } }>)[ORIENT_ANIMATION_FLOOR_ID];
+    const a = (j.animations as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_FLOOR_ID];
     expect(a).toBeDefined();
     expect(a.bones.root.rotation).toEqual([-90, 0, 0]);
+    // Tuned in-game; values compensate for the pivot landing at the
+    // entity's feet so the painting sits flush on the clicked face.
+    expect(a.bones.root.position).toEqual([0, 8, -8]);
   });
 
-  it('rotates root +90 on X for ceiling so the painting front ends up facing down', () => {
+  it('rotates root +90 on X for ceiling and translates it onto the ceiling surface', () => {
     const j = buildOrientAnimations();
-    const a = (j.animations as Record<string, { bones: { root: { rotation: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
+    const a = (j.animations as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
     expect(a).toBeDefined();
     expect(a.bones.root.rotation).toEqual([90, 0, 0]);
+    expect(a.bones.root.position).toEqual([0, 10, 8]);
   });
 
   it('uses hold_on_last_frame so the rotation persists once the (tiny) animation ends', () => {

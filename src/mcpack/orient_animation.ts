@@ -28,7 +28,11 @@ export function buildOrientAnimations() {
   // ends up facing the correct world direction:
   //   floor   -> front faces +Y (up)    -> rotation [-90, 0, 0]
   //   ceiling -> front faces -Y (down)  -> rotation [+90, 0, 0]
-  // Using the opposite signs flips the painting upside down on each surface.
+  //
+  // The translation offsets compensate for the model's pivot landing at
+  // the entity's feet: after rotation the geometry would otherwise float
+  // away from the clicked face, so each animation nudges root back onto
+  // the surface. Values tuned in-game against actual placements.
   return {
     format_version: '1.10.0',
     animations: {
@@ -36,14 +40,20 @@ export function buildOrientAnimations() {
         loop: 'hold_on_last_frame' as const,
         animation_length: 0.05,
         bones: {
-          root: { rotation: [-90, 0, 0] },
+          root: {
+            rotation: [-90, 0, 0],
+            position: [0, 8, -8],
+          },
         },
       },
       [ORIENT_ANIMATION_CEILING_ID]: {
         loop: 'hold_on_last_frame' as const,
         animation_length: 0.05,
         bones: {
-          root: { rotation: [90, 0, 0] },
+          root: {
+            rotation: [90, 0, 0],
+            position: [0, 10, 8],
+          },
         },
       },
     },
