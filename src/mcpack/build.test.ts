@@ -59,6 +59,26 @@ describe('assembleArchive', () => {
     expect(names).not.toContain('RP_paintings/pack_icon.png');
   });
 
+  it('ships a /function <ns>/version mcfunction stamped with the build sha and date', async () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
+    proj.paintings.push(p);
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const zipped = await assembleArchive(
+      proj,
+      new Map([[p.id, { texture: png, iconTexture: png }]]),
+      png,
+      { buildSha: 'deadbee', buildDate: '2026-05-22T20:30:00Z' },
+    );
+    const entries = unzipSync(zipped);
+    const fn = entries['BP_paintings/functions/paintings/version.mcfunction'];
+    expect(fn).toBeDefined();
+    const text = strFromU8(fn);
+    expect(text).toContain('# build: deadbee');
+    expect(text).toContain('# generated: 2026-05-22T20:30:00Z');
+    expect(text).toContain('tellraw @s {"rawtext":[{"text":"[paintings] build deadbee"}]}');
+  });
+
   it('propagates opts.debug into the bundled scripts/main.js', async () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });

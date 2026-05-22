@@ -1,5 +1,10 @@
-export function buildMainJs(namespace: string, opts: { debug?: boolean } = {}): string {
+export function buildMainJs(
+  namespace: string,
+  opts: { debug?: boolean; buildSha?: string; buildDate?: string } = {},
+): string {
   const debug = !!opts.debug;
+  const buildSha = opts.buildSha || 'unknown';
+  const buildDate = opts.buildDate || 'unknown';
   // In debug builds the addon broadcasts diagnostic lines to chat (visible to
   // every player) AND to the content log via console.warn. The no-op variant
   // keeps the call sites identical so the rest of the file is one shape.
@@ -17,9 +22,11 @@ export function buildMainJs(namespace: string, opts: { debug?: boolean } = {}): 
   // Header marker visible by unzipping the .mcaddon: when the user reports
   // "debug doesn't work", reading scripts/main.js confirms which build it is
   // (no need to interpret in-game silence as a code bug vs a stale cache).
+  // The same sha/date are printed in-game by /function <ns>/version.
   return `// paintings-addon main.js
+// build: ${buildSha}
+// generated: ${buildDate}
 // debug: ${debug}
-// generated: ${new Date().toISOString()}
 import { world } from "@minecraft/server";
 
 const FAMILY = "${namespace}_painting";

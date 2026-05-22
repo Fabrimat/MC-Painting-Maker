@@ -15,6 +15,7 @@ import { buildItem } from './item';
 import { buildCatalog } from './catalog';
 import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
+import { buildVersionMcfunction } from './version';
 import {
   paintingFileBase, paintingIconTextureKey, spawnEggTextureKey, usesPlacerItems,
 } from './identifiers';
@@ -32,15 +33,18 @@ export async function assembleArchive(
   state: ProjectState,
   textures: Map<string, Textures>,
   backTexture: Uint8Array,
-  opts: { debug?: boolean } = {},
+  opts: { debug?: boolean; buildSha?: string; buildDate?: string } = {},
 ): Promise<Uint8Array> {
   const ns = state.pack.namespace;
   const bp = `BP_${ns}/`;
   const rp = `RP_${ns}/`;
   const files: Record<string, Uint8Array> = {};
+  const buildSha = opts.buildSha || 'unknown';
+  const buildDate = opts.buildDate || new Date().toISOString();
 
   files[`${bp}manifest.json`] = json(buildBpManifest(state));
-  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns, { debug: opts.debug }));
+  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns, { debug: opts.debug, buildSha, buildDate }));
+  files[`${bp}functions/${ns}/version.mcfunction`] = strToU8(buildVersionMcfunction({ buildSha, buildDate }));
   files[`${bp}texts/en_US.lang`] = strToU8(buildBpLang(state));
   files[`${bp}texts/languages.json`] = strToU8(LANGUAGES_JSON);
   const cat = buildCatalog(state);
@@ -128,7 +132,12 @@ async function rasterizeIcon(p: Painting): Promise<Uint8Array> {
 export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
   const t0 = performance.now();
   const debug = get(devMode);
-  devLog('build', 'start', { paintings: state.paintings.length, namespace: state.pack.namespace, debug });
+  // Vite-injected globals. Same values the PackDrawer footer displays, so
+  // the in-game /function <ns>/version output matches the web UI's build
+  // stamp 1:1, making cache-vs-code mismatches easy to spot.
+  const buildSha = typeof __BUILD_SHA__ === 'string' ? __BUILD_SHA__ : 'unknown';
+  const buildDate = typeof __BUILD_DATE__ === 'string' ? __BUILD_DATE__ : new Date().toISOString();
+  devLog('build', 'start', { paintings: state.paintings.length, namespace: state.pack.namespace, debug, buildSha, buildDate });
   // Defensive: if the caller somehow gets here with empty UUIDs (e.g. a project loaded
   // from an external JSON that predates ensurePackUUIDs), populate them now.
   const ready = ensurePackUUIDs(state);
@@ -139,12 +148,13 @@ export async function buildMcaddonBlob(state: ProjectState): Promise<Blob> {
     textures.set(p.id, { texture, iconTexture });
   }
   const backTexture = await buildBackTexturePng();
-  const bytes = await assembleArchive(ready, textures, backTexture, { debug });
+  const bytes = await assembleArchive(ready, textures, backTexture, { debug, buildSha, buildDate });
   devLog('build', 'done', {
     paintings: ready.paintings.length,
     bytes: bytes.byteLength,
     ms: Math.round(performance.now() - t0),
     debug,
+    buildSha,
   });
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' });
 }

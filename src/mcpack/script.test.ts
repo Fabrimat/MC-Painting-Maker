@@ -101,12 +101,16 @@ describe('buildMainJs', () => {
     expect(code).toContain('[paintings-dbg]');
   });
 
-  it('emits a header marker exposing the debug flag for off-line inspection', () => {
+  it('emits a header marker exposing the debug flag, sha and date for off-line inspection', () => {
     // The user can unzip the .mcaddon and read scripts/main.js to confirm
     // which build they have, without having to interpret in-game silence.
     expect(buildMainJs('a')).toContain('// debug: false');
     expect(buildMainJs('a', { debug: true })).toContain('// debug: true');
     expect(buildMainJs('a')).toContain('// paintings-addon main.js');
+    const stamped = buildMainJs('a', { buildSha: 'abc1234', buildDate: '2026-05-22T20:30:00Z' });
+    expect(stamped).toContain('// build: abc1234');
+    expect(stamped).toContain('// generated: 2026-05-22T20:30:00Z');
+    expect(buildMainJs('a')).toContain('// build: unknown');
   });
 
   it('instruments key paths in debug builds (events, intent, spawn, setRotation, trigger)', () => {
