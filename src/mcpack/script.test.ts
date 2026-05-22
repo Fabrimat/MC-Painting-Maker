@@ -25,12 +25,26 @@ describe('buildMainJs', () => {
     expect(code.match(/isValid/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 
-  it('subscribes to playerInteractWithBlock to capture the placement block face', () => {
+  it('subscribes to both itemUseOn and playerInteractWithBlock to capture the placement block face', () => {
     const code = buildMainJs('a');
     // entity_placer does not propagate the player's pitch to the spawned
     // entity, so block face is captured from the interaction event instead.
+    // We listen on both events because some Bedrock versions route
+    // entity_placer activations through one and not the other.
+    expect(code).toContain('afterEvents.itemUseOn.subscribe');
     expect(code).toContain('afterEvents.playerInteractWithBlock.subscribe');
     expect(code).toContain('event.blockFace');
+  });
+
+  it('filters non-painting entitySpawn events early so debug builds do not spam the world', () => {
+    const code = buildMainJs('a', { debug: true });
+    // The family check must precede any dbg() in the entitySpawn handler.
+    // Otherwise every animal, projectile and dropped item spawn would log.
+    const spawnHandler = code.slice(code.indexOf('afterEvents.entitySpawn.subscribe'));
+    const familyCheckIdx = spawnHandler.indexOf('e.matches({ families: [FAMILY] })');
+    const firstDbgIdx = spawnHandler.indexOf('dbg(');
+    expect(familyCheckIdx).toBeGreaterThan(0);
+    expect(firstDbgIdx).toBeGreaterThan(familyCheckIdx);
   });
 
   it('filters interactions to painting placer items by namespace prefix and _painting suffix', () => {
@@ -87,15 +101,15 @@ describe('buildMainJs', () => {
     expect(code).toContain('[paintings-dbg]');
   });
 
-  it('instruments key paths in debug builds (interact, spawn, intent, setRotation, trigger)', () => {
+  it('instruments key paths in debug builds (events, intent, spawn, setRotation, trigger)', () => {
     const code = buildMainJs('a', { debug: true });
     // The exact strings here are the labels surfaced to the dev in chat, so
     // they should be greppable and stable across small refactors.
     expect(code).toContain('dbg("script loaded"');
-    expect(code).toContain('dbg("interact"');
+    expect(code).toContain('dbg("itemUseOn"');
+    expect(code).toContain('dbg("playerInteractWithBlock"');
     expect(code).toContain('dbg("intent stored"');
-    expect(code).toContain('dbg("entitySpawn"');
-    expect(code).toContain('dbg("intent lookup"');
+    expect(code).toContain('dbg("painting spawned"');
     expect(code).toContain('dbg("setRotation"');
     expect(code).toContain('dbg("triggered set_flat_orient")');
   });
