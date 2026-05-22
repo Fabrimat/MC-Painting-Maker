@@ -55,16 +55,30 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
       },
       events: {
         despawn_self: { add: { component_groups: ['instant_despawn'] } },
-        set_flat_orient: { add: { component_groups: ['flat_orient'] } },
+        set_flat_orient_floor: { add: { component_groups: ['flat_orient_floor'] } },
+        set_flat_orient_ceiling: { add: { component_groups: ['flat_orient_ceiling'] } },
       },
       component_groups: {
         instant_despawn: { 'minecraft:instant_despawn': {} },
-        // Activated by the script when the painting is placed on a floor or
-        // ceiling (entity rotation X=+/-90). The pivot is identical to the
-        // wall hitbox in entity-local space so it rotates with the entity;
-        // dimensions are flat: a square footprint covering the long side of
-        // the canvas, 1 pixel thin in world Y.
-        flat_orient: {
+        // Floor / ceiling component groups carry both the rotated hitbox AND a
+        // mark_variant value that the client-side animation controller reads
+        // via Molang to play the matching root-bone rotation animation.
+        //
+        // The dimensions are flat: a square footprint covering the long side
+        // of the canvas, 1 pixel thin in world Y. The pivot is identical to
+        // the wall hitbox in entity-local space.
+        flat_orient_floor: {
+          'minecraft:mark_variant': { value: 1 },
+          'minecraft:custom_hit_test': {
+            hitboxes: [{
+              pivot: [width / 2 + X_PIVOT_OFFSET_BLOCKS, height / 2, -7 / 16],
+              width: flatFootprint,
+              height: 1 / 16,
+            }],
+          },
+        },
+        flat_orient_ceiling: {
+          'minecraft:mark_variant': { value: 2 },
           'minecraft:custom_hit_test': {
             hitboxes: [{
               pivot: [width / 2 + X_PIVOT_OFFSET_BLOCKS, height / 2, -7 / 16],

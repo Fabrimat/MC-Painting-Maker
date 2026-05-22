@@ -4,6 +4,10 @@ import {
   spawnEggTextureKey, usesPlacerItems,
 } from './identifiers';
 import { BACK_RENDER_CONTROLLER_NAME, BACK_TEXTURE_FILENAME } from './back_texture';
+import {
+  ORIENT_ANIMATION_FLOOR_ID, ORIENT_ANIMATION_CEILING_ID, ORIENT_CONTROLLER_ID,
+  ORIENT_FLOOR_SHORTNAME, ORIENT_CEILING_SHORTNAME, ORIENT_CONTROLLER_SHORTNAME,
+} from './orient_animation';
 
 export function buildClientEntity(p: ProjectState, painting: Painting) {
   const fb = paintingFileBase(painting);
@@ -29,6 +33,19 @@ export function buildClientEntity(p: ProjectState, painting: Painting) {
           renderControllerName(painting),
           BACK_RENDER_CONTROLLER_NAME,
         ],
+        // Animations + controller drive the floor/ceiling pose. The
+        // controller reads q.mark_variant (set server-side by the
+        // flat_orient_* component groups) and switches to the matching
+        // root-bone rotation animation. Wall placements stay in the
+        // default state with no rotation.
+        animations: {
+          [ORIENT_FLOOR_SHORTNAME]: ORIENT_ANIMATION_FLOOR_ID,
+          [ORIENT_CEILING_SHORTNAME]: ORIENT_ANIMATION_CEILING_ID,
+          [ORIENT_CONTROLLER_SHORTNAME]: ORIENT_CONTROLLER_ID,
+        },
+        scripts: {
+          animate: [ORIENT_CONTROLLER_SHORTNAME],
+        },
         ...(spawn_egg ? { spawn_egg } : {}),
       },
     },

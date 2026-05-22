@@ -162,20 +162,20 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
     intent: intent ? { face: String(intent.face), ageMs: Date.now() - intent.t } : null,
     intentsLeft: intents.size,
   });
-  // Block face -> entity pitch:
-  //   Up   (floor)   -> +90
-  //   Down (ceiling) -> -90
-  //   else (wall)    ->   0
-  let snappedX = 0;
-  if (intent && intent.face === "Up") snappedX = 90;
-  else if (intent && intent.face === "Down") snappedX = -90;
+  // Yaw only: Bedrock does not propagate entity pitch to the rendered model
+  // for inanimate entities, so we drive the floor/ceiling rotation via a
+  // client-side animation that reads mark_variant instead of via setRotation.
   if (!e.isValid) return;
-  e.setRotation({ x: snappedX, y: snappedY });
-  dbg("setRotation", { x: snappedX, y: snappedY });
-  if (Math.abs(snappedX) === 90) {
+  e.setRotation({ x: 0, y: snappedY });
+  dbg("setRotation", { x: 0, y: snappedY });
+  if (intent && intent.face === "Up") {
     if (!e.isValid) return;
-    e.triggerEvent("set_flat_orient");
-    dbg("triggered set_flat_orient");
+    e.triggerEvent("set_flat_orient_floor");
+    dbg("triggered set_flat_orient_floor");
+  } else if (intent && intent.face === "Down") {
+    if (!e.isValid) return;
+    e.triggerEvent("set_flat_orient_ceiling");
+    dbg("triggered set_flat_orient_ceiling");
   }
 });
 `;

@@ -81,25 +81,28 @@ describe('buildMainJs', () => {
     expect(code).toMatch(/typeId\.endsWith\(ITEM_SUFFIX\)/);
   });
 
-  it('maps blockFace Up to +90 and Down to -90, other faces stay at 0', () => {
+  it('maps blockFace Up to the floor event and Down to the ceiling event, others stay wall', () => {
     const code = buildMainJs('a');
-    expect(code).toMatch(/intent\.face === "Up"[\s\S]*snappedX = 90/);
-    expect(code).toMatch(/intent\.face === "Down"[\s\S]*snappedX = -90/);
-    // Default (wall placement) is an explicit pitch of 0.
-    expect(code).toMatch(/let\s+snappedX\s*=\s*0/);
+    expect(code).toMatch(/intent\.face === "Up"[\s\S]*triggerEvent\("set_flat_orient_floor"\)/);
+    expect(code).toMatch(/intent\.face === "Down"[\s\S]*triggerEvent\("set_flat_orient_ceiling"\)/);
   });
 
-  it('passes the resolved pitch to setRotation (no longer hardcoded to 0)', () => {
+  it('keeps the entity pitch at 0 - rotation is driven by the client-side animation, not setRotation', () => {
     const code = buildMainJs('a');
-    expect(code).toMatch(/setRotation\s*\(\s*\{[^}]*x:\s*snappedX/);
-    expect(code).toMatch(/setRotation\s*\(\s*\{[^}]*y:\s*snappedY/);
+    // Bedrock does not render the entity pitch on inanimate entities, so
+    // setting x via setRotation has no visual effect. The orient controller
+    // reads mark_variant via Molang and rotates the root bone instead.
+    expect(code).toMatch(/setRotation\s*\(\s*\{\s*x:\s*0\s*,/);
+    expect(code).not.toMatch(/setRotation\s*\(\s*\{[^}]*x:\s*snappedX/);
   });
 
-  it('triggers set_flat_orient when the snapped pitch is +/-90', () => {
+  it('triggers separate floor/ceiling events that map 1:1 to the entity component groups', () => {
     const code = buildMainJs('a');
-    expect(code).toContain('triggerEvent("set_flat_orient")');
-    // The trigger is gated by |snappedX| === 90 so wall placements are not affected.
-    expect(code).toMatch(/Math\.abs\s*\(\s*snappedX\s*\)\s*===\s*90/);
+    expect(code).toContain('triggerEvent("set_flat_orient_floor")');
+    expect(code).toContain('triggerEvent("set_flat_orient_ceiling")');
+    // No leftover generic event - that would silently miss the mark_variant
+    // distinction the animation controller needs.
+    expect(code).not.toContain('triggerEvent("set_flat_orient")');
   });
 
   it('consumes the intent on matching entitySpawn so it is not reused', () => {
@@ -149,6 +152,6 @@ describe('buildMainJs', () => {
     expect(code).toContain('dbg("intent stored"');
     expect(code).toContain('dbg("painting spawned"');
     expect(code).toContain('dbg("setRotation"');
-    expect(code).toContain('dbg("triggered set_flat_orient")');
+    expect(code).toMatch(/dbg\("triggered set_flat_orient_(floor|ceiling)"\)/);
   });
 });

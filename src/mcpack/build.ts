@@ -17,6 +17,9 @@ import { buildBpLang, buildRpLang, LANGUAGES_JSON } from './lang';
 import { buildMainJs } from './script';
 import { buildVersionMcfunction } from './version';
 import {
+  buildOrientAnimations, buildOrientAnimationController, ORIENT_ANIMATION_FILE,
+} from './orient_animation';
+import {
   paintingFileBase, paintingIconTextureKey, spawnEggTextureKey, usesPlacerItems,
 } from './identifiers';
 import { base64ToUint8 } from '../util/base64';
@@ -88,6 +91,11 @@ export async function assembleArchive(
   // Pack-shared back texture + render controller
   files[`${rp}textures/entity/${BACK_TEXTURE_FILENAME}.png`] = backTexture;
   files[`${rp}render_controllers/${BACK_TEXTURE_FILENAME}.rc.json`] = json(buildBackRenderController());
+
+  // Pack-shared orient animation + controller. Every painting's client_entity
+  // references the same short names, so one file pair covers every entity.
+  files[`${rp}animations/${ORIENT_ANIMATION_FILE}.animation.json`] = json(buildOrientAnimations());
+  files[`${rp}animation_controllers/${ORIENT_ANIMATION_FILE}.ac.json`] = json(buildOrientAnimationController());
 
   return zipSync(files);
 }

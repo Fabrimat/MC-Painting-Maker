@@ -25,6 +25,8 @@ describe('assembleArchive', () => {
     expect(names.some((n) => n.endsWith('texts/en_US.lang'))).toBe(true);
     expect(names.some((n) => n.endsWith('textures/entity/painting_back.png'))).toBe(true);
     expect(names.some((n) => n.endsWith('render_controllers/painting_back.rc.json'))).toBe(true);
+    expect(names.some((n) => n.endsWith('animations/painting_orient.animation.json'))).toBe(true);
+    expect(names.some((n) => n.endsWith('animation_controllers/painting_orient.ac.json'))).toBe(true);
     for (const [name, bytes] of Object.entries(entries)) {
       if (name.endsWith('.json')) {
         expect(() => JSON.parse(strFromU8(bytes))).not.toThrow();

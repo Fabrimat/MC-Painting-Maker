@@ -35,6 +35,18 @@ describe('buildClientEntity', () => {
     expect(j['minecraft:client_entity'].description.materials.back).toBe('entity_alphablend');
   });
 
+  it('wires the shared orient animation controller in scripts.animate', () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const j = buildClientEntity(proj, p);
+    const d = j['minecraft:client_entity'].description as any;
+    expect(d.animations.orient).toBe('controller.animation.painting_orient');
+    expect(d.animations.orient_floor).toBe('animation.painting_orient.floor');
+    expect(d.animations.orient_ceiling).toBe('animation.painting_orient.ceiling');
+    expect(d.scripts.animate).toContain('orient');
+  });
+
   it('v2 (legacy): adds spawn_egg block referencing the egg texture key', () => {
     const proj = { ...createEmptyProject(), version: 2 as const };
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 32, naturalH: 32 });
