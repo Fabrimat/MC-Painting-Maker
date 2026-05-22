@@ -14,7 +14,13 @@ export function buildMainJs(namespace: string, opts: { debug?: boolean } = {}): 
 }`
     : `function dbg() {}`;
 
-  return `import { world } from "@minecraft/server";
+  // Header marker visible by unzipping the .mcaddon: when the user reports
+  // "debug doesn't work", reading scripts/main.js confirms which build it is
+  // (no need to interpret in-game silence as a code bug vs a stale cache).
+  return `// paintings-addon main.js
+// debug: ${debug}
+// generated: ${new Date().toISOString()}
+import { world } from "@minecraft/server";
 
 const FAMILY = "${namespace}_painting";
 const ITEM_NS = "${namespace}:";

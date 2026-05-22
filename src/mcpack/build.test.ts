@@ -59,6 +59,26 @@ describe('assembleArchive', () => {
     expect(names).not.toContain('RP_paintings/pack_icon.png');
   });
 
+  it('propagates opts.debug into the bundled scripts/main.js', async () => {
+    const proj = createEmptyProject();
+    const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
+    proj.paintings.push(p);
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+    const offBytes = await assembleArchive(proj, new Map([[p.id, { texture: png, iconTexture: png }]]), png);
+    const onBytes = await assembleArchive(proj, new Map([[p.id, { texture: png, iconTexture: png }]]), png, { debug: true });
+
+    const offScript = strFromU8(unzipSync(offBytes)['BP_paintings/scripts/main.js']);
+    const onScript = strFromU8(unzipSync(onBytes)['BP_paintings/scripts/main.js']);
+
+    // Header marker confirms which build went into the archive end-to-end.
+    expect(offScript).toContain('// debug: false');
+    expect(onScript).toContain('// debug: true');
+    // And the actual runtime emit must follow the header.
+    expect(offScript).toContain('function dbg() {}');
+    expect(onScript).toContain('world.sendMessage');
+  });
+
   it('v2 (legacy): omits BP items/.item.json and writes _egg.png instead of _icon.png', async () => {
     const proj = { ...createEmptyProject(), version: 2 as const };
     const p = createPaintingFromImage('A', { pngBase64: '', naturalW: 64, naturalH: 64 });
