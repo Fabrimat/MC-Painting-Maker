@@ -14,6 +14,16 @@ export const ORIENT_ANIMATION_FILE = 'painting_orient';
 export const ORIENT_ANIMATION_FLOOR_ID = 'animation.painting_orient.floor';
 export const ORIENT_ANIMATION_CEILING_ID = 'animation.painting_orient.ceiling';
 export const ORIENT_CONTROLLER_ID = 'controller.animation.painting_orient';
+export const ORIENT_ANIMATION_YAW_ID = 'animation.painting_orient.yaw';
+// Parent bone of `root` (see geometry.ts) that carries the cardinal yaw, so
+// the floor/ceiling pitch on `root` is applied first and the yaw after it.
+export const ORIENT_YAW_BONE = 'orient_yaw';
+// Sign of the Bedrock bone Y rotation relative to entity yaw. Bedrock's own
+// look_at_target feeds q.target_y_rotation straight into head rotation Y,
+// i.e. +a on bone Y turns the model like +a of entity yaw (+Z -> -X).
+// Calibration knob: if east/west walls render on the wrong side in-game,
+// flip this to -1 AND swap the (x, z) step in entity.ts rotateHitboxesAroundY.
+export const YAW_ANIMATION_SIGN = 1;
 
 // Short names registered in client_entity.description.animations. The
 // controller is the one referenced in scripts.animate; the two animations
@@ -21,6 +31,7 @@ export const ORIENT_CONTROLLER_ID = 'controller.animation.painting_orient';
 export const ORIENT_FLOOR_SHORTNAME = 'orient_floor';
 export const ORIENT_CEILING_SHORTNAME = 'orient_ceiling';
 export const ORIENT_CONTROLLER_SHORTNAME = 'orient';
+export const ORIENT_YAW_SHORTNAME = 'orient_yaw';
 
 export function buildOrientAnimations() {
   // Rotation signs in Bedrock pitch the model so that the painting's front
@@ -43,6 +54,19 @@ export function buildOrientAnimations() {
           root: {
             rotation: [-90, 0, 0],
             position: [0, 8, -8],
+          },
+        },
+      },
+      // Cardinal yaw, always running. The entity itself is kept at yaw 0 by
+      // the runtime script so custom_hit_test pivots (whose yaw behaviour is
+      // undocumented) never get rotated by the engine; the model is turned
+      // here instead, by d * 90 deg where d = (mark_variant % 10) - 1.
+      // mark_variant 0 (not yet oriented / legacy v2) -> no extra yaw.
+      [ORIENT_ANIMATION_YAW_ID]: {
+        loop: true,
+        bones: {
+          [ORIENT_YAW_BONE]: {
+            rotation: [0, `q.mark_variant > 0 ? (math.mod(q.mark_variant, 10) - 1) * ${90 * YAW_ANIMATION_SIGN} : 0`, 0],
           },
         },
       },

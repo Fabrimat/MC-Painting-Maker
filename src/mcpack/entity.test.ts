@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyProject, createPaintingFromImage } from '../paintings/defaults';
 import { buildEntityBehavior } from './entity';
+import { buildGeometry } from './geometry';
+import { buildOrientAnimations, ORIENT_ANIMATION_FLOOR_ID, ORIENT_ANIMATION_CEILING_ID } from './orient_animation';
 import { paintingFileBase } from './identifiers';
 
 describe('buildEntityBehavior', () => {
@@ -38,110 +40,143 @@ describe('buildEntityBehavior', () => {
     expect(comps['minecraft:collision_box']).toEqual({ width: 0, height: 0 });
   });
 
-  it('emits 12 oriented component groups: 3 surfaces (wall/floor/ceiling) x 4 cardinals (n/e/s/w)', () => {
+  // -------------------------------------------------------------------------
+  // Geometric oracle. Independently re-derives where the rendered painting
+  // ends up (from the REAL geometry + animation JSON the pack ships) and
+  // checks every one of the 12 hitbox layouts against it, for several sizes.
+  // Conventions (see entity.ts header): bone rot X +a == standard rotation
+  // by -a; model px -> local blocks is (x, y, -z) / 16; yaw step d turns
+  // +Z toward -X (same as entity yaw / bone Y rotation).
+  // -------------------------------------------------------------------------
+  type V = [number, number, number];
+  const DIRS = ['south', 'west', 'north', 'east'] as const;
+  const anims = buildOrientAnimations().animations as any;
+  const rootAnim: Record<string, { rotation: number[]; position: number[] }> = {
+    wall: { rotation: [0, 0, 0], position: [0, 0, 0] },
+    floor: anims[ORIENT_ANIMATION_FLOOR_ID].bones.root,
+    ceiling: anims[ORIENT_ANIMATION_CEILING_ID].bones.root,
+  };
+
+  function toLocal(pPx: V, surface: string, d: number): V {
+    const a = (-rootAnim[surface].rotation[0] * Math.PI) / 180;
+    const [x, y, z] = pPx;
+    const pos = rootAnim[surface].position;
+    // standard right-handed rotation about X by `a`, then bone position
+    const ry = y * Math.cos(a) - z * Math.sin(a) + pos[1];
+    const rz = y * Math.sin(a) + z * Math.cos(a) + pos[2];
+    // model -> local (mirror Z), px -> blocks
+    const lx = (x + pos[0]) / 16, ly = ry / 16, lz = -rz / 16;
+    const psi = (d * Math.PI) / 2;
+    return [lx * Math.cos(psi) - lz * Math.sin(psi), ly, lx * Math.sin(psi) + lz * Math.cos(psi)];
+  }
+
+  function paintingFor(w16: number, h16: number) {
     const proj = createEmptyProject();
-    const p = createPaintingFromImage('C', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    const p = createPaintingFromImage('G', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    p.canvasW16 = w16; p.canvasH16 = h16;
     proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const groups = (j['minecraft:entity'] as any).component_groups;
-    for (const surface of ['wall', 'floor', 'ceiling']) {
-      for (const dir of ['north', 'east', 'south', 'west']) {
-        expect(groups[`oriented_${surface}_${dir}`], `${surface}_${dir}`).toBeDefined();
+    const bones = buildGeometry(p)['minecraft:geometry'][0].bones as any[];
+    const cube = bones.find((b) => b.name === 'front').cubes[0];
+    return { groups: (buildEntityBehavior(proj, p)['minecraft:entity'] as any).component_groups, cube };
+  }
+
+  type HB = { pivot: V; width: number; height: number };
+  function inBox(pt: V, hb: HB, eps = 1e-6) {
+    const [px, py, pz] = hb.pivot;
+    return Math.abs(pt[0] - px) <= hb.width / 2 + eps
+      && Math.abs(pt[2] - pz) <= hb.width / 2 + eps
+      && Math.abs(pt[1] - py) <= hb.height / 2 + eps;
+  }
+
+  const SIZES: [number, number][] = [[16, 16], [48, 16], [16, 32], [24, 32], [8, 4], [40, 48]];
+  const EXPECTED_FRONT: Record<string, V> = {
+    south: [0, 0, 1], west: [-1, 0, 0], north: [0, 0, -1], east: [1, 0, 0],
+  };
+
+  for (const [w16, h16] of SIZES) {
+    for (const surface of ['wall', 'floor', 'ceiling'] as const) {
+      for (let d = 0; d < 4; d++) {
+        it(`hitboxes match the rendered canvas: ${surface}_${DIRS[d]} ${w16}x${h16}px`, () => {
+          const { groups, cube } = paintingFor(w16, h16);
+          const hbs: HB[] = groups[`oriented_${surface}_${DIRS[d]}`]['minecraft:custom_hit_test'].hitboxes;
+          const [ox, oy, oz] = cube.origin as V;
+          const [sx, sy] = cube.size as V;
+          // Every point of the canvas front face (model plane z = oz) is clickable.
+          const N = 8;
+          for (let i = 0; i <= N; i++) {
+            for (let j = 0; j <= N; j++) {
+              const pt = toLocal([ox + (sx * i) / N, oy + (sy * j) / N, oz], surface, d);
+              expect(hbs.some((hb) => inBox(pt, hb)), `front point ${pt} uncovered`).toBe(true);
+            }
+          }
+          // Canvas front normal = (0,0,-1) in model space.
+          const o = toLocal([0, 0, 0], surface, d);
+          const n = toLocal([0, 0, -16], surface, d);
+          const normal = n.map((v, k) => Math.round(v - o[k]) + 0) as V;
+          if (surface === 'wall') expect(normal).toEqual(EXPECTED_FRONT[DIRS[d]]);
+          if (surface === 'floor') expect(normal).toEqual([0, 1, 0]);
+          if (surface === 'ceiling') expect(normal).toEqual([0, -1, 0]);
+          // No hitbox may stick out in front of the canvas face (clickable air)
+          // or past its edges in the face plane; along the normal it must
+          // reach the face and may only extend backward into the support.
+          const c0 = toLocal([ox, oy, oz], surface, d);
+          const c1 = toLocal([ox + sx, oy + sy, oz], surface, d);
+          const lo = [0, 1, 2].map((k) => Math.min(c0[k], c1[k]));
+          const hi = [0, 1, 2].map((k) => Math.max(c0[k], c1[k]));
+          const axis = normal.findIndex((v) => v !== 0);
+          const faceCoord = c0[axis];
+          for (const hb of hbs) {
+            const half = [hb.width / 2, hb.height / 2, hb.width / 2];
+            for (let k = 0; k < 3; k++) {
+              const min = hb.pivot[k] - half[k];
+              const max = hb.pivot[k] + half[k];
+              if (k === axis) {
+                expect(normal[k] > 0 ? max : min).toBeCloseTo(faceCoord, 6);
+                if (normal[k] > 0) expect(min).toBeLessThan(faceCoord);
+                else expect(max).toBeGreaterThan(faceCoord);
+              } else {
+                expect(min).toBeGreaterThanOrEqual(lo[k] - 1e-6);
+                expect(max).toBeLessThanOrEqual(hi[k] + 1e-6);
+              }
+            }
+          }
+        });
       }
     }
-  });
+  }
 
-  it('assigns mark_variant tens digit by surface, units digit by direction', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('C2', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const groups = (j['minecraft:entity'] as any).component_groups;
-    // Tens: wall=10, floor=20, ceiling=30. Units: north=1, east=2, south=3,
-    // west=4. Keeps the animation controller's per-surface ranges contiguous.
-    expect(groups.oriented_wall_north['minecraft:mark_variant'].value).toBe(11);
-    expect(groups.oriented_wall_east['minecraft:mark_variant'].value).toBe(12);
-    expect(groups.oriented_wall_south['minecraft:mark_variant'].value).toBe(13);
-    expect(groups.oriented_wall_west['minecraft:mark_variant'].value).toBe(14);
-    expect(groups.oriented_floor_north['minecraft:mark_variant'].value).toBe(21);
-    expect(groups.oriented_floor_west['minecraft:mark_variant'].value).toBe(24);
-    expect(groups.oriented_ceiling_north['minecraft:mark_variant'].value).toBe(31);
-    expect(groups.oriented_ceiling_west['minecraft:mark_variant'].value).toBe(34);
-  });
-
-  it('tiles oriented_wall_north into column hitboxes (1 wide x H tall) along entity-local X', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('C3', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 48; // 2 wide x 3 tall painting
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const wall = (j['minecraft:entity'] as any).component_groups.oriented_wall_north;
-    const hb = wall['minecraft:custom_hit_test'].hitboxes;
-    expect(hb).toHaveLength(2);
-    for (const h of hb) {
-      expect(h.width).toBeCloseTo(1);
-      expect(h.height).toBeCloseTo(3);
-      expect(h.pivot[1]).toBeCloseTo(1.5);
-      // Player-facing side of the painting plane, same Z as the legacy hitbox.
-      expect(h.pivot[2]).toBeCloseTo(-7 / 16);
+  it('a 1x1 floor/ceiling painting covers exactly the block it was placed in', () => {
+    const { groups } = paintingFor(16, 16);
+    for (const surface of ['floor', 'ceiling']) {
+      for (const dir of DIRS) {
+        const [hb] = groups[`oriented_${surface}_${dir}`]['minecraft:custom_hit_test'].hitboxes;
+        expect(hb.pivot[0]).toBeCloseTo(0);
+        expect(hb.pivot[2]).toBeCloseTo(0);
+        expect(hb.width).toBeCloseTo(1);
+      }
     }
-    const xs = hb.map((h: any) => h.pivot[0]).sort();
-    expect(xs[0]).toBeCloseTo(0);
-    expect(xs[1]).toBeCloseTo(1);
+    // Floor slab hugs the floor (y 0..2px), ceiling slab hugs the ceiling (14..16px).
+    expect(groups.oriented_floor_south['minecraft:custom_hit_test'].hitboxes[0].pivot[1]).toBeCloseTo(1 / 16);
+    expect(groups.oriented_ceiling_south['minecraft:custom_hit_test'].hitboxes[0].pivot[1]).toBeCloseTo(15 / 16);
   });
 
-  it('rotates wall_east hitboxes 90 deg around Y from wall_north - same shape, columns laid along Z', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('C4', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 48;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const east = (j['minecraft:entity'] as any).component_groups.oriented_wall_east;
-    const hb = east['minecraft:custom_hit_test'].hitboxes;
-    expect(hb).toHaveLength(2);
-    for (const h of hb) {
-      expect(h.width).toBeCloseTo(1);
-      expect(h.height).toBeCloseTo(3);
-      // Y unchanged by yaw rotation.
-      expect(h.pivot[1]).toBeCloseTo(1.5);
-      // After 90 deg around Y: original (i, H/2, -7/16) -> (+7/16, H/2, i).
-      expect(h.pivot[0]).toBeCloseTo(7 / 16);
-    }
-    const zs = hb.map((h: any) => h.pivot[2]).sort();
-    expect(zs[0]).toBeCloseTo(0);
-    expect(zs[1]).toBeCloseTo(1);
+  it('assigns mark_variant tens digit by surface, units digit = d + 1', () => {
+    const { groups } = paintingFor(16, 16);
+    DIRS.forEach((dir, d) => {
+      expect(groups[`oriented_wall_${dir}`]['minecraft:mark_variant'].value).toBe(11 + d);
+      expect(groups[`oriented_floor_${dir}`]['minecraft:mark_variant'].value).toBe(21 + d);
+      expect(groups[`oriented_ceiling_${dir}`]['minecraft:mark_variant'].value).toBe(31 + d);
+    });
   });
 
-  it('rotates wall_south hitboxes 180 deg around Y from wall_north', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('C5', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 48;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const south = (j['minecraft:entity'] as any).component_groups.oriented_wall_south;
-    const hb = south['minecraft:custom_hit_test'].hitboxes;
-    expect(hb).toHaveLength(2);
-    // After 180 deg: (i, H/2, -7/16) -> (-i, H/2, +7/16).
-    for (const h of hb) {
-      expect(h.pivot[1]).toBeCloseTo(1.5);
-      expect(h.pivot[2]).toBeCloseTo(7 / 16);
-    }
-    const xs = hb.map((h: any) => h.pivot[0]).sort();
-    expect(xs[0]).toBeCloseTo(-1);
-    expect(xs[1]).toBeCloseTo(0);
-  });
-
-  it('falls back to a single right-sized wall hitbox for sub-block paintings (all 4 cardinals)', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('C6', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 0; p.canvasH16 = 16;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const groups = (j['minecraft:entity'] as any).component_groups;
-    for (const dir of ['north', 'east', 'south', 'west']) {
-      const hb = groups[`oriented_wall_${dir}`]['minecraft:custom_hit_test'].hitboxes;
-      expect(hb).toHaveLength(1);
-      expect(hb[0].width).toBeCloseTo(1 / 16);
+  it('clamps zero-size paintings to a single 1/16 hitbox on every group', () => {
+    const { groups } = paintingFor(0, 0);
+    for (const surface of ['wall', 'floor', 'ceiling']) {
+      for (const dir of DIRS) {
+        const hb = groups[`oriented_${surface}_${dir}`]['minecraft:custom_hit_test'].hitboxes;
+        expect(hb).toHaveLength(1);
+        expect(hb[0].width).toBeCloseTo(1 / 16);
+      }
     }
   });
 
@@ -153,17 +188,6 @@ describe('buildEntityBehavior', () => {
     const fam = (j['minecraft:entity'].components as any)['minecraft:type_family'].family;
     expect(fam).toContain('paintings_painting');
     expect(fam).toContain('inanimate');
-  });
-
-  it('clamps wall hitbox height to 1/16 minimum for zero-height paintings', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('E', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 16; p.canvasH16 = 0;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const wall = (j['minecraft:entity'] as any).component_groups.oriented_wall_north;
-    const hb = wall['minecraft:custom_hit_test'].hitboxes[0];
-    expect(hb.height).toBeCloseTo(1 / 16);
   });
 
   it('emits damage_sensor with deals_damage="no", cause="all" and event/target as strings inside on_damage', () => {
@@ -180,84 +204,6 @@ describe('buildEntityBehavior', () => {
     expect(trigger.target).toBeUndefined();
   });
 
-  it('tiles oriented_floor_north into 1x1 horizontal cells extending north (-Z) from the entity', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('G', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 16; // 2x1 painting
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const flat = (j['minecraft:entity'] as any).component_groups.oriented_floor_north;
-    const hb = flat['minecraft:custom_hit_test'].hitboxes;
-    expect(hb).toHaveLength(2);
-    for (const h of hb) {
-      expect(h.width).toBeCloseTo(1);
-      expect(h.height).toBeCloseTo(1 / 16);
-      expect(h.pivot[1]).toBeCloseTo(14.5 / 16);
-      expect(h.pivot[2]).toBeCloseTo(-1);
-    }
-    const xs = hb.map((h: any) => h.pivot[0]).sort();
-    expect(xs[0]).toBeCloseTo(0);
-    expect(xs[1]).toBeCloseTo(1);
-  });
-
-  it('tiles oriented_floor_east as the north tiling rotated 90 deg around Y', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('G2', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 32; p.canvasH16 = 16;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const east = (j['minecraft:entity'] as any).component_groups.oriented_floor_east;
-    const hb = east['minecraft:custom_hit_test'].hitboxes;
-    // After 90 deg yaw: each (x, _, z) -> (-z, _, x). The original north
-    // tiles at (0|1, _, -1) become (1, _, 0|1).
-    expect(hb).toHaveLength(2);
-    for (const h of hb) {
-      expect(h.width).toBeCloseTo(1);
-      expect(h.pivot[1]).toBeCloseTo(14.5 / 16);
-      expect(h.pivot[0]).toBeCloseTo(1);
-    }
-    const zs = hb.map((h: any) => h.pivot[2]).sort();
-    expect(zs[0]).toBeCloseTo(0);
-    expect(zs[1]).toBeCloseTo(1);
-  });
-
-  it('tiles oriented_ceiling_north with one 1x1 hitbox per canvas block, extending south (+Z) from the entity', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('G3', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 16; p.canvasH16 = 32;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const flat = (j['minecraft:entity'] as any).component_groups.oriented_ceiling_north;
-    const hb = flat['minecraft:custom_hit_test'].hitboxes;
-    expect(hb).toHaveLength(2);
-    for (const h of hb) {
-      expect(h.width).toBeCloseTo(1);
-      expect(h.height).toBeCloseTo(1 / 16);
-      expect(h.pivot[1]).toBeCloseTo(1.5 / 16);
-      expect(h.pivot[0]).toBeCloseTo(0);
-    }
-    const zs = hb.map((h: any) => h.pivot[2]).sort();
-    expect(zs[0]).toBeCloseTo(1);
-    expect(zs[1]).toBeCloseTo(2);
-  });
-
-  it('uses a single right-sized hitbox for sub-block paintings across all 12 oriented groups', () => {
-    const proj = createEmptyProject();
-    const p = createPaintingFromImage('H', { pngBase64: '', naturalW: 32, naturalH: 32 });
-    p.canvasW16 = 0; p.canvasH16 = 0;
-    proj.paintings.push(p);
-    const j = buildEntityBehavior(proj, p);
-    const groups = (j['minecraft:entity'] as any).component_groups;
-    for (const surface of ['wall', 'floor', 'ceiling']) {
-      for (const dir of ['north', 'east', 'south', 'west']) {
-        const hb = groups[`oriented_${surface}_${dir}`]['minecraft:custom_hit_test'].hitboxes;
-        expect(hb, `${surface}_${dir}`).toHaveLength(1);
-        expect(hb[0].width).toBeCloseTo(1 / 16);
-        expect(hb[0].height).toBeCloseTo(1 / 16);
-      }
-    }
-  });
-
   it('emits one set_oriented_<surface>_<dir> event per component group (12 total)', () => {
     const proj = createEmptyProject();
     const p = createPaintingFromImage('I', { pngBase64: '', naturalW: 32, naturalH: 32 });
@@ -265,7 +211,7 @@ describe('buildEntityBehavior', () => {
     const j = buildEntityBehavior(proj, p);
     const events = (j['minecraft:entity'] as any).events;
     for (const surface of ['wall', 'floor', 'ceiling']) {
-      for (const dir of ['north', 'east', 'south', 'west']) {
+      for (const dir of DIRS) {
         const ev = events[`set_oriented_${surface}_${dir}`];
         expect(ev, `set_oriented_${surface}_${dir}`).toBeDefined();
         expect(ev.add.component_groups).toContain(`oriented_${surface}_${dir}`);

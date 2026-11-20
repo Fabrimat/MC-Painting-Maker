@@ -1,3 +1,5 @@
+import { ORIENTED_DIRS } from './entity';
+
 export function buildMainJs(
   namespace: string,
   opts: { debug?: boolean; buildSha?: string; buildDate?: string } = {},
@@ -162,33 +164,35 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
     intent: intent ? { face: String(intent.face), ageMs: Date.now() - intent.t } : null,
     intentsLeft: intents.size,
   });
-  // Yaw only: Bedrock does not propagate entity pitch to the rendered model
-  // for inanimate entities, so we drive the floor/ceiling rotation via a
-  // client-side animation that reads mark_variant instead of via setRotation.
+  // The entity is ALWAYS kept at yaw 0 (and pitch 0): the painting's yaw and
+  // floor/ceiling pitch are applied client-side by the orient animations,
+  // driven by mark_variant. Keeping the real yaw at 0 means custom_hit_test
+  // pivots are never rotated by the engine, so the pre-rotated hitboxes in
+  // each oriented_* component group land exactly on the rendered painting.
   if (!e.isValid) return;
-  e.setRotation({ x: 0, y: snappedY });
-  dbg("setRotation", { x: 0, y: snappedY });
-  // The entity has NO hitbox until one of the orientation component groups
-  // is added (see entity.ts). 4 cardinal directions x 3 surface verses = 12
-  // groups total. The wall direction comes straight from the clicked block
-  // face; for floor/ceiling we derive it from the entity's yaw (snapped to
-  // a cardinal). Without an intent (e.g. /summon) we default to wall_north.
-  const DIRS = ["north", "east", "south", "west"];
-  const FACE_TO_INDEX = { North: 0, East: 1, South: 2, West: 3 };
+  e.setRotation({ x: 0, y: 0 });
+  dbg("setRotation", { x: 0, y: 0 });
+  // d = number of +90 deg yaw steps (0..3). Labels = direction the painting
+  // front faces: d=0 south, 1 west, 2 north, 3 east. A wall painting's front
+  // must face the clicked face's normal, so walls take d from the face (never
+  // from the player's look direction, which can be up to 90 deg off when
+  // clicking a wall obliquely). Floor/ceiling take d from the spawn yaw
+  // snapped to a cardinal. Without an intent (e.g. /summon) default to d=0.
+  const DIRS = ${JSON.stringify(ORIENTED_DIRS)};
+  const FACE_TO_D = { South: 0, West: 1, North: 2, East: 3 };
   let surface = "wall";
-  let dirIndex = 0;
+  let d = 0;
   if (intent && intent.face === "Up") {
     surface = "floor";
-    dirIndex = ((Math.round(snappedY / 90) % 4) + 4) % 4;
+    d = ((Math.round(snappedY / 90) % 4) + 4) % 4;
   } else if (intent && intent.face === "Down") {
     surface = "ceiling";
-    dirIndex = ((Math.round(snappedY / 90) % 4) + 4) % 4;
+    d = ((Math.round(snappedY / 90) % 4) + 4) % 4;
   } else if (intent) {
-    surface = "wall";
-    const fromFace = FACE_TO_INDEX[String(intent.face)];
-    dirIndex = typeof fromFace === "number" ? fromFace : 0;
+    const fromFace = FACE_TO_D[String(intent.face)];
+    d = typeof fromFace === "number" ? fromFace : 0;
   }
-  const dir = DIRS[dirIndex];
+  const dir = DIRS[d];
   const eventName = "set_oriented_" + surface + "_" + dir;
   if (!e.isValid) return;
   e.triggerEvent(eventName);

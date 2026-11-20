@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ORIENTED_DIRS } from './entity';
 import { buildMainJs } from './script';
 
 describe('buildMainJs', () => {
@@ -84,13 +85,21 @@ describe('buildMainJs', () => {
   it('picks one of 12 oriented event names from face + yaw (4 cardinals x 3 surfaces)', () => {
     const code = buildMainJs('a');
     // Direction lookup tables in the generated script.
-    expect(code).toContain('const DIRS = ["north", "east", "south", "west"]');
-    expect(code).toContain('const FACE_TO_INDEX = { North: 0, East: 1, South: 2, West: 3 }');
-    // Floor/ceiling branches derive direction from the entity yaw.
-    expect(code).toMatch(/intent\.face === "Up"[\s\S]*surface = "floor"[\s\S]*dirIndex = \(\(Math\.round\(snappedY \/ 90\)/);
+    // DIRS is index-aligned with the entity's ORIENTED_DIRS (d = yaw steps).
+    expect(code).toContain(`const DIRS = ${JSON.stringify(ORIENTED_DIRS)}`);
+    // A wall painting faces the clicked face's normal: d=0 faces south, etc.
+    expect(code).toContain('const FACE_TO_D = { South: 0, West: 1, North: 2, East: 3 }');
+    ORIENTED_DIRS.forEach((dir, d) => {
+      const face = dir[0].toUpperCase() + dir.slice(1);
+      expect(code).toContain(`${face}: ${d}`);
+    });
+    // Floor/ceiling branches derive direction from the snapped spawn yaw.
+    expect(code).toMatch(/intent\.face === "Up"[\s\S]*surface = "floor"[\s\S]*d = \(\(Math\.round\(snappedY \/ 90\)/);
+    // The entity itself always stays at yaw 0 (yaw is rendered by animation).
+    expect(code).toContain('e.setRotation({ x: 0, y: 0 })');
     expect(code).toMatch(/intent\.face === "Down"[\s\S]*surface = "ceiling"/);
     // Wall branch picks direction from the block face that was clicked.
-    expect(code).toContain('FACE_TO_INDEX[String(intent.face)]');
+    expect(code).toContain('FACE_TO_D[String(intent.face)]');
     // Single trigger site builds the event name from surface + direction.
     expect(code).toContain('"set_oriented_" + surface + "_" + dir');
   });

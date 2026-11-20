@@ -7,12 +7,22 @@ import {
   ORIENT_CONTROLLER_ID,
   ORIENT_FLOOR_SHORTNAME,
   ORIENT_CEILING_SHORTNAME,
+  ORIENT_ANIMATION_YAW_ID,
+  ORIENT_YAW_BONE,
 } from './orient_animation';
 
 describe('buildOrientAnimations', () => {
+  it('yaw animation turns the orient_yaw bone by d * 90 with d = (mark_variant % 10) - 1, 0 when unset', () => {
+    const a = (buildOrientAnimations().animations as any)[ORIENT_ANIMATION_YAW_ID];
+    expect(a.loop).toBe(true);
+    expect(a.bones[ORIENT_YAW_BONE].rotation).toEqual([
+      0, 'q.mark_variant > 0 ? (math.mod(q.mark_variant, 10) - 1) * 90 : 0', 0,
+    ]);
+  });
+
   it('rotates root -90 on X for floor and translates it onto the floor surface', () => {
     const j = buildOrientAnimations();
-    const a = (j.animations as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_FLOOR_ID];
+    const a = (j.animations as unknown as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_FLOOR_ID];
     expect(a).toBeDefined();
     expect(a.bones.root.rotation).toEqual([-90, 0, 0]);
     // Tuned in-game; values compensate for the pivot landing at the
@@ -22,7 +32,7 @@ describe('buildOrientAnimations', () => {
 
   it('rotates root +90 on X for ceiling and translates it onto the ceiling surface', () => {
     const j = buildOrientAnimations();
-    const a = (j.animations as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
+    const a = (j.animations as unknown as Record<string, { bones: { root: { rotation: number[]; position: number[] } } }>)[ORIENT_ANIMATION_CEILING_ID];
     expect(a).toBeDefined();
     expect(a.bones.root.rotation).toEqual([90, 0, 0]);
     expect(a.bones.root.position).toEqual([0, 8, 8]);
@@ -30,7 +40,7 @@ describe('buildOrientAnimations', () => {
 
   it('uses hold_on_last_frame so the rotation persists once the (tiny) animation ends', () => {
     const j = buildOrientAnimations();
-    const a = (j.animations as Record<string, { loop: string }>)[ORIENT_ANIMATION_FLOOR_ID];
+    const a = (j.animations as unknown as Record<string, { loop: string }>)[ORIENT_ANIMATION_FLOOR_ID];
     expect(a.loop).toBe('hold_on_last_frame');
   });
 });

@@ -7,6 +7,7 @@ import { BACK_RENDER_CONTROLLER_NAME, BACK_TEXTURE_FILENAME } from './back_textu
 import {
   ORIENT_ANIMATION_FLOOR_ID, ORIENT_ANIMATION_CEILING_ID, ORIENT_CONTROLLER_ID,
   ORIENT_FLOOR_SHORTNAME, ORIENT_CEILING_SHORTNAME, ORIENT_CONTROLLER_SHORTNAME,
+  ORIENT_ANIMATION_YAW_ID, ORIENT_YAW_SHORTNAME,
 } from './orient_animation';
 
 export function buildClientEntity(p: ProjectState, painting: Painting) {
@@ -42,9 +43,10 @@ export function buildClientEntity(p: ProjectState, painting: Painting) {
           [ORIENT_FLOOR_SHORTNAME]: ORIENT_ANIMATION_FLOOR_ID,
           [ORIENT_CEILING_SHORTNAME]: ORIENT_ANIMATION_CEILING_ID,
           [ORIENT_CONTROLLER_SHORTNAME]: ORIENT_CONTROLLER_ID,
+          [ORIENT_YAW_SHORTNAME]: ORIENT_ANIMATION_YAW_ID,
         },
         scripts: {
-          animate: [ORIENT_CONTROLLER_SHORTNAME],
+          animate: [ORIENT_CONTROLLER_SHORTNAME, ORIENT_YAW_SHORTNAME],
         },
         ...(spawn_egg ? { spawn_egg } : {}),
       },
