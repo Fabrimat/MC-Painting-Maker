@@ -23,6 +23,14 @@
   import PaintingEditor from './editor/PaintingEditor.svelte';
   import EditorHeader from './ui/EditorHeader.svelte';
   import PaintingProperties from './ui/PaintingProperties.svelte';
+  import NewsBanner from './ui/NewsBanner.svelte';
+  import { wipeAllData } from './util/wipe';
+
+  async function onWipeAll() {
+    if (!confirm('Delete ALL data stored by this site (project, paintings, settings, offline cache)? This cannot be undone.')) return;
+    await wipeAllData();
+    location.reload();
+  }
   import EmptyState from './ui/EmptyState.svelte';
   import PackDrawer from './ui/PackDrawer.svelte';
   import TabBar from './ui/TabBar.svelte';
@@ -189,6 +197,7 @@
       </svg>
       <strong>DEBUG MODE</strong>
       <span>Dedicated to website development and debugging.</span>
+      <button type="button" class="banner-off" on:click={onWipeAll}>Wipe all data</button>
       <button type="button" class="banner-off" on:click={() => { trackDebugModeChanged(false); devMode.set(false); }}>Turn off</button>
     </div>
   {/if}
@@ -223,6 +232,7 @@
     </aside>
   </div>
 
+  <NewsBanner />
   <TabBar />
   <PackDrawer onimport={onImport} onexport={onExport} />
 
