@@ -155,6 +155,13 @@
             class:on={painting.resampling === 'pixelated'}
             on:click={() => patch({ resampling: 'pixelated' })}>Pixel art</button>
         </span>
+        <p class="option-hint" aria-live="polite">
+          {#if painting.resampling === 'pixelated'}
+            Keeps hard pixel edges when resizing - best for pixel art and low-resolution images.
+          {:else}
+            Blends neighbouring pixels when resizing - best for photos and drawings.
+          {/if}
+        </p>
       </div>
     </section>
 
@@ -170,9 +177,12 @@
           class:on={painting.material === 'alphablend'}
           on:click={() => patch({ material: 'alphablend' })}>Blended</button>
       </span>
-      <p class="field-hint" style="margin-top: var(--space-2)">
-        Cutout: pixels are either fully visible or fully invisible - fits most images.
-        Blended: supports partial transparency throughout the texture (glass, gradients, smoky effects).
+      <p class="option-hint" aria-live="polite">
+        {#if painting.material === 'alphablend'}
+          Supports partial transparency throughout the texture (glass, gradients, smoky effects).
+        {:else}
+          Pixels are either fully visible or fully invisible - fits most images.
+        {/if}
       </p>
     </section>
 
@@ -270,6 +280,12 @@
   .with-suffix .suffix {
     position: absolute; right: var(--space-3); top: 50%; transform: translateY(-50%);
     font-size: var(--fs-xs); color: var(--text-faint); pointer-events: none;
+  }
+  /* Fixed height (3 lines) so switching option never shifts the layout below. */
+  .option-hint {
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-xs); line-height: 1.5; color: var(--text-faint);
+    height: 4.5em; overflow: hidden;
   }
   .pills {
     display: flex; gap: var(--space-1); background: #fff;
