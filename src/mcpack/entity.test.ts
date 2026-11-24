@@ -131,9 +131,10 @@ describe('buildEntityBehavior', () => {
               const min = hb.pivot[k] - half[k];
               const max = hb.pivot[k] + half[k];
               if (k === axis) {
+                // Spans exactly the 2px between the supporting block surface
+                // and the canvas front: never inside the block, never in the room.
                 expect(normal[k] > 0 ? max : min).toBeCloseTo(faceCoord, 6);
-                if (normal[k] > 0) expect(min).toBeLessThan(faceCoord);
-                else expect(max).toBeGreaterThan(faceCoord);
+                expect(normal[k] > 0 ? min : max).toBeCloseTo(faceCoord - normal[k] * (2 / 16), 6);
               } else {
                 expect(min).toBeGreaterThanOrEqual(lo[k] - 1e-6);
                 expect(max).toBeLessThanOrEqual(hi[k] + 1e-6);

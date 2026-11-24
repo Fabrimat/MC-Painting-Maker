@@ -38,11 +38,16 @@ function tileAxis(a0: number, a1: number, s: number): number[] {
 }
 
 // Wall: vertical plane along X, front face at local z = -6/16 facing +Z,
-// backed by the wall block at z <= -8/16. Columns are as deep as they are
-// wide (square footprint) and extend BACKWARD from the front face into the
-// wall block, which the player can never reach, so nothing sticks out.
+// backed by the wall block surface at z = -8/16. custom_hit_test footprints
+// are square, so a column is as deep as it is wide: thin 2px columns fill
+// exactly the 2px between the wall surface and the canvas front, never
+// reaching into the wall block nor sticking out into the room (1-block
+// columns ended up inside the wall block, verified in-game).
+// ponytail: W * 8 columns per wall group (32 for a 4-block canvas); fine for
+// canvas sizes this app produces.
+const SURFACE_GAP = 2 / 16;
 function wallHitboxes(W: number, H: number): Hitbox[] {
-  const s = Math.min(1, W);
+  const s = Math.min(SURFACE_GAP, W);
   const zCenter = -6 / 16 - s / 2;
   return tileAxis(-0.5, W - 0.5, s).map((x) => ({ pivot: [x, H / 2, zCenter], width: s, height: H }));
 }
@@ -87,8 +92,8 @@ export function orientedHitboxes(W: number, H: number, surface: 'wall' | 'floor'
   const base = surface === 'wall'
     ? wallHitboxes(W, H)
     : surface === 'floor'
-      ? flatHitboxes(W, H, [0.5 - H, 0.5], [0, 2 / 16])
-      : flatHitboxes(W, H, [-0.5, H - 0.5], [14 / 16, 1]);
+      ? flatHitboxes(W, H, [0.5 - H, 0.5], [0, SURFACE_GAP])
+      : flatHitboxes(W, H, [-0.5, H - 0.5], [1 - SURFACE_GAP, 1]);
   return rotateHitboxesAroundY(base, d);
 }
 
