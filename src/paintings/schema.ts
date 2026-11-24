@@ -21,6 +21,8 @@ export const PackMetaSchema = z.object({
   // Defaults to true so projects created before this field was introduced
   // adopt the new behavior on load. Users can opt out via the Pack drawer.
   autoBumpVersion: z.boolean().default(true),
+  breakInSurvival: z.boolean().default(true),
+  breakInAdventure: z.boolean().default(false),
 });
 
 // Each UUID slot is either an empty string (project has no identity yet - no images loaded)

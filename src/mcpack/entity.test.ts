@@ -191,8 +191,22 @@ describe('buildEntityBehavior', () => {
     expect(fam).toContain('inanimate');
   });
 
-  it('emits damage_sensor with deals_damage="no", cause="all" and event/target as strings inside on_damage', () => {
+  it('v3: damage_sensor only blocks damage - breaking is decided by the script', () => {
     const proj = createEmptyProject();
+    const p = createPaintingFromImage('F3', { pngBase64: '', naturalW: 32, naturalH: 32 });
+    proj.paintings.push(p);
+    const comps = buildEntityBehavior(proj, p)['minecraft:entity'].components as any;
+    expect(comps['minecraft:damage_sensor'].triggers).toEqual([
+      { deals_damage: 'no', cause: 'entity_attack' },
+      { deals_damage: 'no', cause: 'all' },
+    ]);
+    // The sensor alone did not stop melee damage in-game: enough health that
+    // a hit can never kill it (no death animation), the script removes it.
+    expect(comps['minecraft:health'].value).toBeGreaterThanOrEqual(1000000);
+  });
+
+  it('v2 (no script): damage_sensor despawns on a player hit, event/target as strings inside on_damage', () => {
+    const proj = { ...createEmptyProject(), version: 2 as const };
     const p = createPaintingFromImage('F', { pngBase64: '', naturalW: 32, naturalH: 32 });
     proj.paintings.push(p);
     const j = buildEntityBehavior(proj, p);

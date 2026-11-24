@@ -163,6 +163,19 @@
     </section>
 
     <section>
+      <h4 class="section-title">Breaking paintings</h4>
+      <p class="section-hint">Creative players can always remove paintings. Broken paintings drop their item.</p>
+      <label class="auto-bump">
+        <input type="checkbox" bind:checked={$project.pack.breakInSurvival} />
+        <span>Breakable in Survival</span>
+      </label>
+      <label class="auto-bump">
+        <input type="checkbox" bind:checked={$project.pack.breakInAdventure} />
+        <span>Breakable in Adventure</span>
+      </label>
+    </section>
+
+    <section>
       <h4 class="section-title">Project file</h4>
       <p class="section-hint">
         Save the current editor state as a JSON file, or restore one previously exported.

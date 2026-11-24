@@ -134,9 +134,12 @@ describe('buildMainJs', () => {
 
   it('consumes the intent on matching entitySpawn so it is not reused', () => {
     const code = buildMainJs('a');
-    // takeIntentFor must remove the picked intent from the map; otherwise
-    // a stale block face would leak into a later unrelated painting spawn.
-    expect(code).toMatch(/intents\.delete\(/);
+    // takeIntentFor must remove the picked intent; otherwise a stale block
+    // face would leak into a later unrelated painting spawn.
+    expect(code).toContain('return intents.splice(best, 1)[0];');
+    // One entry per interaction (not one per player): a double-fired click
+    // spawns two paintings and both need their own face + placer.
+    expect(code).toContain('intents.push({ face: blockFace, t: Date.now(), playerId });');
   });
 
   it('defaults to a no-op dbg helper when debug is off (release build is silent)', () => {
@@ -196,5 +199,32 @@ describe('buildMainJs', () => {
     const guard = code.indexOf('if (replacements.delete(e.id) || markVariantOf(e) > 0) return;');
     expect(guard).toBeGreaterThan(-1);
     expect(guard).toBeLessThan(code.indexOf('const intent = takeIntentFor(e)'));
+  });
+
+  it('breaks paintings by game mode: creative removes, survival/adventure drop the item if allowed', () => {
+    const code = buildMainJs('a');
+    expect(code).toContain('import { world, ItemStack } from "@minecraft/server"');
+    expect(code).toContain('const BREAK_IN_SURVIVAL = true;');
+    expect(code).toContain('const BREAK_IN_ADVENTURE = false;');
+    expect(code).toContain('safeSubscribe("entityHitEntity"');
+    expect(code).toContain('const drop = (mode === "survival" && BREAK_IN_SURVIVAL) || (mode === "adventure" && BREAK_IN_ADVENTURE);');
+    expect(code).toContain('if (mode !== "creative" && !drop) return;');
+    expect(code).toContain('e.dimension.spawnItem(new ItemStack(e.typeId + ITEM_SUFFIX, 1), e.location)');
+    const custom = buildMainJs('a', { breakInSurvival: false, breakInAdventure: true });
+    expect(custom).toContain('const BREAK_IN_SURVIVAL = false;');
+    expect(custom).toContain('const BREAK_IN_ADVENTURE = true;');
+  });
+
+  it('refuses a second painting on the same spot and refunds the item', () => {
+    const code = buildMainJs('a');
+    // Same block + same surface (walls: same side) is taken.
+    expect(code).toContain('return surface === "wall" ? v === base + d : v >= base && v <= base + 3;');
+    // Checked before the oriented respawn, removing the new entity.
+    const check = code.indexOf('if (isSpotTaken(e, surface, d)) {');
+    expect(check).toBeGreaterThan(-1);
+    expect(check).toBeLessThan(code.indexOf('e.dimension.spawnEntity(e.typeId'));
+    expect(code).toContain('refundPlacerItem(player, e.typeId)');
+    // The intent remembers who placed it, for the refund.
+    expect(code).toContain('{ face: blockFace, t: Date.now(), playerId }');
   });
 });

@@ -46,7 +46,10 @@ export async function assembleArchive(
   const buildDate = opts.buildDate || new Date().toISOString();
 
   files[`${bp}manifest.json`] = json(buildBpManifest(state));
-  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns, { debug: opts.debug, buildSha, buildDate }));
+  files[`${bp}scripts/main.js`] = strToU8(buildMainJs(ns, {
+    debug: opts.debug, buildSha, buildDate,
+    breakInSurvival: state.pack.breakInSurvival, breakInAdventure: state.pack.breakInAdventure,
+  }));
   files[`${bp}functions/${ns}/version.mcfunction`] = strToU8(buildVersionMcfunction({ buildSha, buildDate }));
   files[`${bp}texts/en_US.lang`] = strToU8(buildBpLang(state));
   files[`${bp}texts/languages.json`] = strToU8(LANGUAGES_JSON);

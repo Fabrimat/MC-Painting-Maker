@@ -145,17 +145,28 @@ export function buildEntityBehavior(p: ProjectState, painting: Painting) {
         'minecraft:physics': { has_collision: false, has_gravity: false },
         'minecraft:pushable': { is_pushable: false, is_pushable_by_piston: false },
         'minecraft:knockback_resistance': { value: 1000, max: 1000 },
-        'minecraft:health': { value: 1, max: 1 },
+        // v3: effectively immortal. In-game the damage_sensor alone did NOT
+        // stop melee damage (entityHurt still fired), so with 1 HP the painting
+        // died and played the death tip-over animation. With this much health
+        // it never dies; the script removes it instead. v2 keeps 1 HP: its
+        // despawn event runs on the same hit.
+        'minecraft:health': usesPlacerItems(p) ? { value: 1000000, max: 1000000 } : { value: 1, max: 1 },
+        // Paintings never take damage. v3 packs remove them from the script
+        // (game mode aware: creative removes, survival/adventure break and drop
+        // the placer item only if the pack allows it). v2 has no script, so a
+        // player hit despawns the painting directly as before.
         'minecraft:damage_sensor': {
-          triggers: [{
-            on_damage: {
-              filters: { test: 'is_family', subject: 'other', value: 'player' },
-              event: 'despawn_self',
-              target: 'self',
-            },
-            deals_damage: 'no',
-            cause: 'all',
-          }],
+          triggers: usesPlacerItems(p)
+            ? [{ deals_damage: 'no', cause: 'entity_attack' }, { deals_damage: 'no', cause: 'all' }]
+            : [{
+              on_damage: {
+                filters: { test: 'is_family', subject: 'other', value: 'player' },
+                event: 'despawn_self',
+                target: 'self',
+              },
+              deals_damage: 'no',
+              cause: 'all',
+            }],
         },
         'minecraft:nameable': { allow_name_tag_renaming: false },
       },

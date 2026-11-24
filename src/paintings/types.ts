@@ -11,6 +11,10 @@ export type PackMeta = {
   // When true, the patch component of `semver` is incremented after every
   // successful .mcaddon build so Minecraft sees a fresh version on import.
   autoBumpVersion: boolean;
+  // Whether players in Survival / Adventure can break placed paintings (they
+  // drop their placer item). Creative players can always remove them.
+  breakInSurvival: boolean;
+  breakInAdventure: boolean;
 };
 
 export type PackUUIDs = {

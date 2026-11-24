@@ -42,6 +42,12 @@ describe('ProjectSchema', () => {
     expect(parsed.pack.autoBumpVersion).toBe(true);
   });
 
+  it('defaults breaking to Survival on, Adventure off for projects without the fields', () => {
+    const parsed = ProjectSchema.parse(minimalProject);
+    expect(parsed.pack.breakInSurvival).toBe(true);
+    expect(parsed.pack.breakInAdventure).toBe(false);
+  });
+
   it('preserves an explicit autoBumpVersion=false', () => {
     const withFlag = {
       ...minimalProject,

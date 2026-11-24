@@ -2,9 +2,14 @@ import { ORIENTED_DIRS } from './entity';
 
 export function buildMainJs(
   namespace: string,
-  opts: { debug?: boolean; buildSha?: string; buildDate?: string } = {},
+  opts: {
+    debug?: boolean; buildSha?: string; buildDate?: string;
+    breakInSurvival?: boolean; breakInAdventure?: boolean;
+  } = {},
 ): string {
   const debug = !!opts.debug;
+  const breakInSurvival = opts.breakInSurvival ?? true;
+  const breakInAdventure = opts.breakInAdventure ?? false;
   const buildSha = opts.buildSha || 'unknown';
   const buildDate = opts.buildDate || 'unknown';
   // In debug builds the addon broadcasts diagnostic lines to chat (visible to
@@ -29,12 +34,15 @@ export function buildMainJs(
 // build: ${buildSha}
 // generated: ${buildDate}
 // debug: ${debug}
-import { world } from "@minecraft/server";
+import { world, ItemStack } from "@minecraft/server";
 
 const FAMILY = "${namespace}_painting";
 const ITEM_NS = "${namespace}:";
 const ITEM_SUFFIX = "_painting";
 const INTENT_WINDOW_MS = 500;
+// Pack settings: can Survival / Adventure players break placed paintings?
+const BREAK_IN_SURVIVAL = ${breakInSurvival};
+const BREAK_IN_ADVENTURE = ${breakInAdventure};
 
 ${dbgImpl}
 
@@ -61,9 +69,12 @@ function safeSubscribe(name, source, handler) {
 
 // minecraft:entity_placer spawns the entity with pitch=0 regardless of which
 // face was clicked, so the placement orientation cannot be recovered from
-// the spawned entity. Track the block face per player at interaction time
-// and consume it on the matching entitySpawn (same tick).
-const intents = new Map();
+// the spawned entity. Track the block face of every interaction and consume
+// one per matching entitySpawn (same tick). A list, not one slot per player:
+// a single click can fire the interaction twice and spawn two paintings
+// (seen in-game), and each spawn needs its own intent to know its face and
+// who placed it.
+const intents = [];
 
 function isPlacerItem(typeId) {
   return typeof typeId === "string"
@@ -72,8 +83,8 @@ function isPlacerItem(typeId) {
 }
 
 function storeIntent(playerId, blockFace, via) {
-  intents.set(playerId, { face: blockFace, t: Date.now() });
-  dbg("intent stored", { playerId, face: String(blockFace), via, size: intents.size });
+  intents.push({ face: blockFace, t: Date.now(), playerId });
+  dbg("intent stored", { playerId, face: String(blockFace), via, size: intents.length });
 }
 
 // Intent capture must happen on a BEFORE event: in this Bedrock runtime
@@ -140,32 +151,29 @@ safeSubscribe("entityRemove", world.beforeEvents && world.beforeEvents.entityRem
 });
 ` : ''}
 function takeIntentFor(entity) {
-  if (intents.size === 0) return null;
   const now = Date.now();
+  // Drop expired intents first.
+  for (let i = intents.length - 1; i >= 0; i--) {
+    if (now - intents[i].t > INTENT_WINDOW_MS) intents.splice(i, 1);
+  }
+  if (intents.length === 0) return null;
   const pos = entity.location;
   const players = world.getAllPlayers();
-  let bestKey = null;
-  let bestVal = null;
+  // Nearest placing player wins; ties keep the oldest intent. An intent whose
+  // player has gone (dist=Infinity) still wins when it is the only one.
+  let best = -1;
   let bestDist = Number.POSITIVE_INFINITY;
-  for (const [id, value] of intents) {
-    if (now - value.t > INTENT_WINDOW_MS) {
-      intents.delete(id);
-      continue;
-    }
-    const player = players.find((p) => p.id === id);
+  intents.forEach((value, i) => {
+    const player = players.find((p) => p.id === value.playerId);
     const dist = player
       ? (player.location.x - pos.x) ** 2 + (player.location.y - pos.y) ** 2 + (player.location.z - pos.z) ** 2
       : Number.POSITIVE_INFINITY;
-    // Use <= so an intent whose player has gone (dist=Infinity) still wins
-    // when it is the only candidate, instead of being silently dropped.
-    if (bestKey === null || dist < bestDist) {
+    if (best === -1 || dist < bestDist) {
       bestDist = dist;
-      bestKey = id;
-      bestVal = value;
+      best = i;
     }
-  }
-  if (bestKey !== null) intents.delete(bestKey);
-  return bestVal;
+  });
+  return intents.splice(best, 1)[0];
 }
 
 // Ids of the oriented replacements spawned below, so their own entitySpawn
@@ -180,6 +188,45 @@ function markVariantOf(entity) {
   } catch {
     return 0;
   }
+}
+
+const VARIANT_BASE = { wall: 11, floor: 21, ceiling: 31 };
+
+function isSpotTaken(e, surface, d) {
+  const cell = { x: Math.floor(e.location.x), y: Math.floor(e.location.y), z: Math.floor(e.location.z) };
+  const base = VARIANT_BASE[surface];
+  let others = [];
+  try {
+    others = e.dimension.getEntities({
+      families: [FAMILY],
+      location: { x: cell.x + 0.5, y: cell.y + 0.5, z: cell.z + 0.5 },
+      maxDistance: 1,
+    });
+  } catch {
+    return false;
+  }
+  return others.some((o) => {
+    if (o.id === e.id || !o.isValid) return false;
+    const l = o.location;
+    if (Math.floor(l.x) !== cell.x || Math.floor(l.y) !== cell.y || Math.floor(l.z) !== cell.z) return false;
+    const v = markVariantOf(o);
+    // Walls clash only on the same side; floor/ceiling clash in any direction.
+    return surface === "wall" ? v === base + d : v >= base && v <= base + 3;
+  });
+}
+
+// Give the consumed placer item back (not in Creative, where none was used).
+function refundPlacerItem(player, entityTypeId) {
+  try {
+    if (String(player.getGameMode()).toLowerCase() === "creative") return;
+    const item = new ItemStack(entityTypeId + ITEM_SUFFIX, 1);
+    const inv = player.getComponent("minecraft:inventory");
+    const left = inv && inv.container ? inv.container.addItem(item) : item;
+    if (left) player.dimension.spawnItem(left, player.location);
+  } catch (err) {
+    dbg("refund failed", { error: String(err) });
+  }
+  try { player.onScreenDisplay.setActionBar("There is already a painting here"); } catch {}
 }
 
 safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn, (event) => {
@@ -204,7 +251,7 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
     cause: String(event.cause),
     rawRotation: { x: r.x, y: r.y },
     intent: intent ? { face: String(intent.face), ageMs: Date.now() - intent.t } : null,
-    intentsLeft: intents.size,
+    intentsLeft: intents.length,
   });
   // The entity is ALWAYS kept at yaw 0 (and pitch 0): the painting's yaw and
   // floor/ceiling pitch are applied client-side by the orient animations,
@@ -237,6 +284,17 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
   const dir = DIRS[d];
   const eventName = "set_oriented_" + surface + "_" + dir;
   if (!e.isValid) return;
+  // One painting per spot: refuse the placement if an oriented painting
+  // already sits in the same block on the same surface (same wall side, or
+  // floor / ceiling of that block). Paintings on different sides of the same
+  // block (e.g. two walls of a corner) are still allowed.
+  if (isSpotTaken(e, surface, d)) {
+    e.remove();
+    const player = intent ? world.getAllPlayers().find((p) => p.id === intent.playerId) : null;
+    if (player) refundPlacerItem(player, e.typeId);
+    dbg("placement refused: spot taken", { surface, dir });
+    return;
+  }
   // custom_hit_test is sent to clients only with the entity's initial spawn
   // data: a component group added after the spawn changes the server-side
   // state but the client - which decides what the player's swing hits -
@@ -255,6 +313,30 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
     e.triggerEvent(eventName);
     dbg("respawn failed, triggered " + eventName + " in place", { error: String(err) });
   }
+});
+
+// Breaking. The entity never takes damage (damage_sensor deals_damage "no"),
+// so the hit is resolved here from the attacker's game mode: Creative always
+// removes the painting without drops; Survival / Adventure break it and drop
+// its placer item only when the pack allows it, otherwise nothing happens.
+safeSubscribe("entityHitEntity", world.afterEvents && world.afterEvents.entityHitEntity, (event) => {
+  const e = event.hitEntity;
+  const player = event.damagingEntity;
+  if (!e?.isValid || !player || player.typeId !== "minecraft:player") return;
+  if (!e.matches({ families: [FAMILY] })) return;
+  let mode = "";
+  try { mode = String(player.getGameMode()).toLowerCase(); } catch {}
+  const drop = (mode === "survival" && BREAK_IN_SURVIVAL) || (mode === "adventure" && BREAK_IN_ADVENTURE);
+  dbg("painting hit", { typeId: e.typeId, mode, drop });
+  if (mode !== "creative" && !drop) return;
+  if (drop) {
+    try {
+      e.dimension.spawnItem(new ItemStack(e.typeId + ITEM_SUFFIX, 1), e.location);
+    } catch (err) {
+      dbg("drop failed", { error: String(err) });
+    }
+  }
+  e.remove();
 });
 `;
 }

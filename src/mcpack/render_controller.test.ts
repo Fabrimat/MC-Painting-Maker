@@ -12,5 +12,7 @@ describe('buildRenderController', () => {
     expect(j.render_controllers[rcName].textures).toEqual(['Texture.default']);
     expect(j.render_controllers[rcName].materials).toEqual([{ '*': 'Material.default' }]);
     expect(j.render_controllers[rcName].part_visibility).toEqual([{ back: false }]);
+    // No red flash when hit.
+    expect(j.render_controllers[rcName].is_hurt_color).toEqual({ r: 0, g: 0, b: 0, a: 0 });
   });
 });

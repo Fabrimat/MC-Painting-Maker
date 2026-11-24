@@ -11,6 +11,8 @@ export function buildBackRenderController() {
         part_visibility: [{ front: false }],
         materials: [{ '*': 'Material.back' }],
         textures: ['Texture.back'],
+        // Transparent hurt tint: no red flash when a player hits the painting.
+        is_hurt_color: { r: 0, g: 0, b: 0, a: 0 },
       },
     },
   };

@@ -13,6 +13,8 @@ export function buildRenderController(p: Painting) {
         part_visibility: [{ back: false }],
         materials: [{ '*': 'Material.default' }],
         textures: ['Texture.default'],
+        // Transparent hurt tint: no red flash when a player hits the painting.
+        is_hurt_color: { r: 0, g: 0, b: 0, a: 0 },
       },
     },
   };
