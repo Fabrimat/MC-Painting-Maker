@@ -114,7 +114,31 @@ safeSubscribe("afterItemUseOn", world.afterEvents && world.afterEvents.itemUseOn
   if (!stack || !isPlacerItem(stack.typeId)) return;
   dbg("afterItemUseOn (post-spawn, diagnostic only)", { face: String(event.blockFace) });
 });
-
+${debug ? `
+// Debug-only hit diagnostics: tell whether a player's swing reached the
+// painting entity (entityHitEntity/entityHurt) or went through it to the
+// block behind (entityHitBlock), and whether the despawn actually ran.
+const fmtV = (v) => v ? { x: +v.x.toFixed(3), y: +v.y.toFixed(3), z: +v.z.toFixed(3) } : null;
+safeSubscribe("entityHitEntity", world.afterEvents && world.afterEvents.entityHitEntity, (event) => {
+  const t = event.hitEntity;
+  dbg("entityHitEntity", { by: event.damagingEntity && event.damagingEntity.typeId, target: t && t.typeId, at: t && t.isValid ? fmtV(t.location) : null });
+});
+safeSubscribe("entityHitBlock", world.afterEvents && world.afterEvents.entityHitBlock, (event) => {
+  if (!event.damagingEntity || event.damagingEntity.typeId !== "minecraft:player") return;
+  const b = event.hitBlock;
+  dbg("entityHitBlock (swing missed any entity)", { block: b && b.typeId, at: b ? fmtV(b.location) : null, face: String(event.blockFace) });
+});
+safeSubscribe("entityHurt", world.afterEvents && world.afterEvents.entityHurt, (event) => {
+  const e = event.hurtEntity;
+  if (!e || !e.isValid || !e.matches({ families: [FAMILY] })) return;
+  dbg("entityHurt", { typeId: e.typeId, cause: String(event.damageSource && event.damageSource.cause) });
+});
+safeSubscribe("entityRemove", world.beforeEvents && world.beforeEvents.entityRemove, (event) => {
+  const e = event.removedEntity;
+  if (!e || !e.matches({ families: [FAMILY] })) return;
+  dbg("entityRemove", { typeId: e.typeId, at: fmtV(e.location) });
+});
+` : ''}
 function takeIntentFor(entity) {
   if (intents.size === 0) return null;
   const now = Date.now();
@@ -144,6 +168,20 @@ function takeIntentFor(entity) {
   return bestVal;
 }
 
+// Ids of the oriented replacements spawned below, so their own entitySpawn
+// event is ignored (the mark_variant check is the fallback when the event
+// fires before spawnEntity returns).
+const replacements = new Set();
+
+function markVariantOf(entity) {
+  try {
+    const c = entity.getComponent("minecraft:mark_variant");
+    return c ? c.value : 0;
+  } catch {
+    return 0;
+  }
+}
+
 safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn, (event) => {
   const e = event.entity;
   // The entity may already have been removed by the time this handler runs
@@ -154,6 +192,10 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
   // item) never reach the debug logger - the chat would be unreadable.
   if (!e.matches({ families: [FAMILY] })) return;
   if (!e.isValid) return;
+  // Already oriented (our own replacement below, or /summon with an event):
+  // nothing to do. Checked BEFORE takeIntentFor so a replacement spawn can
+  // never steal another player's pending intent.
+  if (replacements.delete(e.id) || markVariantOf(e) > 0) return;
   const r = e.getRotation();
   const snappedY = Math.round(r.y / 90) * 90;
   const intent = takeIntentFor(e);
@@ -195,8 +237,24 @@ safeSubscribe("entitySpawn", world.afterEvents && world.afterEvents.entitySpawn,
   const dir = DIRS[d];
   const eventName = "set_oriented_" + surface + "_" + dir;
   if (!e.isValid) return;
-  e.triggerEvent(eventName);
-  dbg("triggered " + eventName, { surface, dir, face: intent ? String(intent.face) : null });
+  // custom_hit_test is sent to clients only with the entity's initial spawn
+  // data: a component group added after the spawn changes the server-side
+  // state but the client - which decides what the player's swing hits -
+  // never sees the new hitboxes (verified in-game). So instead of
+  // triggering the event on the placer-spawned entity, spawn a replacement
+  // with the orientation event applied AT spawn, and drop the original.
+  try {
+    const copy = e.dimension.spawnEntity(e.typeId, e.location, { initialRotation: 0, spawnEvent: eventName });
+    replacements.add(copy.id);
+    e.remove();
+    dbg("respawned with " + eventName, { surface, dir, face: intent ? String(intent.face) : null });
+  } catch (err) {
+    // Older API without spawn options: orient in place (hitbox will only
+    // reach clients after the entity is re-sent, e.g. on chunk reload).
+    if (!e.isValid) return;
+    e.triggerEvent(eventName);
+    dbg("respawn failed, triggered " + eventName + " in place", { error: String(err) });
+  }
 });
 `;
 }

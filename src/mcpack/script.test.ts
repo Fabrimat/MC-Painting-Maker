@@ -179,6 +179,22 @@ describe('buildMainJs', () => {
     expect(code).toContain('dbg("intent stored"');
     expect(code).toContain('dbg("painting spawned"');
     expect(code).toContain('dbg("setRotation"');
-    expect(code).toMatch(/dbg\("triggered " \+ eventName/);
+    expect(code).toMatch(/dbg\("respawned with " \+ eventName/);
+    // Hit diagnostics are debug-only.
+    expect(code).toContain('dbg("entityHitBlock (swing missed any entity)"');
+    expect(buildMainJs('a')).not.toContain('entityHitBlock');
+  });
+
+  it('respawns the placed painting with the orientation event applied at spawn', () => {
+    // custom_hit_test only reaches clients with the initial spawn data, so a
+    // group added afterwards leaves the painting unclickable (seen in-game).
+    const code = buildMainJs('a');
+    expect(code).toContain('e.dimension.spawnEntity(e.typeId, e.location, { initialRotation: 0, spawnEvent: eventName })');
+    expect(code).toContain('e.remove()');
+    // The replacement's own spawn event must not loop or consume intents:
+    // the guard runs before takeIntentFor.
+    const guard = code.indexOf('if (replacements.delete(e.id) || markVariantOf(e) > 0) return;');
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(code.indexOf('const intent = takeIntentFor(e)'));
   });
 });
